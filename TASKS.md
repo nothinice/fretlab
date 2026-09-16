@@ -34,7 +34,7 @@ This file is the shared handoff between Danila, Claude, and Codex.
 - Scale fingering modes are removed when an arpeggio is selected.
 - Playable Shape follows one exact ascending octave, begins on the chosen root string,
   stays within five frets, and carries an explicit note order used by playback.
-- Compact and Across Strings are guaranteed to use different fretboard routes when
+- Compact and Alternative are guaranteed to use different fretboard routes when
   a second comfortable route exists; unavailable alternatives are disabled rather than duplicated.
 
 ## Later roadmap
@@ -42,7 +42,7 @@ This file is the shared handoff between Danila, Claude, and Codex.
 - Exact Popov/CAGED E, D, C, A, and G chord-shape templates with verified routes.
 - A CAGED/Chord Shapes view alongside the simpler root-string Playable Shape.
 - String-set arpeggios on 6–5–4, 5–4–3, 4–3–2, and 3–2–1.
-- Technique-specific sweep/economy-picking routes.
+- Technique-specific Across Strings and sweep/economy-picking routes.
 - Descending routes, two-octave routes, and alternative starting positions for the same string.
 - Arpeggio + Tensions: show Main/Shared/Tension notes around a selected chord.
 - Scale-path comparison for Main/Tension Octave Shape and Playable Run.
