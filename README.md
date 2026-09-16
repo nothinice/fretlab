@@ -33,7 +33,7 @@ free to open one.
 - Presets: diatonic modes, common scales, all 15 of Allan Holdsworth's
   "usable scales"
 - Chord harmonization (triads/7th chords) with a separate arpeggio mode
-- Playable Shape builds ordered one-octave Compact and Across Strings routes from a root on string 6, 5, 4, or 3
+- Playable Shape builds two ergonomic one-octave routes (Compact and Alternative) from a root on string 6, 5, 4, or 3
 - Fretboard area selection (whole neck / fret ranges), Octave Shape and
   Playable Run diagonal patterns across the whole neck
 - Two-scale comparison with Main Scale, Shared Notes, and Tension Notes
