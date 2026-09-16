@@ -941,7 +941,7 @@ function render(){
             state.selectedChordId = id; state.selectedChordPcs = chord.pcs.slice();
             state.selectedChordLabel = chord.label;
             state.selectedChordQuality = detectChordQuality(chord.pcs);
-            state.viewMode = 'whole';
+            state.viewMode = 'arpeggioShape';
           }
           render();
         });
