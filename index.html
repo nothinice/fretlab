@@ -1,0 +1,1110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fretboard Engine — Formula Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F3EEE3; --panel:#FFFFFF; --ink:#241E19; --muted:#8A8073;
+    --wood:#D8C9A8; --wood-dark:#C3B08A; --brass:#A8672B; --teal:#3E5C55;
+    --border:#DCD2BC; --string:#6B6357; --fret-wire:#A79C87; --danger:#B3453A;
+    --warn:#8A6A1E; --warn-bg:#F3E6C4;
+    --ov-outside:#B5651D; --ov-common:#3B5BA5;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#1B1714; --panel:#241E19; --ink:#EDE7DA; --muted:#9C948A;
+      --wood:#3B2A20; --wood-dark:#2C1E16; --brass:#D68C4C; --teal:#6FA093;
+      --border:#3A3128; --string:#D8D2C4; --fret-wire:#8F8672; --danger:#D97C6F;
+      --warn:#E3C878; --warn-bg:#3A2F16;
+      --ov-outside:#E08A45; --ov-common:#7C97D6;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#1B1714; --panel:#241E19; --ink:#EDE7DA; --muted:#9C948A;
+    --wood:#3B2A20; --wood-dark:#2C1E16; --brass:#D68C4C; --teal:#6FA093;
+    --border:#3A3128; --string:#D8D2C4; --fret-wire:#8F8672; --danger:#D97C6F;
+    --warn:#E3C878; --warn-bg:#3A2F16;
+    --ov-outside:#E08A45; --ov-common:#7C97D6;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:'IBM Plex Sans', system-ui, sans-serif;
+    padding:28px 20px 60px;
+  }
+  button{ font-family:inherit; -webkit-appearance:none; appearance:none; margin:0; }
+  button:focus-visible{ outline:2px solid var(--teal); outline-offset:2px; }
+  .wrap{max-width:980px; margin:0 auto;}
+  h1{
+    font-family:'Fraunces', Georgia, serif; font-weight:600; font-size:28px;
+    margin:0 0 4px; letter-spacing:-0.01em;
+  }
+  .sub{color:var(--muted); font-size:14px; margin:0 0 28px; max-width:60ch; line-height:1.5;}
+
+  .controls{
+    display:grid; grid-template-columns: repeat(auto-fit, minmax(160px,1fr));
+    gap:14px; background:var(--panel); border:1px solid var(--border);
+    border-radius:10px; padding:18px; margin-bottom:16px;
+  }
+  label{display:block; font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin-bottom:6px;}
+  select, input[type=text], input[type=number]{
+    width:100%; font-size:15px; padding:9px 10px; border-radius:6px;
+    border:1px solid var(--border); background:var(--bg); color:var(--ink);
+    font-family:'IBM Plex Mono', monospace;
+  }
+  select{font-family:'IBM Plex Sans', sans-serif;}
+  input:focus-visible, select:focus-visible{outline:2px solid var(--teal); outline-offset:1px;}
+
+  .pill-row{display:flex; gap:5px; margin-bottom:8px; flex-wrap:wrap;}
+  .pill{
+    flex:1; min-width:38px; text-align:center; padding:10px 4px; border-radius:7px;
+    border:1px solid var(--border); background:var(--panel); color:var(--muted);
+    font-family:'IBM Plex Mono',monospace; font-size:12px; font-weight:600; cursor:pointer;
+    user-select:none;
+  }
+  .pill.black{background:var(--wood-dark); color:var(--wood);}
+  .pill.active{background:var(--teal); color:#fff; border-color:var(--teal);}
+  .pill.active.root-pill{background:var(--brass); border-color:var(--brass);}
+  .hint{color:var(--muted); font-size:12px; margin:0 0 22px; line-height:1.5;}
+
+  .toggles{display:flex; gap:18px; align-items:center; flex-wrap:wrap; margin-bottom:18px;}
+  .toggle-group{
+    display:inline-flex; border:1px solid var(--border); border-radius:8px; overflow:hidden;
+  }
+  .toggle-group button{
+    background:var(--panel); color:var(--muted); border:none; padding:8px 14px;
+    font-size:13px; font-family:'IBM Plex Sans',sans-serif; cursor:pointer;
+  }
+  .toggle-group button.active{background:var(--teal); color:#fff;}
+  .play-btn{
+    padding:8px 16px; border-radius:8px; border:1px solid var(--brass); background:var(--brass);
+    color:#211408; font-weight:600; font-size:13px; cursor:pointer; font-family:'IBM Plex Sans',sans-serif;
+  }
+  .play-btn:hover{opacity:.85;}
+  .play-btn:disabled{opacity:.4; cursor:not-allowed;}
+  .play-btn.outside{border-color:var(--ov-outside); background:var(--ov-outside); color:#241505;}
+
+  .overlay-toggle-row{margin-bottom:14px;}
+  .overlay-btn{
+    padding:8px 16px; border-radius:8px; border:1px solid var(--teal); background:var(--panel);
+    color:var(--teal); font-weight:600; font-size:13px; cursor:pointer; font-family:'IBM Plex Sans',sans-serif;
+  }
+  .overlay-btn.active{background:var(--teal); color:#fff;}
+  .overlay-panel{
+    background:var(--panel); border:1px solid var(--border); border-radius:10px;
+    padding:16px; margin-bottom:16px;
+  }
+  .overlay-grid{display:grid; grid-template-columns: repeat(auto-fit, minmax(160px,1fr)); gap:14px; margin-bottom:12px;}
+  .legend{display:flex; gap:16px; flex-wrap:wrap; font-size:12px; color:var(--muted); margin-top:8px;}
+  .legend-item{display:flex; align-items:center; gap:6px;}
+  .swatch{width:14px; height:14px; border-radius:50%; display:inline-block; border:1px solid rgba(0,0,0,.2);}
+  .sw-inside{background:var(--teal);} .sw-outside{background:var(--ov-outside);}
+  .sw-common{background:var(--ov-common);} .sw-root{background:var(--panel); box-shadow:0 0 0 2px var(--ink) inset;}
+  .overlay-lists{display:flex; gap:24px; flex-wrap:wrap; font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--muted); margin-top:10px;}
+
+  .readout{
+    display:flex; flex-direction:column; gap:6px; margin-bottom:22px; font-family:'IBM Plex Mono',monospace;
+    font-size:13px; color:var(--muted);
+  }
+  .readout strong{color:var(--ink); font-weight:600;}
+  .err{color:var(--danger); font-size:13px; margin-bottom:14px; font-family:'IBM Plex Mono',monospace; padding:10px 12px; border:1px solid var(--danger); border-radius:8px;}
+  .warn{color:var(--warn); font-size:13px; margin-bottom:14px; font-family:'IBM Plex Mono',monospace; padding:10px 12px; border:1px solid var(--warn); background:var(--warn-bg); border-radius:8px;}
+
+  .board-outer{
+    background:var(--wood-dark); border-radius:10px; padding:20px 16px 26px;
+    overflow-x:auto;
+  }
+  .board{
+    display:grid; min-width:760px;
+  }
+  .fret-label{
+    font-family:'IBM Plex Mono',monospace; font-size:11px;
+    color:var(--wood); text-align:center; padding-bottom:6px;
+  }
+  .open-label{
+    display:flex; align-items:center; justify-content:center;
+    font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--wood);
+  }
+  .cell{
+    position:relative; height:46px; border-bottom:2px solid var(--fret-wire);
+    border-right:1px solid rgba(0,0,0,.15);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .cell.nut{border-right:3px solid var(--wood);}
+  .cell.dimmed{opacity:.28;}
+  .string-line{
+    position:absolute; left:0; right:0; top:50%; height:1px;
+    background:var(--string); transform:translateY(-50%); z-index:0;
+  }
+  .marker-dot{
+    position:absolute; bottom:4px; width:6px; height:6px; border-radius:50%;
+    background:var(--wood); opacity:.55; left:50%; transform:translateX(-50%);
+  }
+  .note{
+    position:relative; z-index:1; width:28px; height:28px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+    font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:600;
+    background:#EFE7D6; color:#241E19; border:1px solid rgba(0,0,0,.12);
+  }
+  .note:active{ transform: scale(0.88); }
+  .note.root{ background:var(--brass); color:#211408; font-weight:700; box-shadow:0 0 0 2px rgba(0,0,0,.15); }
+  .note.ov-inside{ background:var(--teal); color:#fff; }
+  .note.ov-outside{ background:var(--ov-outside); color:#241505; }
+  .note.ov-common{ background:var(--ov-common); color:#fff; }
+  .note.ov-is-root{ box-shadow:0 0 0 2px var(--ink), 0 0 0 4px var(--wood); }
+
+  .chords-section{margin-top:24px;}
+  .chords-section h2{font-family:'Fraunces',serif; font-size:16px; font-weight:600; margin:0 0 10px;}
+  .chip-row{display:flex; flex-wrap:wrap; gap:6px;}
+  .chip{
+    padding:6px 10px; border-radius:8px; border:1px solid var(--border);
+    background:var(--panel); color:var(--ink); font-family:'IBM Plex Mono',monospace; font-size:13px;
+  }
+  .chip.clickable{cursor:pointer;}
+  .chip.clickable:hover{border-color:var(--teal);}
+  .chip.active{background:var(--teal); color:#fff; border-color:var(--teal);}
+  .chip.disabled{opacity:.45; cursor:not-allowed;}
+  .range-controls{display:flex; gap:8px; align-items:center; margin-top:8px; flex-wrap:wrap;}
+  .range-controls input[type=number]{width:70px;}
+  .range-controls label{margin:0; display:inline;}
+
+  .presets{margin-top:22px;}
+  .presets h2{font-family:'Fraunces',serif; font-size:16px; font-weight:600; margin:0 0 10px;}
+  .preset-grid{display:flex; flex-wrap:wrap; gap:6px;}
+  .preset-btn{
+    font-size:12px; padding:6px 10px; border-radius:20px; border:1px solid var(--border);
+    background:var(--panel); color:var(--ink); cursor:pointer; font-family:'IBM Plex Sans',sans-serif;
+  }
+  .preset-btn:hover{border-color:var(--teal);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Formula Engine — fretboard prototype</h1>
+  <p class="sub">Root + interval formula → notes, spelled by scale degree (not just nearest sharp/flat), rendered live on the fretboard. Type any formula: <span style="font-family:'IBM Plex Mono',monospace">1 2 b3 4 5 6 7</span>, <span style="font-family:'IBM Plex Mono',monospace">1-b3-5-bb7</span>, whatever.</p>
+
+  <div class="controls">
+    <div>
+      <label for="root">Root <span id="rootLabelTag"></span></label>
+      <select id="root"></select>
+    </div>
+    <div style="grid-column: span 2;">
+      <label for="formula">Formula <span id="formulaLabelTag"></span></label>
+      <input type="text" id="formula" value="1 2 b3 4 5 6 7">
+    </div>
+  </div>
+
+  <div class="pill-row" id="pillRow" role="group" aria-label="Chromatic degree picker"></div>
+  <p class="hint">Click a degree above to add/remove it — the text field and fretboard update together. Or type formulas directly: spaces, dashes or commas all work.</p>
+
+  <div class="toggles">
+    <div class="toggle-group" id="displayToggle" role="group" aria-label="Notes or degrees">
+      <button data-mode="notes" class="active" aria-pressed="true">Notes</button>
+      <button data-mode="degrees" aria-pressed="false">Degrees</button>
+    </div>
+    <button id="playBtn" class="play-btn">▶ Play</button>
+    <button id="playInsideBtn" class="play-btn" style="display:none;">▶ Play Inside</button>
+    <button id="playOutsideBtn" class="play-btn outside" style="display:none;">▶ Play Outside</button>
+  </div>
+
+  <div class="overlay-toggle-row">
+    <button id="overlayToggleBtn" class="overlay-btn" aria-pressed="false">Inside/Outside Overlay</button>
+  </div>
+
+  <div class="overlay-panel" id="overlayPanel" style="display:none;">
+    <div class="overlay-grid">
+      <div>
+        <label for="outsideRoot">Outside Root</label>
+        <select id="outsideRoot"></select>
+      </div>
+      <div style="grid-column: span 2;">
+        <label for="outsideFormula">Outside Formula</label>
+        <input type="text" id="outsideFormula" value="1 b2 b3 3 b5 5 6 b7">
+      </div>
+    </div>
+    <div class="legend" aria-hidden="true">
+      <span class="legend-item"><span class="swatch sw-inside"></span> Inside only</span>
+      <span class="legend-item"><span class="swatch sw-outside"></span> Outside only</span>
+      <span class="legend-item"><span class="swatch sw-common"></span> Common tone</span>
+      <span class="legend-item"><span class="swatch sw-root"></span> Root of Inside and/or Outside</span>
+    </div>
+    <div class="overlay-lists" id="overlayLists"></div>
+  </div>
+
+  <div id="errorBox" class="err" style="display:none;" role="alert"></div>
+  <div id="warnBox" class="warn" style="display:none;" role="status"></div>
+
+  <div class="readout" id="readout"></div>
+
+  <div class="chip-row" id="viewModeRow" role="group" aria-label="Visible fretboard area" style="margin-bottom:6px;"></div>
+  <div class="range-controls" id="customRangeControls" style="display:none;">
+    <label for="rangeFromInput" style="display:inline; margin:0;">From fret</label>
+    <input type="number" id="rangeFromInput" min="0" max="15" value="0">
+    <label for="rangeToInput" style="display:inline; margin:0;">To fret</label>
+    <input type="number" id="rangeToInput" min="0" max="15" value="4">
+  </div>
+  <p class="hint" id="octaveShapeWarning" style="display:none;"></p>
+
+  <div class="board-outer">
+    <div class="board" id="board"></div>
+  </div>
+
+  <div class="chords-section" id="chordsSection">
+    <h2 id="triadsHeading">Triads</h2>
+    <div class="chip-row" id="triadsRow"></div>
+    <h2 style="margin-top:16px;" id="tetradsHeading">Four-note chords</h2>
+    <div class="chip-row" id="tetradsRow"></div>
+    <p class="hint" style="margin-top:8px;" id="harmonizationHint"></p>
+  </div>
+
+  <div class="presets">
+    <h2>Diatonic modes</h2>
+    <div class="preset-grid" id="presetsDiatonic"></div>
+    <h2 style="margin-top:16px;">Other scales</h2>
+    <div class="preset-grid" id="presetsOther"></div>
+    <h2 style="margin-top:16px;">Allan Holdsworth's 15 Usable Scales</h2>
+    <div class="preset-grid" id="presetsHoldsworth"></div>
+  </div>
+</div>
+
+<script>
+const LETTERS = ['C','D','E','F','G','A','B'];
+const NATURAL_PC = {C:0,D:2,E:4,F:5,G:7,A:9,B:11};
+const DEGREE_NATURAL = {1:0,2:2,3:4,4:5,5:7,6:9,7:11};
+const ACC_SYMBOL = {'-2':'bb','-1':'b','0':'','1':'#','2':'##'};
+
+const TRIAD_QUALITY = { '3,7':'m', '4,7':'maj', '3,6':'dim', '4,8':'aug', '2,7':'sus2', '5,7':'sus4' };
+// Fixed: '2,7,10' has a 2nd and a 5th and a b7, but NO 4th — calling it
+// "9sus4" was wrong (there's nothing to "sus" a 4th into). It's a dominant
+// 7th with the 3rd replaced by the 2nd: 7sus2. Also renamed '4,6,11' to
+// maj7b5 for naming consistency with the '4,6,10' -> 7b5 entry above it.
+const TETRAD_QUALITY = {
+  '3,7,10':'m7', '4,7,11':'maj7', '4,7,10':'7', '3,6,10':'m7b5', '3,6,9':'dim7',
+  '3,7,11':'mMaj7', '4,7,9':'6', '3,7,9':'m6', '4,8,11':'maj7#5', '4,8,10':'7#5',
+  '4,6,10':'7b5', '4,6,11':'maj7b5', '5,7,10':'7sus4', '2,7,10':'7sus2'
+};
+function nameChord(rootNote, otherNotes){
+  const key = otherNotes.map(n => ((n.semitone - rootNote.semitone) % 12 + 12) % 12).sort((a,b)=>a-b).join(',');
+  const table = otherNotes.length === 2 ? TRIAD_QUALITY : TETRAD_QUALITY;
+  const quality = table[key];
+  if(quality) return rootNote.noteName + quality;
+  return rootNote.noteName + '(' + [rootNote, ...otherNotes].map(n=>n.noteName).join(' ') + ')';
+}
+// Generalized harmonization: stack every other scale tone, wrapping by the
+// scale's own length (not by 7) — this is what makes it work for 6/8/9-note
+// scales, not just standard diatonic ones. For exactly-7-note scales this
+// produces standard tertian triads/7th chords; the caller decides which
+// heading/framing to show based on note count (see render()).
+function harmonizeScale(uniqueNotesSorted, size){
+  const n = uniqueNotesSorted.length;
+  if(n < size) return [];
+  const chords = [];
+  for(let start=0; start<n; start++){
+    const idxs = [];
+    for(let k=0; k<size; k++) idxs.push((start + 2*k) % n);
+    if(new Set(idxs).size < size) continue;
+    const notes = idxs.map(i => uniqueNotesSorted[i]);
+    chords.push({ label: nameChord(notes[0], notes.slice(1)), pcs: notes.map(nt => nt.pc) });
+  }
+  return chords;
+}
+function buildAliasMap(chords){
+  const map = new Map();
+  chords.forEach(c => {
+    const key = [...c.pcs].sort((a,b)=>a-b).join(',');
+    if(!map.has(key)) map.set(key, []);
+    map.get(key).push(c.label);
+  });
+  return map;
+}
+
+const ROOTS = [
+  {name:'C',pc:0,letter:'C'},
+  {name:'C#',pc:1,letter:'C'}, {name:'Db',pc:1,letter:'D'},
+  {name:'D',pc:2,letter:'D'},
+  {name:'D#',pc:3,letter:'D'}, {name:'Eb',pc:3,letter:'E'},
+  {name:'E',pc:4,letter:'E'},
+  {name:'F',pc:5,letter:'F'},
+  {name:'F#',pc:6,letter:'F'}, {name:'Gb',pc:6,letter:'G'},
+  {name:'G',pc:7,letter:'G'},
+  {name:'G#',pc:8,letter:'G'}, {name:'Ab',pc:8,letter:'A'},
+  {name:'A',pc:9,letter:'A'},
+  {name:'A#',pc:10,letter:'A'}, {name:'Bb',pc:10,letter:'B'},
+  {name:'B',pc:11,letter:'B'}
+];
+function findRootIndex(name){ return ROOTS.findIndex(r => r.name === name); }
+
+const OPEN_STRINGS_TOP_TO_BOTTOM = [
+  {label:'e', pc:4, midi:64}, {label:'B', pc:11, midi:59}, {label:'G', pc:7, midi:55},
+  {label:'D', pc:2, midi:50}, {label:'A', pc:9, midi:45}, {label:'E', pc:4, midi:40}
+];
+const FRET_COUNT = 15;
+const MARKER_FRETS = new Set([3,5,7,9,12,15]);
+const DOUBLE_MARKER_FRETS = new Set([12]);
+
+const PRESETS_DIATONIC = [
+  ['Ionian / Major','1 2 3 4 5 6 7'], ['Dorian','1 2 b3 4 5 6 b7'],
+  ['Phrygian','1 b2 b3 4 5 b6 b7'], ['Lydian','1 2 3 #4 5 6 7'],
+  ['Mixolydian','1 2 3 4 5 6 b7'], ['Aeolian / Nat. Minor','1 2 b3 4 5 b6 b7'],
+  ['Locrian','1 b2 b3 4 b5 b6 b7']
+];
+const PRESETS_OTHER = [
+  ['Harmonic Minor','1 2 b3 4 5 b6 7'], ['Melodic Minor','1 2 b3 4 5 6 7'],
+  ['Major Pentatonic','1 2 3 5 6'], ['Minor Pentatonic','1 b3 4 5 b7'],
+  ['Blues','1 b3 4 b5 5 b7'], ['Whole Tone','1 2 3 #4 #5 b7'],
+  ['Phrygian Dominant','1 b2 3 4 5 b6 b7'], ['Lydian Dominant','1 2 3 #4 5 6 b7'],
+  ['Dim. whole-half','1 2 b3 4 b5 b6 6 7'], ['Dim. half-whole','1 b2 b3 3 b5 5 6 b7']
+];
+const PRESETS_HOLDSWORTH = [
+  ['Dorian','D','1 2 b3 4 5 6 b7'],
+  ['Melodic Minor','D','1 2 b3 4 5 6 7'],
+  ['Harmonic Minor','A','1 2 b3 4 5 b6 7'],
+  ['Melodic Minor #4','A','1 2 b3 #4 5 6 7'],
+  ['Dominant Diminished (M2)','G','1 b2 b3 3 #4 5 6 b7'],
+  ['Jazz Major','Bb','1 2 3 4 5 b6 6 7'],
+  ['Jazz Dominant','C','1 2 3 4 5 6 b7 7'],
+  ['Bebop Dorian','B','1 2 b3 4 5 6 b7 7'],
+  ['Bebop Melodic Minor','A','1 2 b3 4 5 b6 6 7'],
+  ['Tcherepnin (M3)','C','1 2 b3 3 #4 5 b6 b7 7'],
+  ['Jazz Minor (add #4)','Db','1 2 b3 4 #4 5 6 7'],
+  ['Jazz Dominant (add b3, nat7)','C','1 2 b3 3 4 5 6 b7 7'],
+  ['Jazz Major (add b3, b6)','C','1 2 b3 3 4 5 b6 6 7'],
+  ['Mixolydian #9','C','1 b3 3 4 5 6 b7'],
+  ['Whole Tone','F','1 2 3 #4 #5 b7']
+];
+
+const DEGREE_PILLS = [
+  {semitone:0, token:'1'}, {semitone:1, token:'b2'}, {semitone:2, token:'2'},
+  {semitone:3, token:'b3'}, {semitone:4, token:'3'}, {semitone:5, token:'4'},
+  {semitone:6, token:'b5'}, {semitone:7, token:'5'}, {semitone:8, token:'b6'},
+  {semitone:9, token:'6'}, {semitone:10, token:'b7'}, {semitone:11, token:'7'}
+];
+function tokenSemitoneMod12(tok){
+  const p = parseToken(tok);
+  if(!p) return null;
+  const baseDegree = ((p.degree - 1) % 7) + 1;
+  return ((DEGREE_NATURAL[baseDegree] + p.acc) % 12 + 12) % 12;
+}
+function semitoneSetKey(formulaText){
+  const set = new Set(formulaText.split(/[\s,\-]+/).filter(Boolean).map(tokenSemitoneMod12).filter(s => s !== null));
+  return [...set].sort((a,b)=>a-b).join(',');
+}
+
+const DIATONIC_KEYS = PRESETS_DIATONIC.map(([name, formula]) => ({name, key: semitoneSetKey(formula)}));
+const OTHER_KEYS = PRESETS_OTHER.map(([name, formula]) => ({name, key: semitoneSetKey(formula)}));
+const HOLDSWORTH_KEYS = PRESETS_HOLDSWORTH.map(([name, root, formula]) => ({name: name + ' [Holdsworth]', key: semitoneSetKey(formula)}));
+const ALL_NAMED_SCALES = [...DIATONIC_KEYS, ...OTHER_KEYS, ...HOLDSWORTH_KEYS];
+
+let state = {
+  root: findRootIndex('A'), formula: '1 2 b3 4 5 6 7', mode: 'notes',
+  selectedChordId: null, selectedChordPcs: null,
+  viewMode: 'whole', // 'whole' | 'range' | 'octaveShape' | 'playableRun'
+  rangePreset: null, // '0-4' | '5-9' | '10-15' | 'custom' | null
+  rangeFrom: 0, rangeTo: 4,
+  overlayEnabled: false,
+  outsideRoot: findRootIndex('A'), outsideFormula: '1 b2 b3 3 b5 5 6 b7'
+};
+let currentPlayableMidi = [];
+let insidePlayableMidi = [];
+let outsidePlayableMidi = [];
+let lastGoodFormulaValid = true;
+
+let audioCtx = null;
+function getAudioCtx(){
+  if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if(audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+function playMidi(midi, when, dur){
+  if(!Number.isFinite(midi)) return; // guard: never hand NaN/Infinity to Web Audio
+  const ctx = getAudioCtx();
+  const t = when !== undefined ? when : ctx.currentTime;
+  const d = dur !== undefined ? dur : 0.9;
+  const freq = 440 * Math.pow(2, (midi - 69) / 12);
+  if(!Number.isFinite(freq) || freq <= 0) return;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = 'triangle';
+  osc.frequency.value = freq;
+  gain.gain.setValueAtTime(0.0001, t);
+  gain.gain.exponentialRampToValueAtTime(0.22, t + 0.01);
+  gain.gain.exponentialRampToValueAtTime(0.0001, t + d);
+  osc.connect(gain); gain.connect(ctx.destination);
+  osc.start(t); osc.stop(t + d + 0.05);
+}
+function playSequence(midiList){
+  if(!midiList || !midiList.length) return;
+  const ctx = getAudioCtx();
+  let t = ctx.currentTime + 0.03;
+  midiList.forEach(midi => { playMidi(midi, t, 0.5); t += 0.32; });
+}
+function ascendingMidiFromPcs(pcsOrdered, firstMidi){
+  if(!pcsOrdered || !pcsOrdered.length || !Number.isFinite(firstMidi)) return [];
+  const result = [firstMidi];
+  let prev = firstMidi;
+  for(let i=1; i<pcsOrdered.length; i++){
+    let candidate = prev + (((pcsOrdered[i] - (prev % 12)) % 12 + 12) % 12);
+    if(candidate <= prev) candidate += 12;
+    result.push(candidate);
+    prev = candidate;
+  }
+  return result;
+}
+function lowestFretboardMidiForPc(pc){
+  if(!Number.isFinite(pc)) return NaN;
+  let best = Infinity;
+  OPEN_STRINGS_TOP_TO_BOTTOM.forEach(str => {
+    const fret = ((pc - str.midi) % 12 + 12) % 12;
+    const midi = str.midi + fret;
+    if(midi < best) best = midi;
+  });
+  return best;
+}
+
+// ---------- Octave Shape (geometric, "2 frets + 2 strings") ----------
+// One octave cell confined to exactly 2 adjacent strings, then repeated up
+// by exactly 2 strings each time. This is what keeps the fret shift between
+// copies small and always forward: shifting by any other string-count
+// changes how much pitch the string tuning supplies "for free", which can
+// overshoot a full octave and force the fret number backwards.
+function buildOctaveCell(targetPcs, maxFret){
+  const strings = [...OPEN_STRINGS_TOP_TO_BOTTOM].slice().reverse(); // low to high
+  const targetSet = new Set(targetPcs);
+  const rootPc = targetPcs[0];
+  let startFret = 0;
+  while(startFret <= maxFret && (strings[0].pc + startFret) % 12 !== rootPc) startFret++;
+  if(startFret > maxFret) return { cell: [], strings };
+  const startMidi = strings[0].midi + startFret;
+  const cell = [];
+  let lastMidi = startMidi - 1;
+  let stringIdx = 0, reachedOctave = false;
+  while(stringIdx < 2 && stringIdx < strings.length && !reachedOctave){
+    let f = (stringIdx === 0) ? startFret : 0;
+    let takenOnThisString = 0;
+    const capThisString = stringIdx === 0 ? 4 : Infinity;
+    while(f <= maxFret && takenOnThisString < capThisString){
+      const midi = strings[stringIdx].midi + f;
+      if(midi > startMidi + 12){ f++; continue; }
+      const pc = (strings[stringIdx].pc + f) % 12;
+      if(targetSet.has(pc) && midi > lastMidi){
+        cell.push({ stringIdx, fret: f, midi });
+        lastMidi = midi;
+        takenOnThisString++;
+        if(midi === startMidi + 12){ reachedOctave = true; break; }
+      }
+      f++;
+    }
+    stringIdx++;
+  }
+  return { cell, strings };
+}
+function computeOctaveShapePath(targetPcs, maxFret){
+  const { cell, strings } = buildOctaveCell(targetPcs, maxFret);
+  if(cell.length === 0) return { path: [], secondStringCount: 0 };
+  const secondStringCount = cell.filter(n => n.stringIdx === 1).length;
+  const path = [];
+  let k = 0;
+  while(k < 6){
+    let addedAny = false;
+    cell.forEach(note => {
+      const newStringIdx = note.stringIdx + 2 * k;
+      if(newStringIdx >= strings.length) return;
+      const newMidi = note.midi + 12 * k;
+      const newFret = newMidi - strings[newStringIdx].midi;
+      if(newFret < 0 || newFret > maxFret) return;
+      path.push({ str: strings[newStringIdx], fret: newFret });
+      addedAny = true;
+    });
+    if(!addedAny) break;
+    k++;
+  }
+  return { path, secondStringCount };
+}
+
+// ---------- Playable Run (graph search with penalties, bitmask DP) ----------
+// Every valid (string, fret) occurrence of a target pitch class, at or above
+// the root's lowest real position, is a graph node. Edges only go forward in
+// pitch (strictly ascending). Edge cost penalizes: moving to a LOWER fret
+// number, big same-string stretches, and skipping a string. We search for
+// the lowest-total-cost path that covers as many distinct scale degrees as
+// possible (bitmask of which target pitch classes have been visited),
+// rather than a greedy "take the next cheapest note" walk — this is what
+// lets it trade off a slightly worse local step for a much better run
+// overall, and reliably try to include every degree instead of stumbling
+// past ones a naive walk would skip.
+function edgeCost(a, b){
+  const fretDelta = b.fret - a.fret;
+  const stringDelta = b.stringIdx - a.stringIdx;
+  if(stringDelta === 0){
+    let cost = 6;
+    if(fretDelta > 5) cost += (fretDelta - 5) * 3;
+    return cost;
+  }
+  let cost = 1;
+  if(stringDelta < 0){
+    cost += Math.abs(stringDelta) * 5; // moving to a lower-indexed string is a real backward move
+  } else {
+    const stringSkip = stringDelta - 1;
+    if(stringSkip > 0) cost += stringSkip * 4;
+  }
+  if(fretDelta < 0) cost += Math.abs(fretDelta) * 2; // backward fret movement, penalized but allowed
+  if(Math.abs(fretDelta) > 5) cost += (Math.abs(fretDelta) - 5) * 2;
+  return cost;
+}
+function popcount(x){ let c = 0; while(x){ c += x & 1; x >>= 1; } return c; }
+function computePlayableRunPath(targetPcs, maxFret){
+  if(!targetPcs.length) return [];
+  const strings = [...OPEN_STRINGS_TOP_TO_BOTTOM].slice().reverse(); // low to high
+  const pcIndex = new Map(targetPcs.map((pc, i) => [pc, i]));
+  const rootPc = targetPcs[0];
+  let startFret = 0;
+  while(startFret <= maxFret && (strings[0].pc + startFret) % 12 !== rootPc) startFret++;
+  if(startFret > maxFret) return [];
+  const startMidi = strings[0].midi + startFret;
+
+  const candidates = [];
+  strings.forEach((str, sIdx) => {
+    for(let f = 0; f <= maxFret; f++){
+      const pc = (str.pc + f) % 12;
+      if(pcIndex.has(pc)){
+        const midi = str.midi + f;
+        if(midi >= startMidi) candidates.push({ stringIdx: sIdx, fret: f, pc, bit: 1 << pcIndex.get(pc), midi });
+      }
+    }
+  });
+  candidates.sort((a, b) => a.midi - b.midi || a.stringIdx - b.stringIdx);
+  const n = candidates.length;
+  if(!n) return [];
+
+  const startIdx = candidates.findIndex(c => c.midi === startMidi && c.pc === rootPc);
+  if(startIdx === -1) return [];
+
+  // dp[i] : Map(mask -> {cost, prevI, prevMask})
+  const dp = new Array(n);
+  for(let i = 0; i < n; i++) dp[i] = new Map();
+  dp[startIdx].set(candidates[startIdx].bit, { cost: 0, prevI: -1, prevMask: 0 });
+
+  for(let i = 0; i < n; i++){
+    for(const [mask, info] of dp[i]){
+      for(let j = i + 1; j < n; j++){
+        if(candidates[j].midi <= candidates[i].midi) continue;
+        const cost = info.cost + edgeCost(candidates[i], candidates[j]);
+        const newMask = mask | candidates[j].bit;
+        const cur = dp[j].get(newMask);
+        if(!cur || cur.cost > cost) dp[j].set(newMask, { cost, prevI: i, prevMask: mask });
+      }
+    }
+  }
+
+  let best = null;
+  for(let i = 0; i < n; i++){
+    for(const [mask, info] of dp[i]){
+      const coverage = popcount(mask);
+      // Prefer full coverage, then reaching further up the neck (this is a
+      // "run across the neck", not just "the cheapest way to touch every
+      // degree near the nut"), then lower cost as a tie-breaker.
+      const score = coverage * 100000 + candidates[i].midi * 10 - info.cost;
+      if(!best || score > best.score) best = { score, i, mask };
+    }
+  }
+  if(!best) return [];
+
+  const path = [];
+  let curI = best.i, curMask = best.mask;
+  while(curI !== -1){
+    path.push(candidates[curI]);
+    const info = dp[curI].get(curMask);
+    curI = info.prevI; curMask = info.prevMask;
+  }
+  path.reverse();
+  return path.map(c => ({ str: strings[c.stringIdx], fret: c.fret }));
+}
+
+function parseToken(tok){
+  const m = tok.match(/^(b{0,2}|#{0,2})(\d{1,2})$/i);
+  if(!m) return null;
+  const [, accStr, degStr] = m;
+  const acc = accStr[0] === 'b' ? -accStr.length : accStr.length;
+  const degree = parseInt(degStr, 10);
+  if(degree < 1) return null;
+  return {degree, acc, raw: tok};
+}
+
+function buildScale(rootPc, rootLetter, formulaText){
+  const tokens = formulaText.split(/[\s,\-]+/).filter(Boolean);
+  if(tokens.length === 0) throw new Error('Enter at least one degree, e.g. 1');
+  const rootLetterIdx = LETTERS.indexOf(rootLetter);
+  const notes = [];
+  for(const tok of tokens){
+    const parsed = parseToken(tok);
+    if(!parsed) throw new Error(`Can't parse "${tok}" — use forms like 1, b3, #4, bb7`);
+    const baseDegree = ((parsed.degree - 1) % 7) + 1;
+    const octaveShift = Math.floor((parsed.degree - 1) / 7) * 12;
+    const semitone = DEGREE_NATURAL[baseDegree] + parsed.acc + octaveShift;
+    const absolutePc = ((rootPc + semitone) % 12 + 12) % 12;
+    const letterIdx = (rootLetterIdx + (baseDegree - 1)) % 7;
+    const letter = LETTERS[letterIdx];
+    let diff = absolutePc - NATURAL_PC[letter];
+    while(diff > 6) diff -= 12;
+    while(diff < -6) diff += 12;
+    const accSymbol = ACC_SYMBOL[String(diff)];
+    const spelled = accSymbol !== undefined ? letter + accSymbol : letter + '(' + (diff>0?'+':'') + diff + ')';
+    notes.push({
+      pc: absolutePc, degreeLabel: (parsed.acc<0?'b'.repeat(-parsed.acc):'#'.repeat(parsed.acc)) + parsed.degree,
+      noteName: spelled, semitone, isRoot: parsed.degree === 1 && parsed.acc === 0
+    });
+  }
+  return notes;
+}
+
+// Detects degrees that collapse onto the same pitch class (e.g. "1 #7 8").
+// Returns null if there's no conflict, otherwise a list of {pc, notes}.
+function findPitchClassConflicts(scale){
+  const byPc = new Map();
+  scale.forEach(n => { if(!byPc.has(n.pc)) byPc.set(n.pc, []); byPc.get(n.pc).push(n); });
+  const conflicts = [...byPc.values()].filter(list => list.length > 1);
+  return conflicts.length ? conflicts : null;
+}
+
+function setBoardDimmed(dimmed){
+  document.getElementById('board').classList.toggle('dimmed-board', dimmed);
+}
+
+function render(){
+  const rootObj = ROOTS[state.root];
+  const errorBox = document.getElementById('errorBox');
+  const warnBox = document.getElementById('warnBox');
+  const playBtn = document.getElementById('playBtn');
+  const playInsideBtn = document.getElementById('playInsideBtn');
+  const playOutsideBtn = document.getElementById('playOutsideBtn');
+
+  let scale;
+  try{
+    scale = buildScale(rootObj.pc, rootObj.letter, state.formula);
+    errorBox.style.display = 'none';
+  }catch(e){
+    // Stop here entirely: don't touch the board, chords, or readout, so the
+    // last valid state stays visible instead of half-updating or crashing.
+    errorBox.style.display = 'block';
+    errorBox.textContent = e.message;
+    playBtn.disabled = true;
+    playInsideBtn.disabled = true;
+    playOutsideBtn.disabled = true;
+    updatePillHighlights();
+    return;
+  }
+  playBtn.disabled = false;
+  playInsideBtn.disabled = false;
+  playOutsideBtn.disabled = false;
+  updatePillHighlights();
+
+  const conflicts = findPitchClassConflicts(scale);
+  if(conflicts){
+    const parts = conflicts.map(list => `${list.map(n=>n.degreeLabel).join(' & ')} both land on ${list[0].noteName}`);
+    warnBox.style.display = 'block';
+    warnBox.textContent = `Heads up — some degrees share a pitch: ${parts.join('; ')}. Using one pitch per position on the fretboard; harmonization is disabled for this formula since it isn't a clean set of distinct tones.`;
+  } else {
+    warnBox.style.display = 'none';
+  }
+
+  const pcMap = new Map();
+  scale.forEach(n => { if(!pcMap.has(n.pc)) pcMap.set(n.pc, n); });
+
+  const sortedBySemitone = [...scale].sort((a,b)=>a.semitone-b.semitone);
+  const semitones = sortedBySemitone.map(n=>n.semitone);
+  let pattern = [];
+  for(let i=0;i<semitones.length;i++){
+    const next = i+1<semitones.length ? semitones[i+1] : semitones[0]+12;
+    pattern.push(next - semitones[i]);
+  }
+
+  const currentKey = [...new Set(semitones.map(s => ((s%12)+12)%12))].sort((a,b)=>a-b).join(',');
+  const matches = currentKey ? ALL_NAMED_SCALES.filter(s => s.key === currentKey).map(s => s.name) : [];
+  const matchLabel = matches.length ? matches.join(', ') : (currentKey ? 'Custom / unnamed' : '—');
+
+  const arpeggioLabel = (state.selectedChordId && !state.overlayEnabled)
+    ? ` — showing arpeggio only (${state.selectedChordPcs.length} notes, click chip again for full scale)`
+    : '';
+  const readout = document.getElementById('readout');
+  readout.innerHTML = `
+    <div>Scale: <strong>${matchLabel}</strong>${arpeggioLabel}</div>
+    <div>Notes: <strong>${sortedBySemitone.map(n=>n.noteName).join(' ')}</strong></div>
+    <div>Normalized: <strong>${sortedBySemitone.map(n=>n.degreeLabel).join('-')}</strong></div>
+    <div>Semitone pattern: <strong>${pattern.join('-')}</strong></div>
+  `;
+
+  const uniqueNotes = [...pcMap.values()].sort((a,b)=>a.semitone-b.semitone);
+  const pcsForPlayback = state.selectedChordPcs ? state.selectedChordPcs : uniqueNotes.map(n => n.pc);
+  currentPlayableMidi = ascendingMidiFromPcs(pcsForPlayback, lowestFretboardMidiForPc(pcsForPlayback[0]));
+  insidePlayableMidi = ascendingMidiFromPcs(uniqueNotes.map(n=>n.pc), lowestFretboardMidiForPc(rootObj.pc));
+
+  // ---- Harmonization: only when there are no pitch-class conflicts ----
+  const chordsSection = document.getElementById('chordsSection');
+  const harmonizationHint = document.getElementById('harmonizationHint');
+  if(conflicts){
+    chordsSection.style.opacity = '.5';
+    document.getElementById('triadsRow').innerHTML = '<div class="chip">—</div>';
+    document.getElementById('tetradsRow').innerHTML = '<div class="chip">—</div>';
+    harmonizationHint.textContent = 'Harmonization disabled: this formula has degrees that collapse onto the same pitch, so stacking thirds through it isn\'t well-defined.';
+  } else {
+    chordsSection.style.opacity = '1';
+    const triads = harmonizeScale(uniqueNotes, 3);
+    const tetrads = harmonizeScale(uniqueNotes, 4);
+    const isSevenNote = uniqueNotes.length === 7;
+    document.getElementById('triadsHeading').textContent = isSevenNote ? 'Triads (Diatonic/Tertian Harmony)' : 'Triads (Scale-step Stacks)';
+    document.getElementById('tetradsHeading').textContent = isSevenNote ? 'Four-note chords (Diatonic/Tertian Harmony)' : 'Four-note chords (Scale-step Stacks)';
+    harmonizationHint.textContent = isSevenNote
+      ? 'Standard tertian harmony: stacking thirds through a 7-note scale gives ordinary triads/7th chords.'
+      : `This scale has ${uniqueNotes.length} notes, not 7 — these are Scale-step Stacks: a generalized "every other note of the scale" structure, not traditional tertian harmony. Chords with no standard name show their notes instead of a symbol.`;
+
+    function renderChordRow(containerId, chords){
+      const row = document.getElementById(containerId);
+      row.innerHTML = '';
+      if(chords.length === 0){ row.innerHTML = '<div class="chip">—</div>'; return; }
+      const aliasMap = buildAliasMap(chords);
+      chords.forEach((chord, i) => {
+        const id = containerId + '-' + i;
+        const key = [...chord.pcs].sort((a,b)=>a-b).join(',');
+        const aliases = aliasMap.get(key).filter(l => l !== chord.label);
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'chip clickable' + (state.selectedChordId === id ? ' active' : '') + (state.overlayEnabled ? ' disabled' : '');
+        chip.disabled = state.overlayEnabled;
+        chip.setAttribute('aria-pressed', state.selectedChordId === id ? 'true' : 'false');
+        chip.textContent = chord.label;
+        if(aliases.length) chip.title = `Same notes as: ${aliases.join(', ')} (built from a different scale degree)`;
+        chip.addEventListener('click', ()=>{
+          if(state.selectedChordId === id){
+            state.selectedChordId = null; state.selectedChordPcs = null;
+          } else {
+            state.selectedChordId = id; state.selectedChordPcs = chord.pcs.slice();
+          }
+          render();
+        });
+        row.appendChild(chip);
+      });
+    }
+    renderChordRow('triadsRow', triads);
+    renderChordRow('tetradsRow', tetrads);
+  }
+
+  // ---- Visible fretboard area: Whole Neck / fret range / Octave Shape / Playable Run ----
+  const viewModeRow = document.getElementById('viewModeRow');
+  viewModeRow.innerHTML = '';
+  const modeButtons = [
+    {key:'whole', label:'Whole neck'},
+    {key:'range-0-4', label:'Frets 0–4'},
+    {key:'range-5-9', label:'Frets 5–9'},
+    {key:'range-10-15', label:'Frets 10–15'},
+    {key:'range-custom', label:'Custom range'},
+    {key:'octaveShape', label:'Octave Shape'},
+    {key:'playableRun', label:'Playable Run'}
+  ];
+  const currentModeKey = state.viewMode === 'range' ? ('range-' + (state.rangePreset || 'custom')) : state.viewMode;
+  modeButtons.forEach(m => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'chip clickable' + (currentModeKey === m.key ? ' active' : '');
+    btn.setAttribute('aria-pressed', currentModeKey === m.key ? 'true' : 'false');
+    btn.textContent = m.label;
+    btn.addEventListener('click', ()=>{
+      if(m.key === 'whole'){ state.viewMode = 'whole'; state.rangePreset = null; }
+      else if(m.key === 'octaveShape'){ state.viewMode = 'octaveShape'; }
+      else if(m.key === 'playableRun'){ state.viewMode = 'playableRun'; }
+      else {
+        const preset = m.key.replace('range-', '');
+        state.viewMode = 'range'; state.rangePreset = preset;
+        if(preset === '0-4'){ state.rangeFrom=0; state.rangeTo=4; }
+        else if(preset === '5-9'){ state.rangeFrom=5; state.rangeTo=9; }
+        else if(preset === '10-15'){ state.rangeFrom=10; state.rangeTo=15; }
+        // 'custom' leaves rangeFrom/rangeTo as whatever the number inputs hold
+      }
+      render();
+    });
+    viewModeRow.appendChild(btn);
+  });
+  document.getElementById('customRangeControls').style.display = (state.viewMode === 'range' && state.rangePreset === 'custom') ? 'flex' : 'none';
+
+  // ---- Octave Shape / Playable Run path (only relevant in those modes) ----
+  let activePath = [];
+  const octaveWarning = document.getElementById('octaveShapeWarning');
+  octaveWarning.style.display = 'none';
+  if(state.viewMode === 'octaveShape'){
+    const { path, secondStringCount } = computeOctaveShapePath(pcsForPlayback, FRET_COUNT);
+    activePath = path;
+    currentPlayableMidi = path.map(p => p.str.midi + p.fret).sort((a,b)=>a-b);
+    if(secondStringCount > 5){
+      octaveWarning.style.display = 'block';
+      octaveWarning.textContent = `This scale (${pcsForPlayback.length} notes) doesn't fit comfortably into a two-string octave shape — the second string needs ${secondStringCount} notes to complete the octave. Shown as-is rather than forcing an unplayable stretch elsewhere.`;
+    }
+  } else if(state.viewMode === 'playableRun'){
+    activePath = computePlayableRunPath(pcsForPlayback, FRET_COUNT);
+    currentPlayableMidi = activePath.map(p => p.str.midi + p.fret).sort((a,b)=>a-b);
+  }
+
+  // ---- Inside/Outside overlay data ----
+  let overlayInfo = null;
+  if(state.overlayEnabled){
+    const outRootObj = ROOTS[state.outsideRoot];
+    let outsideScale = [];
+    let outsideError = null;
+    try{ outsideScale = buildScale(outRootObj.pc, outRootObj.letter, state.outsideFormula); }
+    catch(e){ outsideError = e.message; }
+    const outsidePcMap = new Map();
+    outsideScale.forEach(n => { if(!outsidePcMap.has(n.pc)) outsidePcMap.set(n.pc, n); });
+    const insidePcs = new Set(pcMap.keys());
+    const outsidePcs = new Set(outsidePcMap.keys());
+    const commonPcs = [...insidePcs].filter(pc => outsidePcs.has(pc));
+    const insideOnlyPcs = [...insidePcs].filter(pc => !outsidePcs.has(pc));
+    const outsideOnlyPcs = [...outsidePcs].filter(pc => !insidePcs.has(pc));
+    overlayInfo = { insidePcMap: pcMap, outsidePcMap, insideRootPc: rootObj.pc, outsideRootPc: outRootObj.pc, commonPcs, insideOnlyPcs, outsideOnlyPcs, outsideError };
+    outsidePlayableMidi = outsidePcMap.size ? ascendingMidiFromPcs([...outsidePcMap.values()].sort((a,b)=>a.semitone-b.semitone).map(n=>n.pc), lowestFretboardMidiForPc(outRootObj.pc)) : [];
+
+    const listsEl = document.getElementById('overlayLists');
+    const nameFor = (pc, map) => map.has(pc) ? map.get(pc).noteName : '';
+    listsEl.innerHTML = `
+      <div><strong>Common tones</strong><br>${commonPcs.length ? commonPcs.map(pc=>nameFor(pc,pcMap)).join(' ') : '—'}</div>
+      <div><strong>Outside-only (the outside color)</strong><br>${outsideOnlyPcs.length ? outsideOnlyPcs.map(pc=>nameFor(pc,outsidePcMap)).join(' ') : '—'}</div>
+      <div><strong>Inside-only (lost when going outside)</strong><br>${insideOnlyPcs.length ? insideOnlyPcs.map(pc=>nameFor(pc,pcMap)).join(' ') : '—'}</div>
+      ${outsideError ? `<div style="color:var(--danger)">Outside formula error: ${outsideError}</div>` : ''}
+    `;
+  }
+
+  // ---- Board ----
+  const board = document.getElementById('board');
+  board.innerHTML = '';
+  board.style.gridTemplateColumns = `40px repeat(${FRET_COUNT + 1}, 1fr)`;
+
+  board.appendChild(document.createElement('div'));
+  for(let f=0; f<=FRET_COUNT; f++){
+    const lbl = document.createElement('div');
+    lbl.className = 'fret-label';
+    lbl.textContent = f;
+    board.appendChild(lbl);
+  }
+
+  const rangeActive = state.viewMode === 'range';
+  const pathActive = state.viewMode === 'octaveShape' || state.viewMode === 'playableRun';
+
+  OPEN_STRINGS_TOP_TO_BOTTOM.forEach(str => {
+    const openLbl = document.createElement('div');
+    openLbl.className = 'open-label';
+    openLbl.textContent = str.label;
+    board.appendChild(openLbl);
+
+    for(let f=0; f<=FRET_COUNT; f++){
+      const cell = document.createElement('div');
+      cell.className = 'cell' + (f === 0 ? ' nut' : '');
+      const line = document.createElement('div');
+      line.className = 'string-line';
+      cell.appendChild(line);
+
+      if(f>0 && MARKER_FRETS.has(f) && str.label === 'D'){
+        const dot = document.createElement('div');
+        dot.className = 'marker-dot';
+        cell.appendChild(dot);
+        if(DOUBLE_MARKER_FRETS.has(f)){
+          const dot2 = dot.cloneNode();
+          dot2.style.bottom = '18px';
+          cell.appendChild(dot2);
+        }
+      }
+
+      const pc = (str.pc + f) % 12;
+      const inRange = !rangeActive || (f >= state.rangeFrom && f <= state.rangeTo);
+      const inPath = !pathActive || activePath.some(p => p.str === str && p.fret === f);
+      const areaOk = inRange && inPath;
+
+      if(state.overlayEnabled && overlayInfo){
+        const inInside = overlayInfo.insidePcMap.has(pc);
+        const inOutside = overlayInfo.outsidePcMap.has(pc);
+        if(areaOk && (inInside || inOutside)){
+          const isRootMark = pc === overlayInfo.insideRootPc || pc === overlayInfo.outsideRootPc;
+          let ovClass = inInside && inOutside ? 'ov-common' : (inInside ? 'ov-inside' : 'ov-outside');
+          const label = inInside ? overlayInfo.insidePcMap.get(pc).noteName : overlayInfo.outsidePcMap.get(pc).noteName;
+          const noteEl = document.createElement('button');
+          noteEl.type = 'button';
+          noteEl.className = 'note ' + ovClass + (isRootMark ? ' ov-is-root' : '');
+          noteEl.textContent = label;
+          const midiHere = str.midi + f;
+          noteEl.setAttribute('aria-label', `${label}, fret ${f}, string ${str.label}. Play note.`);
+          noteEl.addEventListener('click', (e)=>{ e.stopPropagation(); playMidi(midiHere); });
+          cell.appendChild(noteEl);
+        }
+      } else if(pcMap.has(pc) && areaOk && (!state.selectedChordPcs || state.selectedChordPcs.includes(pc))){
+        const info = pcMap.get(pc);
+        const isChordRoot = state.selectedChordPcs ? pc === state.selectedChordPcs[0] : info.isRoot;
+        const noteEl = document.createElement('button');
+        noteEl.type = 'button';
+        noteEl.className = 'note' + (isChordRoot ? ' root' : '');
+        const label = state.mode === 'notes' ? info.noteName : info.degreeLabel;
+        noteEl.textContent = label;
+        const midiHere = str.midi + f;
+        noteEl.setAttribute('aria-label', `${info.noteName}, fret ${f}, string ${str.label}. Play note.`);
+        noteEl.addEventListener('click', (e)=>{ e.stopPropagation(); playMidi(midiHere); });
+        cell.appendChild(noteEl);
+      }
+      if(!areaOk) cell.classList.add('dimmed');
+      board.appendChild(cell);
+    }
+  });
+}
+
+function updatePillHighlights(){
+  const activeSemitones = new Set(
+    state.formula.split(/[\s,\-]+/).filter(Boolean).map(tokenSemitoneMod12).filter(s => s !== null)
+  );
+  document.querySelectorAll('#pillRow .pill').forEach(p=>{
+    const s = parseInt(p.dataset.semitone, 10);
+    p.classList.toggle('active', activeSemitones.has(s));
+    p.setAttribute('aria-pressed', activeSemitones.has(s) ? 'true' : 'false');
+  });
+}
+
+function init(){
+  const rootSel = document.getElementById('root');
+  ROOTS.forEach((r,i)=>{
+    const opt = document.createElement('option');
+    opt.value = i; opt.textContent = r.name;
+    if(i === state.root) opt.selected = true;
+    rootSel.appendChild(opt);
+  });
+  rootSel.addEventListener('change', e=>{ state.root = parseInt(e.target.value); state.selectedChordId=null; state.selectedChordPcs=null; render(); });
+
+  const formulaInput = document.getElementById('formula');
+  formulaInput.addEventListener('input', e=>{ state.formula = e.target.value; state.selectedChordId=null; state.selectedChordPcs=null; render(); });
+
+  const outsideRootSel = document.getElementById('outsideRoot');
+  ROOTS.forEach((r,i)=>{
+    const opt = document.createElement('option');
+    opt.value = i; opt.textContent = r.name;
+    if(i === state.outsideRoot) opt.selected = true;
+    outsideRootSel.appendChild(opt);
+  });
+  outsideRootSel.addEventListener('change', e=>{ state.outsideRoot = parseInt(e.target.value); render(); });
+  const outsideFormulaInput = document.getElementById('outsideFormula');
+  outsideFormulaInput.addEventListener('input', e=>{ state.outsideFormula = e.target.value; render(); });
+
+  const overlayToggleBtn = document.getElementById('overlayToggleBtn');
+  overlayToggleBtn.addEventListener('click', ()=>{
+    state.overlayEnabled = !state.overlayEnabled;
+    overlayToggleBtn.classList.toggle('active', state.overlayEnabled);
+    overlayToggleBtn.setAttribute('aria-pressed', state.overlayEnabled ? 'true' : 'false');
+    document.getElementById('overlayPanel').style.display = state.overlayEnabled ? 'block' : 'none';
+    document.getElementById('playBtn').style.display = state.overlayEnabled ? 'none' : 'inline-block';
+    document.getElementById('playInsideBtn').style.display = state.overlayEnabled ? 'inline-block' : 'none';
+    document.getElementById('playOutsideBtn').style.display = state.overlayEnabled ? 'inline-block' : 'none';
+    if(state.overlayEnabled){ state.selectedChordId = null; state.selectedChordPcs = null; if(state.viewMode==='octaveShape'||state.viewMode==='playableRun') state.viewMode='whole'; }
+    render();
+  });
+
+  document.querySelectorAll('#displayToggle button').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('#displayToggle button').forEach(b=>{ b.classList.remove('active'); b.setAttribute('aria-pressed','false'); });
+      btn.classList.add('active'); btn.setAttribute('aria-pressed','true');
+      state.mode = btn.dataset.mode;
+      render();
+    });
+  });
+
+  document.getElementById('playBtn').addEventListener('click', ()=>{ playSequence(currentPlayableMidi); });
+  document.getElementById('playInsideBtn').addEventListener('click', ()=>{ playSequence(insidePlayableMidi); });
+  document.getElementById('playOutsideBtn').addEventListener('click', ()=>{ playSequence(outsidePlayableMidi); });
+
+  const rangeFromInput = document.getElementById('rangeFromInput');
+  const rangeToInput = document.getElementById('rangeToInput');
+  function applyCustomRange(){
+    let from = parseInt(rangeFromInput.value, 10);
+    let to = parseInt(rangeToInput.value, 10);
+    if(!Number.isFinite(from)) from = 0;
+    if(!Number.isFinite(to)) to = FRET_COUNT;
+    from = Math.max(0, Math.min(FRET_COUNT, from));
+    to = Math.max(0, Math.min(FRET_COUNT, to));
+    if(from > to) to = from; // From can't exceed To
+    rangeFromInput.value = from; rangeToInput.value = to;
+    state.rangeFrom = from; state.rangeTo = to;
+    state.viewMode = 'range'; state.rangePreset = 'custom';
+    render();
+  }
+  rangeFromInput.addEventListener('change', applyCustomRange);
+  rangeToInput.addEventListener('change', applyCustomRange);
+
+  const diatonicWrap = document.getElementById('presetsDiatonic');
+  PRESETS_DIATONIC.forEach(([name, formula])=>{
+    const b = document.createElement('button');
+    b.className = 'preset-btn'; b.textContent = name;
+    b.addEventListener('click', ()=>{ formulaInput.value = formula; state.formula = formula; state.selectedChordId=null; state.selectedChordPcs=null; render(); });
+    diatonicWrap.appendChild(b);
+  });
+  const otherWrap = document.getElementById('presetsOther');
+  PRESETS_OTHER.forEach(([name, formula])=>{
+    const b = document.createElement('button');
+    b.className = 'preset-btn'; b.textContent = name;
+    b.addEventListener('click', ()=>{ formulaInput.value = formula; state.formula = formula; state.selectedChordId=null; state.selectedChordPcs=null; render(); });
+    otherWrap.appendChild(b);
+  });
+
+  const holdsworthWrap = document.getElementById('presetsHoldsworth');
+  const holdsworthDupeNotes = [];
+  PRESETS_HOLDSWORTH.forEach(([name, rootName, formula], idx)=>{
+    const key = semitoneSetKey(formula);
+    const dupe = [...DIATONIC_KEYS, ...OTHER_KEYS].find(e => e.key === key);
+    if(dupe){
+      const label = name === dupe.name ? `#${idx+1}` : `#${idx+1} (${name})`;
+      holdsworthDupeNotes.push(`${label} = ${dupe.name}`);
+      return;
+    }
+    const b = document.createElement('button');
+    b.className = 'preset-btn'; b.textContent = name;
+    b.title = `Root ${rootName}: ${formula}`;
+    b.addEventListener('click', ()=>{
+      state.root = findRootIndex(rootName);
+      rootSel.value = state.root;
+      formulaInput.value = formula; state.formula = formula;
+      state.selectedChordId=null; state.selectedChordPcs=null;
+      render();
+    });
+    holdsworthWrap.appendChild(b);
+  });
+  if(holdsworthDupeNotes.length){
+    const note = document.createElement('p');
+    note.className = 'hint';
+    note.style.marginTop = '8px';
+    note.textContent = `Same notes, not repeated as separate buttons: ${holdsworthDupeNotes.join(' · ')}.`;
+    holdsworthWrap.parentElement.appendChild(note);
+  }
+
+  const BLACK_SEMITONES = new Set([1,3,6,8,10]);
+  const pillRow = document.getElementById('pillRow');
+  DEGREE_PILLS.forEach(({semitone, token})=>{
+    const p = document.createElement('button');
+    p.type = 'button';
+    p.className = 'pill' + (BLACK_SEMITONES.has(semitone) ? ' black' : '') + (semitone === 0 ? ' root-pill' : '');
+    p.dataset.semitone = semitone;
+    p.textContent = token;
+    p.setAttribute('aria-label', `Toggle degree ${token}`);
+    p.setAttribute('aria-pressed', 'false');
+    p.addEventListener('click', ()=>{
+      const tokens = state.formula.split(/[\s,\-]+/).filter(Boolean);
+      const existingIdx = tokens.findIndex(t => tokenSemitoneMod12(t) === semitone);
+      if(existingIdx >= 0){ tokens.splice(existingIdx, 1); }
+      else { tokens.push(token); }
+      tokens.sort((a,b) => tokenSemitoneMod12(a) - tokenSemitoneMod12(b));
+      state.formula = tokens.join(' ');
+      formulaInput.value = state.formula;
+      state.selectedChordId=null; state.selectedChordPcs=null;
+      render();
+    });
+    pillRow.appendChild(p);
+  });
+
+  render();
+}
+init();
+</script>
+</body>
+</html>
