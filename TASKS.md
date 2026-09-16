@@ -34,6 +34,8 @@ This file is the shared handoff between Danila, Claude, and Codex.
 - Scale fingering modes are removed when an arpeggio is selected.
 - Playable Shape follows one exact ascending octave, begins on the chosen root string,
   stays within five frets, and carries an explicit note order used by playback.
+- Compact and Across Strings are guaranteed to use different fretboard routes when
+  a second comfortable route exists; unavailable alternatives are disabled rather than duplicated.
 
 ## Later roadmap
 
