@@ -169,6 +169,15 @@
   }
   .note:active{ transform: scale(0.88); }
   .note.root{ background:var(--brass); color:#211408; font-weight:700; box-shadow:0 0 0 2px rgba(0,0,0,.15); }
+  .note.route-note::after{
+    content:attr(data-order); position:absolute; right:-7px; top:-8px; min-width:16px; height:16px;
+    padding:0 3px; border-radius:9px; background:var(--teal); color:#fff; border:1px solid var(--panel);
+    font:600 9px/14px 'IBM Plex Mono',monospace; text-align:center;
+  }
+  .mode-banner{
+    display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
+    background:var(--panel); border:1px solid var(--border); border-radius:8px; padding:10px 12px;
+  }
   .note.ov-inside{ background:#EFE7D6; color:#241E19; }
   .note.ov-outside{ background:var(--ov-outside); color:#241505; }
   .note.ov-common{ background:var(--ov-common); color:#fff; }
@@ -280,7 +289,7 @@
 
   <div class="chip-row" id="viewModeRow" role="group" aria-label="Visible fretboard area" style="margin-bottom:6px;"></div>
   <div class="chip-row" id="overlayPathModeRow" role="group" aria-label="Scale path to display" style="display:none; margin:8px 0 6px;"></div>
-  <div class="chip-row" id="arpeggioFormRow" role="group" aria-label="Chord form" style="display:none; margin:8px 0 6px;"></div>
+  <div class="chip-row" id="arpeggioFormRow" role="group" aria-label="Arpeggio starting string" style="display:none; margin:8px 0 6px;"></div>
   <div class="range-controls" id="customRangeControls" style="display:none;">
     <label for="rangeFromInput" style="display:inline; margin:0;">From fret</label>
     <input type="number" id="rangeFromInput" min="0" max="15" value="0">
@@ -475,8 +484,8 @@ const ALL_NAMED_SCALES = [...DIATONIC_KEYS, ...OTHER_KEYS, ...HOLDSWORTH_KEYS];
 let state = {
   root: findRootIndex('A'), formula: '1 2 b3 4 5 6 7', mode: 'notes',
   selectedChordId: null, selectedChordPcs: null,
-  selectedChordLabel: null, selectedChordQuality: null, chordForm: 'E',
-  viewMode: 'whole', // 'whole' | 'range' | 'octaveShape' | 'playableRun'
+  selectedChordLabel: null, selectedChordQuality: null, arpeggioStartString: 0,
+  viewMode: 'whole', // 'whole' | 'range' | 'octaveShape' | 'playableRun' | 'arpeggioShape'
   rangePreset: null, // '0-4' | '5-9' | '10-15' | 'custom' | null
   rangeFrom: 0, rangeTo: 4,
   overlayEnabled: false,
@@ -489,7 +498,7 @@ function clearSelectedChord(){
   state.selectedChordPcs = null;
   state.selectedChordLabel = null;
   state.selectedChordQuality = null;
-  if(state.viewMode === 'chordForms') state.viewMode = 'whole';
+  if(state.viewMode === 'arpeggioShape') state.viewMode = 'whole';
 }
 let currentPlayableMidi = [];
 let insidePlayableMidi = [];
@@ -548,17 +557,10 @@ function lowestFretboardMidiForPc(pc){
   return best;
 }
 
-// ---------- Chord forms (arpeggio mode) ----------
-// Chord-form geometry is intentionally separate from scale fingering.
-// This first prototype uses CAGED-style root anchors and compact windows;
-// exact book-derived routes can replace the data without changing the UI.
-const CHORD_FORM_CONFIG = {
-  E:{anchorString:0}, // root on low E
-  D:{anchorString:2}, // root on D
-  C:{anchorString:4}, // upper root on B
-  A:{anchorString:1}, // root on A
-  G:{anchorString:3}  // root on G
-};
+// ---------- Playable Shape (arpeggio mode) ----------
+// Build one exact ascending octave of chord tones from a root on the chosen
+// string. Unlike the earlier five-fret window, this returns one connected
+// route: every displayed position has a definite order and playback follows it.
 function detectChordQuality(pcs){
   if(!pcs || pcs.length !== 4) return null;
   const root = pcs[0];
@@ -566,23 +568,62 @@ function detectChordQuality(pcs){
   return ({'4,7,11':'maj7','4,7,10':'7','3,7,10':'m7','3,6,10':'m7b5','3,6,9':'dim7'})[key] || null;
 }
 
-function computeChordFormPositions(pcs, form, maxFret){
-  const config = CHORD_FORM_CONFIG[form];
-  if(!config || !pcs || !pcs.length) return {path:[], from:0, to:0};
+function computeArpeggioShape(pcs, startStringIdx, maxFret){
+  if(!pcs || !pcs.length || startStringIdx < 0 || startStringIdx > 3) return {path:[], complete:false};
   const strings = [...OPEN_STRINGS_TOP_TO_BOTTOM].slice().reverse();
   const rootPc = pcs[0];
-  const anchorString = strings[config.anchorString];
-  const baseAnchor = ((rootPc - anchorString.pc) % 12 + 12) % 12;
-  const from = Math.max(0, Math.min(maxFret - 4, baseAnchor - 1));
-  const chosen = {anchor:baseAnchor, from, to:Math.min(maxFret, from + 4)};
-  const set = new Set(pcs);
-  const path = [];
-  strings.forEach(str => {
-    for(let fret=chosen.from; fret<=chosen.to; fret++){
-      if(set.has((str.pc + fret) % 12)) path.push({str, fret});
-    }
-  });
-  return {path, from:chosen.from, to:chosen.to};
+  const intervals = [...new Set(pcs.map(pc => ((pc-rootPc)%12+12)%12))].sort((a,b)=>a-b);
+  if(intervals[0] !== 0) intervals.unshift(0);
+  const startString = strings[startStringIdx];
+  const startFret = ((rootPc - startString.pc) % 12 + 12) % 12;
+  if(startFret > maxFret) return {path:[], complete:false};
+  const startMidi = startString.midi + startFret;
+  const targetMidis = intervals.map(interval => startMidi + interval);
+  targetMidis.push(startMidi + 12);
+
+  const positionsForMidi = midi => {
+    const result = [];
+    strings.forEach((str, stringIdx) => {
+      const fret = midi - str.midi;
+      if(stringIdx >= startStringIdx && fret >= 0 && fret <= maxFret) result.push({str,stringIdx,fret,midi});
+    });
+    return result;
+  };
+
+  let layer = [{str:startString,stringIdx:startStringIdx,fret:startFret,midi:startMidi,
+    minFret:startFret,maxFret:startFret,notesOnString:1,cost:0,prev:null}];
+  for(let noteIdx=1; noteIdx<targetMidis.length; noteIdx++){
+    const nextLayer = [];
+    positionsForMidi(targetMidis[noteIdx]).forEach(pos => {
+      let best = null;
+      layer.forEach(previous => {
+        const stringDelta = pos.stringIdx - previous.stringIdx;
+        if(stringDelta < 0 || stringDelta > 1) return;
+        const minFret = Math.min(previous.minFret,pos.fret);
+        const maxSeenFret = Math.max(previous.maxFret,pos.fret);
+        if(maxSeenFret-minFret > 5) return;
+        const notesOnString = stringDelta === 0 ? previous.notesOnString+1 : 1;
+        if(notesOnString > 3) return;
+        let cost = previous.cost + Math.abs(pos.fret-startFret)*0.25;
+        if(stringDelta === 0) cost += 1.2;
+        else cost += Math.abs(pos.fret-previous.fret)*0.12;
+        const candidate={...pos,minFret,maxFret:maxSeenFret,notesOnString,cost,prev:previous};
+        if(!best || candidate.cost < best.cost) best=candidate;
+      });
+      if(best) nextLayer.push(best);
+    });
+    if(!nextLayer.length) return {path:[], complete:false};
+    layer=nextLayer;
+  }
+  let end=layer.reduce((best,s)=>!best||s.cost<best.cost?s:best,null);
+  const path=[];
+  while(end){path.push({str:end.str,fret:end.fret,midi:end.midi});end=end.prev;}
+  path.reverse();
+  return {path:path.map((p,i)=>({...p,order:i+1})),complete:true};
+}
+
+function chordIntervalLabel(pc, rootPc){
+  return ['R','b2','2','b3','3','4','b5','5','#5','6','b7','7'][((pc-rootPc)%12+12)%12];
 }
 
 // ---------- Octave Shape (geometric, "2 frets + 2 strings") ----------
@@ -840,16 +881,16 @@ function render(){
   const matches = currentKey ? ALL_NAMED_SCALES.filter(s => s.key === currentKey).map(s => s.name) : [];
   const matchLabel = matches.length ? matches.join(', ') : (currentKey ? 'Custom / unnamed' : '—');
 
-  const arpeggioLabel = (state.selectedChordId && !state.overlayEnabled)
-    ? ` — showing arpeggio only (${state.selectedChordPcs.length} notes, click chip again for full scale)`
-    : '';
+  const arpeggioMode = Boolean(state.selectedChordPcs) && !state.overlayEnabled;
   const readout = document.getElementById('readout');
-  readout.innerHTML = `
-    <div>Scale: <strong>${matchLabel}</strong>${arpeggioLabel}</div>
+  readout.innerHTML = `${arpeggioMode ? `
+    <div class="mode-banner"><span>Arpeggio: <strong>${state.selectedChordLabel}</strong></span><button type="button" class="chip clickable" id="backToScaleBtn">← Back to Scale</button></div>` : ''}
+    <div>${state.overlayEnabled ? 'Compare' : 'Scale'}: <strong>${matchLabel}</strong></div>
     <div>Notes: <strong>${sortedBySemitone.map(n=>n.noteName).join(' ')}</strong></div>
     <div>Normalized: <strong>${sortedBySemitone.map(n=>n.degreeLabel).join('-')}</strong></div>
     <div>Semitone pattern: <strong>${pattern.join('-')}</strong></div>
   `;
+  if(arpeggioMode) document.getElementById('backToScaleBtn').addEventListener('click',()=>{clearSelectedChord();render();});
 
   const uniqueNotes = [...pcMap.values()].sort((a,b)=>a.semitone-b.semitone);
   const pcsForPlayback = state.selectedChordPcs ? state.selectedChordPcs : uniqueNotes.map(n => n.pc);
@@ -860,6 +901,7 @@ function render(){
   // ---- Harmonization: only when there are no pitch-class conflicts ----
   const chordsSection = document.getElementById('chordsSection');
   const harmonizationHint = document.getElementById('harmonizationHint');
+  chordsSection.style.display = state.overlayEnabled ? 'none' : 'block';
   if(conflicts){
     chordsSection.style.opacity = '.5';
     document.getElementById('triadsRow').innerHTML = '<div class="chip">—</div>';
@@ -899,7 +941,7 @@ function render(){
             state.selectedChordId = id; state.selectedChordPcs = chord.pcs.slice();
             state.selectedChordLabel = chord.label;
             state.selectedChordQuality = detectChordQuality(chord.pcs);
-            if(state.viewMode === 'octaveShape' || state.viewMode === 'playableRun') state.viewMode = 'whole';
+            state.viewMode = 'whole';
           }
           render();
         });
@@ -913,19 +955,21 @@ function render(){
   // ---- Visible fretboard area: Whole Neck / fret range / Octave Shape / Playable Run ----
   const viewModeRow = document.getElementById('viewModeRow');
   viewModeRow.innerHTML = '';
-  const arpeggioMode = Boolean(state.selectedChordPcs);
   if(arpeggioMode && (state.viewMode === 'octaveShape' || state.viewMode === 'playableRun')) state.viewMode = 'whole';
-  if(!arpeggioMode && state.viewMode === 'chordForms') state.viewMode = 'whole';
+  if(!arpeggioMode && state.viewMode === 'arpeggioShape') state.viewMode = 'whole';
+  if(state.overlayEnabled && state.viewMode !== 'whole') state.viewMode = 'whole';
   const commonModeButtons = [
-    {key:'whole', label:'Whole neck'},
+    {key:'whole', label:'All Notes'},
     {key:'range-0-4', label:'Frets 0–4'},
     {key:'range-5-9', label:'Frets 5–9'},
     {key:'range-10-15', label:'Frets 10–15'},
     {key:'range-custom', label:'Custom range'}
   ];
-  const modeButtons = arpeggioMode
-    ? [...commonModeButtons, {key:'chordForms', label:'Chord Forms'}]
-    : [...commonModeButtons, {key:'octaveShape', label:'Octave Shape'}, {key:'playableRun', label:'Playable Run'}];
+  const modeButtons = state.overlayEnabled
+    ? [{key:'whole',label:'Compare Scales'}]
+    : arpeggioMode
+      ? [{key:'whole',label:'All Notes'},{key:'arpeggioShape',label:'Playable Shape'}]
+      : [...commonModeButtons, {key:'octaveShape', label:'Octave Shape'}, {key:'playableRun', label:'Playable Run'}];
   const currentModeKey = state.viewMode === 'range' ? ('range-' + (state.rangePreset || 'custom')) : state.viewMode;
   modeButtons.forEach(m => {
     const btn = document.createElement('button');
@@ -937,7 +981,7 @@ function render(){
       if(m.key === 'whole'){ state.viewMode = 'whole'; state.rangePreset = null; }
       else if(m.key === 'octaveShape'){ state.viewMode = 'octaveShape'; }
       else if(m.key === 'playableRun'){ state.viewMode = 'playableRun'; }
-      else if(m.key === 'chordForms'){ state.viewMode = 'chordForms'; }
+      else if(m.key === 'arpeggioShape'){ state.viewMode = 'arpeggioShape'; }
       else {
         const preset = m.key.replace('range-', '');
         state.viewMode = 'range'; state.rangePreset = preset;
@@ -957,7 +1001,7 @@ function render(){
   document.getElementById('customRangeControls').style.display = (state.viewMode === 'range' && state.rangePreset === 'custom') ? 'flex' : 'none';
 
   const overlayPathModeRow = document.getElementById('overlayPathModeRow');
-  const pathComparisonActive = state.overlayEnabled && (state.viewMode === 'octaveShape' || state.viewMode === 'playableRun');
+  const pathComparisonActive = false;
   overlayPathModeRow.style.display = pathComparisonActive ? 'flex' : 'none';
   overlayPathModeRow.innerHTML = '';
   if(pathComparisonActive){
@@ -983,31 +1027,27 @@ function render(){
 
   const arpeggioFormRow = document.getElementById('arpeggioFormRow');
   arpeggioFormRow.innerHTML = '';
-  arpeggioFormRow.style.display = state.viewMode === 'chordForms' ? 'flex' : 'none';
-  if(state.viewMode === 'chordForms'){
+  arpeggioFormRow.style.display = state.viewMode === 'arpeggioShape' ? 'flex' : 'none';
+  if(state.viewMode === 'arpeggioShape'){
     if(!arpeggioMode){
       const message = document.createElement('span');
       message.className = 'hint'; message.style.margin = '6px 0 0';
-      message.textContent = 'Select a chord below to build its E/D/C/A/G forms.';
+      message.textContent = 'Select a chord below to build a playable arpeggio shape.';
       arpeggioFormRow.appendChild(message);
     } else {
       const label = document.createElement('span');
       label.className = 'hint'; label.style.margin = '6px 4px 0 0';
-      label.textContent = `${state.selectedChordLabel}:`;
+      label.textContent = 'Start on root on:';
       arpeggioFormRow.appendChild(label);
-      ['E','D','C','A','G'].forEach(form => {
+      [[0,'6th string'],[1,'5th string'],[2,'4th string'],[3,'3rd string']].forEach(([stringIdx,stringLabel]) => {
         const btn = document.createElement('button');
         btn.type = 'button';
-        btn.className = 'chip clickable' + (state.chordForm === form ? ' active' : '');
-        btn.setAttribute('aria-pressed', state.chordForm === form ? 'true' : 'false');
-        btn.textContent = `${form}-form`;
-        btn.addEventListener('click', ()=>{ state.chordForm = form; render(); });
+        btn.className = 'chip clickable' + (state.arpeggioStartString === stringIdx ? ' active' : '');
+        btn.setAttribute('aria-pressed', state.arpeggioStartString === stringIdx ? 'true' : 'false');
+        btn.textContent = stringLabel;
+        btn.addEventListener('click', ()=>{ state.arpeggioStartString = stringIdx; render(); });
         arpeggioFormRow.appendChild(btn);
       });
-      const prototypeNote = document.createElement('span');
-      prototypeNote.className = 'hint'; prototypeNote.style.margin = '6px 0 0 6px';
-      prototypeNote.textContent = 'Prototype compact forms — exact Popov routes are the next validation step.';
-      arpeggioFormRow.appendChild(prototypeNote);
     }
   }
 
@@ -1015,10 +1055,14 @@ function render(){
   let activePath = [];
   const octaveWarning = document.getElementById('octaveShapeWarning');
   octaveWarning.style.display = 'none';
-  if(state.viewMode === 'chordForms' && arpeggioMode){
-    const formResult = computeChordFormPositions(state.selectedChordPcs, state.chordForm, FRET_COUNT);
-    activePath = formResult.path;
-    currentPlayableMidi = [...new Set(activePath.map(p => p.str.midi + p.fret))].sort((a,b)=>a-b);
+  if(state.viewMode === 'arpeggioShape' && arpeggioMode){
+    const shapeResult = computeArpeggioShape(state.selectedChordPcs, state.arpeggioStartString, FRET_COUNT);
+    activePath = shapeResult.path;
+    currentPlayableMidi = activePath.map(p => p.midi);
+    if(!shapeResult.complete){
+      octaveWarning.style.display='block';
+      octaveWarning.textContent='A comfortable one-octave route does not fit from this root within 15 frets.';
+    }
   } else if(state.viewMode === 'octaveShape'){
     const { path, secondStringCount, complete } = computeOctaveShapePath(pcsForPlayback, FRET_COUNT);
     activePath = path;
@@ -1100,7 +1144,7 @@ function render(){
   }
 
   const rangeActive = state.viewMode === 'range';
-  const pathActive = state.viewMode === 'octaveShape' || state.viewMode === 'playableRun' || state.viewMode === 'chordForms';
+  const pathActive = state.viewMode === 'octaveShape' || state.viewMode === 'playableRun' || state.viewMode === 'arpeggioShape';
 
   OPEN_STRINGS_TOP_TO_BOTTOM.forEach(str => {
     const openLbl = document.createElement('div');
@@ -1167,10 +1211,16 @@ function render(){
       } else if(pcMap.has(pc) && areaOk && (!state.selectedChordPcs || state.selectedChordPcs.includes(pc))){
         const info = pcMap.get(pc);
         const isChordRoot = state.selectedChordPcs ? pc === state.selectedChordPcs[0] : info.isRoot;
+        const routePosition = state.viewMode === 'arpeggioShape'
+          ? activePath.find(p => p.str === str && p.fret === f)
+          : null;
         const noteEl = document.createElement('button');
         noteEl.type = 'button';
-        noteEl.className = 'note' + (isChordRoot ? ' root' : '');
-        const label = state.mode === 'notes' ? info.noteName : info.degreeLabel;
+        noteEl.className = 'note' + (isChordRoot ? ' root' : '') + (routePosition ? ' route-note' : '');
+        if(routePosition) noteEl.dataset.order = routePosition.order;
+        const label = state.mode === 'notes'
+          ? info.noteName
+          : (state.selectedChordPcs ? chordIntervalLabel(pc,state.selectedChordPcs[0]) : info.degreeLabel);
         noteEl.textContent = label;
         const midiHere = str.midi + f;
         noteEl.setAttribute('aria-label', `${info.noteName}, fret ${f}, string ${str.label}. Play note.`);
