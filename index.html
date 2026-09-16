@@ -559,8 +559,6 @@ const CHORD_FORM_CONFIG = {
   A:{anchorString:1}, // root on A
   G:{anchorString:3}  // root on G
 };
-const SUPPORTED_FORM_QUALITIES = new Set(['maj7','7','m7','m7b5','dim7']);
-
 function detectChordQuality(pcs){
   if(!pcs || pcs.length !== 4) return null;
   const root = pcs[0];
@@ -985,13 +983,12 @@ function render(){
 
   const arpeggioFormRow = document.getElementById('arpeggioFormRow');
   arpeggioFormRow.innerHTML = '';
-  const supportedChordForm = arpeggioMode && SUPPORTED_FORM_QUALITIES.has(state.selectedChordQuality);
   arpeggioFormRow.style.display = state.viewMode === 'chordForms' ? 'flex' : 'none';
   if(state.viewMode === 'chordForms'){
-    if(!supportedChordForm){
+    if(!arpeggioMode){
       const message = document.createElement('span');
       message.className = 'hint'; message.style.margin = '6px 0 0';
-      message.textContent = 'No chord-form library for this chord quality yet. Use Whole neck instead.';
+      message.textContent = 'Select a chord below to build its E/D/C/A/G forms.';
       arpeggioFormRow.appendChild(message);
     } else {
       const label = document.createElement('span');
@@ -1018,7 +1015,7 @@ function render(){
   let activePath = [];
   const octaveWarning = document.getElementById('octaveShapeWarning');
   octaveWarning.style.display = 'none';
-  if(state.viewMode === 'chordForms' && supportedChordForm){
+  if(state.viewMode === 'chordForms' && arpeggioMode){
     const formResult = computeChordFormPositions(state.selectedChordPcs, state.chordForm, FRET_COUNT);
     activePath = formResult.path;
     currentPlayableMidi = [...new Set(activePath.map(p => p.str.midi + p.fret))].sort((a,b)=>a-b);
