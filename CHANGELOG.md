@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.4.0-preview — 2026-09-16
+
+- Rebuilt scale selection as adjacent Main Scale and Tension Scale cards.
+- Added named preset selectors to both scales while preserving editable formulas.
+- Collapsed the older quick-preset buttons into a secondary Scale Library.
+- Split scale and arpeggio navigation: selected chords no longer use scale Octave Shape or Playable Run.
+- Added a prototype Chord Forms mode with distinct E, D, C, A, and G compact windows.
+- Limited chord forms to recognized maj7, 7, m7, m7b5, and dim7 structures.
+- Clearly marked the current chord forms as provisional pending exact validation against Popov's diagrams.
+
 ## 0.3.0 — 2026-09-16
 
 - Reframed scale comparison as Main Scale, Shared Notes, and Tension Notes.
