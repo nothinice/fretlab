@@ -50,6 +50,23 @@
     gap:14px; background:var(--panel); border:1px solid var(--border);
     border-radius:10px; padding:18px; margin-bottom:16px;
   }
+  .scale-compare-grid{
+    display:grid; grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);
+    gap:12px; align-items:stretch; margin-bottom:16px;
+  }
+  .scale-card{
+    background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:16px;
+  }
+  .scale-card.inactive{opacity:.5;}
+  .scale-card h2{font-family:'Fraunces',serif; font-size:17px; margin:0 0 12px;}
+  .scale-card-fields{display:grid; grid-template-columns:110px 1fr; gap:12px;}
+  .scale-card .formula-field{grid-column:1 / -1;}
+  .comparison-action{display:flex; align-items:center; justify-content:center;}
+  .comparison-details{background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin-bottom:16px;}
+  @media (max-width:760px){
+    .scale-compare-grid{grid-template-columns:1fr;}
+    .comparison-action{justify-content:flex-start;}
+  }
   label{display:block; font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin-bottom:6px;}
   select, input[type=text], input[type=number]{
     width:100%; font-size:15px; padding:9px 10px; border-radius:6px;
@@ -175,6 +192,7 @@
   .range-controls label{margin:0; display:inline;}
 
   .presets{margin-top:22px;}
+  .presets summary{cursor:pointer; font-weight:600; color:var(--teal); margin-bottom:12px;}
   .presets h2{font-family:'Fraunces',serif; font-size:16px; font-weight:600; margin:0 0 10px;}
   .preset-grid{display:flex; flex-wrap:wrap; gap:6px;}
   .preset-btn{
@@ -189,15 +207,46 @@
   <h1>Formula Engine — fretboard prototype</h1>
   <p class="sub">Root + interval formula → notes, spelled by scale degree (not just nearest sharp/flat), rendered live on the fretboard. Type any formula: <span style="font-family:'IBM Plex Mono',monospace">1 2 b3 4 5 6 7</span>, <span style="font-family:'IBM Plex Mono',monospace">1-b3-5-bb7</span>, whatever.</p>
 
-  <div class="controls">
-    <div>
-      <label for="root">Root <span id="rootLabelTag"></span></label>
-      <select id="root"></select>
+  <div class="scale-compare-grid">
+    <section class="scale-card" aria-labelledby="mainScaleHeading">
+      <h2 id="mainScaleHeading">Main Scale</h2>
+      <div class="scale-card-fields">
+        <div>
+          <label for="root">Root</label>
+          <select id="root"></select>
+        </div>
+        <div>
+          <label for="mainScalePreset">Scale</label>
+          <select id="mainScalePreset"></select>
+        </div>
+        <div class="formula-field">
+          <label for="formula">Formula</label>
+          <input type="text" id="formula" value="1 2 b3 4 5 6 7">
+        </div>
+      </div>
+    </section>
+
+    <div class="comparison-action">
+      <button id="overlayToggleBtn" class="overlay-btn" aria-pressed="false">Add Tension Scale →</button>
     </div>
-    <div style="grid-column: span 2;">
-      <label for="formula">Formula <span id="formulaLabelTag"></span></label>
-      <input type="text" id="formula" value="1 2 b3 4 5 6 7">
-    </div>
+
+    <section class="scale-card inactive" id="overlayPanel" aria-labelledby="tensionScaleHeading">
+      <h2 id="tensionScaleHeading">Tension Scale</h2>
+      <div class="scale-card-fields">
+        <div>
+          <label for="outsideRoot">Root</label>
+          <select id="outsideRoot" disabled></select>
+        </div>
+        <div>
+          <label for="outsideScalePreset">Scale</label>
+          <select id="outsideScalePreset" disabled></select>
+        </div>
+        <div class="formula-field">
+          <label for="outsideFormula">Formula</label>
+          <input type="text" id="outsideFormula" value="1 b2 b3 3 b5 5 6 b7" disabled>
+        </div>
+      </div>
+    </section>
   </div>
 
   <div class="pill-row" id="pillRow" role="group" aria-label="Chromatic degree picker"></div>
@@ -213,21 +262,7 @@
     <button id="playOutsideBtn" class="play-btn outside" style="display:none;">▶ Play Tension</button>
   </div>
 
-  <div class="overlay-toggle-row">
-    <button id="overlayToggleBtn" class="overlay-btn" aria-pressed="false">Compare two scales</button>
-  </div>
-
-  <div class="overlay-panel" id="overlayPanel" style="display:none;">
-    <div class="overlay-grid">
-      <div>
-        <label for="outsideRoot">Tension Scale Root</label>
-        <select id="outsideRoot"></select>
-      </div>
-      <div style="grid-column: span 2;">
-        <label for="outsideFormula">Tension Scale Formula</label>
-        <input type="text" id="outsideFormula" value="1 b2 b3 3 b5 5 6 b7">
-      </div>
-    </div>
+  <div class="comparison-details" id="comparisonDetails" style="display:none;">
     <div class="legend" aria-hidden="true">
       <span class="legend-item"><span class="swatch sw-inside"></span> Main Scale</span>
       <span class="legend-item"><span class="swatch sw-common"></span> Shared Notes</span>
@@ -245,6 +280,7 @@
 
   <div class="chip-row" id="viewModeRow" role="group" aria-label="Visible fretboard area" style="margin-bottom:6px;"></div>
   <div class="chip-row" id="overlayPathModeRow" role="group" aria-label="Scale path to display" style="display:none; margin:8px 0 6px;"></div>
+  <div class="chip-row" id="arpeggioFormRow" role="group" aria-label="Chord form" style="display:none; margin:8px 0 6px;"></div>
   <div class="range-controls" id="customRangeControls" style="display:none;">
     <label for="rangeFromInput" style="display:inline; margin:0;">From fret</label>
     <input type="number" id="rangeFromInput" min="0" max="15" value="0">
@@ -265,14 +301,15 @@
     <p class="hint" style="margin-top:8px;" id="harmonizationHint"></p>
   </div>
 
-  <div class="presets">
+  <details class="presets">
+    <summary>Scale Library</summary>
     <h2>Diatonic modes</h2>
     <div class="preset-grid" id="presetsDiatonic"></div>
     <h2 style="margin-top:16px;">Other scales</h2>
     <div class="preset-grid" id="presetsOther"></div>
     <h2 style="margin-top:16px;">Allan Holdsworth's 15 Usable Scales</h2>
     <div class="preset-grid" id="presetsHoldsworth"></div>
-  </div>
+  </details>
 </div>
 
 <script>
@@ -381,6 +418,38 @@ const PRESETS_HOLDSWORTH = [
   ['Whole Tone','F','1 2 3 #4 #5 b7']
 ];
 
+const SCALE_PRESET_OPTIONS = [
+  ...PRESETS_DIATONIC.map(([name, formula], i) => ({id:`diatonic-${i}`, group:'Diatonic modes', name, formula})),
+  ...PRESETS_OTHER.map(([name, formula], i) => ({id:`other-${i}`, group:'Other scales', name, formula})),
+  ...PRESETS_HOLDSWORTH.map(([name, root, formula], i) => ({id:`holdsworth-${i}`, group:"Holdsworth's usable scales", name:`${name} [Holdsworth]`, formula}))
+];
+
+function formulaSignature(text){
+  return text.split(/[\s,\-]+/).filter(Boolean).join(' ');
+}
+function populateScaleSelect(select){
+  const groups = new Map();
+  SCALE_PRESET_OPTIONS.forEach(preset => {
+    if(!groups.has(preset.group)){
+      const group = document.createElement('optgroup');
+      group.label = preset.group;
+      groups.set(preset.group, group);
+      select.appendChild(group);
+    }
+    const option = document.createElement('option');
+    option.value = preset.id;
+    option.textContent = preset.name;
+    groups.get(preset.group).appendChild(option);
+  });
+  const custom = document.createElement('option');
+  custom.value = 'custom'; custom.textContent = 'Custom Formula';
+  select.appendChild(custom);
+}
+function syncScaleSelect(select, formula){
+  const match = SCALE_PRESET_OPTIONS.find(p => formulaSignature(p.formula) === formulaSignature(formula));
+  select.value = match ? match.id : 'custom';
+}
+
 const DEGREE_PILLS = [
   {semitone:0, token:'1'}, {semitone:1, token:'b2'}, {semitone:2, token:'2'},
   {semitone:3, token:'b3'}, {semitone:4, token:'3'}, {semitone:5, token:'4'},
@@ -406,6 +475,7 @@ const ALL_NAMED_SCALES = [...DIATONIC_KEYS, ...OTHER_KEYS, ...HOLDSWORTH_KEYS];
 let state = {
   root: findRootIndex('A'), formula: '1 2 b3 4 5 6 7', mode: 'notes',
   selectedChordId: null, selectedChordPcs: null,
+  selectedChordLabel: null, selectedChordQuality: null, chordForm: 'E',
   viewMode: 'whole', // 'whole' | 'range' | 'octaveShape' | 'playableRun'
   rangePreset: null, // '0-4' | '5-9' | '10-15' | 'custom' | null
   rangeFrom: 0, rangeTo: 4,
@@ -413,6 +483,14 @@ let state = {
   overlayPathMode: 'compare', // 'main' | 'tension' | 'compare'
   outsideRoot: findRootIndex('A'), outsideFormula: '1 b2 b3 3 b5 5 6 b7'
 };
+
+function clearSelectedChord(){
+  state.selectedChordId = null;
+  state.selectedChordPcs = null;
+  state.selectedChordLabel = null;
+  state.selectedChordQuality = null;
+  if(state.viewMode === 'chordForms') state.viewMode = 'whole';
+}
 let currentPlayableMidi = [];
 let insidePlayableMidi = [];
 let outsidePlayableMidi = [];
@@ -468,6 +546,45 @@ function lowestFretboardMidiForPc(pc){
     if(midi < best) best = midi;
   });
   return best;
+}
+
+// ---------- Chord forms (arpeggio mode) ----------
+// Chord-form geometry is intentionally separate from scale fingering.
+// This first prototype uses CAGED-style root anchors and compact windows;
+// exact book-derived routes can replace the data without changing the UI.
+const CHORD_FORM_CONFIG = {
+  E:{anchorString:0}, // root on low E
+  D:{anchorString:2}, // root on D
+  C:{anchorString:4}, // upper root on B
+  A:{anchorString:1}, // root on A
+  G:{anchorString:3}  // root on G
+};
+const SUPPORTED_FORM_QUALITIES = new Set(['maj7','7','m7','m7b5','dim7']);
+
+function detectChordQuality(pcs){
+  if(!pcs || pcs.length !== 4) return null;
+  const root = pcs[0];
+  const key = pcs.slice(1).map(pc => ((pc-root)%12+12)%12).sort((a,b)=>a-b).join(',');
+  return ({'4,7,11':'maj7','4,7,10':'7','3,7,10':'m7','3,6,10':'m7b5','3,6,9':'dim7'})[key] || null;
+}
+
+function computeChordFormPositions(pcs, form, maxFret){
+  const config = CHORD_FORM_CONFIG[form];
+  if(!config || !pcs || !pcs.length) return {path:[], from:0, to:0};
+  const strings = [...OPEN_STRINGS_TOP_TO_BOTTOM].slice().reverse();
+  const rootPc = pcs[0];
+  const anchorString = strings[config.anchorString];
+  const baseAnchor = ((rootPc - anchorString.pc) % 12 + 12) % 12;
+  const from = Math.max(0, Math.min(maxFret - 4, baseAnchor - 1));
+  const chosen = {anchor:baseAnchor, from, to:Math.min(maxFret, from + 4)};
+  const set = new Set(pcs);
+  const path = [];
+  strings.forEach(str => {
+    for(let fret=chosen.from; fret<=chosen.to; fret++){
+      if(set.has((str.pc + fret) % 12)) path.push({str, fret});
+    }
+  });
+  return {path, from:chosen.from, to:chosen.to};
 }
 
 // ---------- Octave Shape (geometric, "2 frets + 2 strings") ----------
@@ -680,8 +797,6 @@ function render(){
   const playBtn = document.getElementById('playBtn');
   const playInsideBtn = document.getElementById('playInsideBtn');
   const playOutsideBtn = document.getElementById('playOutsideBtn');
-  document.getElementById('rootLabelTag').textContent = state.overlayEnabled ? '(Main Scale)' : '';
-  document.getElementById('formulaLabelTag').textContent = state.overlayEnabled ? '(Main Scale)' : '';
 
   let scale;
   try{
@@ -781,9 +896,12 @@ function render(){
         if(aliases.length) chip.title = `Same notes as: ${aliases.join(', ')} (built from a different scale degree)`;
         chip.addEventListener('click', ()=>{
           if(state.selectedChordId === id){
-            state.selectedChordId = null; state.selectedChordPcs = null;
+            clearSelectedChord();
           } else {
             state.selectedChordId = id; state.selectedChordPcs = chord.pcs.slice();
+            state.selectedChordLabel = chord.label;
+            state.selectedChordQuality = detectChordQuality(chord.pcs);
+            if(state.viewMode === 'octaveShape' || state.viewMode === 'playableRun') state.viewMode = 'whole';
           }
           render();
         });
@@ -797,15 +915,19 @@ function render(){
   // ---- Visible fretboard area: Whole Neck / fret range / Octave Shape / Playable Run ----
   const viewModeRow = document.getElementById('viewModeRow');
   viewModeRow.innerHTML = '';
-  const modeButtons = [
+  const arpeggioMode = Boolean(state.selectedChordPcs);
+  if(arpeggioMode && (state.viewMode === 'octaveShape' || state.viewMode === 'playableRun')) state.viewMode = 'whole';
+  if(!arpeggioMode && state.viewMode === 'chordForms') state.viewMode = 'whole';
+  const commonModeButtons = [
     {key:'whole', label:'Whole neck'},
     {key:'range-0-4', label:'Frets 0–4'},
     {key:'range-5-9', label:'Frets 5–9'},
     {key:'range-10-15', label:'Frets 10–15'},
-    {key:'range-custom', label:'Custom range'},
-    {key:'octaveShape', label:'Octave Shape'},
-    {key:'playableRun', label:'Playable Run'}
+    {key:'range-custom', label:'Custom range'}
   ];
+  const modeButtons = arpeggioMode
+    ? [...commonModeButtons, {key:'chordForms', label:'Chord Forms'}]
+    : [...commonModeButtons, {key:'octaveShape', label:'Octave Shape'}, {key:'playableRun', label:'Playable Run'}];
   const currentModeKey = state.viewMode === 'range' ? ('range-' + (state.rangePreset || 'custom')) : state.viewMode;
   modeButtons.forEach(m => {
     const btn = document.createElement('button');
@@ -817,6 +939,7 @@ function render(){
       if(m.key === 'whole'){ state.viewMode = 'whole'; state.rangePreset = null; }
       else if(m.key === 'octaveShape'){ state.viewMode = 'octaveShape'; }
       else if(m.key === 'playableRun'){ state.viewMode = 'playableRun'; }
+      else if(m.key === 'chordForms'){ state.viewMode = 'chordForms'; }
       else {
         const preset = m.key.replace('range-', '');
         state.viewMode = 'range'; state.rangePreset = preset;
@@ -860,11 +983,46 @@ function render(){
     });
   }
 
+  const arpeggioFormRow = document.getElementById('arpeggioFormRow');
+  arpeggioFormRow.innerHTML = '';
+  const supportedChordForm = arpeggioMode && SUPPORTED_FORM_QUALITIES.has(state.selectedChordQuality);
+  arpeggioFormRow.style.display = state.viewMode === 'chordForms' ? 'flex' : 'none';
+  if(state.viewMode === 'chordForms'){
+    if(!supportedChordForm){
+      const message = document.createElement('span');
+      message.className = 'hint'; message.style.margin = '6px 0 0';
+      message.textContent = 'No chord-form library for this chord quality yet. Use Whole neck instead.';
+      arpeggioFormRow.appendChild(message);
+    } else {
+      const label = document.createElement('span');
+      label.className = 'hint'; label.style.margin = '6px 4px 0 0';
+      label.textContent = `${state.selectedChordLabel}:`;
+      arpeggioFormRow.appendChild(label);
+      ['E','D','C','A','G'].forEach(form => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'chip clickable' + (state.chordForm === form ? ' active' : '');
+        btn.setAttribute('aria-pressed', state.chordForm === form ? 'true' : 'false');
+        btn.textContent = `${form}-form`;
+        btn.addEventListener('click', ()=>{ state.chordForm = form; render(); });
+        arpeggioFormRow.appendChild(btn);
+      });
+      const prototypeNote = document.createElement('span');
+      prototypeNote.className = 'hint'; prototypeNote.style.margin = '6px 0 0 6px';
+      prototypeNote.textContent = 'Prototype compact forms — exact Popov routes are the next validation step.';
+      arpeggioFormRow.appendChild(prototypeNote);
+    }
+  }
+
   // ---- Octave Shape / Playable Run path (only relevant in those modes) ----
   let activePath = [];
   const octaveWarning = document.getElementById('octaveShapeWarning');
   octaveWarning.style.display = 'none';
-  if(state.viewMode === 'octaveShape'){
+  if(state.viewMode === 'chordForms' && supportedChordForm){
+    const formResult = computeChordFormPositions(state.selectedChordPcs, state.chordForm, FRET_COUNT);
+    activePath = formResult.path;
+    currentPlayableMidi = [...new Set(activePath.map(p => p.str.midi + p.fret))].sort((a,b)=>a-b);
+  } else if(state.viewMode === 'octaveShape'){
     const { path, secondStringCount, complete } = computeOctaveShapePath(pcsForPlayback, FRET_COUNT);
     activePath = path;
     currentPlayableMidi = path.map(p => p.str.midi + p.fret).sort((a,b)=>a-b);
@@ -945,7 +1103,7 @@ function render(){
   }
 
   const rangeActive = state.viewMode === 'range';
-  const pathActive = state.viewMode === 'octaveShape' || state.viewMode === 'playableRun';
+  const pathActive = state.viewMode === 'octaveShape' || state.viewMode === 'playableRun' || state.viewMode === 'chordForms';
 
   OPEN_STRINGS_TOP_TO_BOTTOM.forEach(str => {
     const openLbl = document.createElement('div');
@@ -1048,10 +1206,23 @@ function init(){
     if(i === state.root) opt.selected = true;
     rootSel.appendChild(opt);
   });
-  rootSel.addEventListener('change', e=>{ state.root = parseInt(e.target.value); state.selectedChordId=null; state.selectedChordPcs=null; render(); });
+  rootSel.addEventListener('change', e=>{ state.root = parseInt(e.target.value); clearSelectedChord(); render(); });
 
   const formulaInput = document.getElementById('formula');
-  formulaInput.addEventListener('input', e=>{ state.formula = e.target.value; state.selectedChordId=null; state.selectedChordPcs=null; render(); });
+  const mainScalePreset = document.getElementById('mainScalePreset');
+  populateScaleSelect(mainScalePreset);
+  syncScaleSelect(mainScalePreset, state.formula);
+  mainScalePreset.addEventListener('change', ()=>{
+    if(mainScalePreset.value === 'custom') return;
+    const preset = SCALE_PRESET_OPTIONS.find(p => p.id === mainScalePreset.value);
+    if(!preset) return;
+    formulaInput.value = preset.formula; state.formula = preset.formula;
+    clearSelectedChord(); render();
+  });
+  formulaInput.addEventListener('input', e=>{
+    state.formula = e.target.value; syncScaleSelect(mainScalePreset, state.formula);
+    clearSelectedChord(); render();
+  });
 
   const outsideRootSel = document.getElementById('outsideRoot');
   ROOTS.forEach((r,i)=>{
@@ -1062,18 +1233,34 @@ function init(){
   });
   outsideRootSel.addEventListener('change', e=>{ state.outsideRoot = parseInt(e.target.value); render(); });
   const outsideFormulaInput = document.getElementById('outsideFormula');
-  outsideFormulaInput.addEventListener('input', e=>{ state.outsideFormula = e.target.value; render(); });
+  const outsideScalePreset = document.getElementById('outsideScalePreset');
+  populateScaleSelect(outsideScalePreset);
+  syncScaleSelect(outsideScalePreset, state.outsideFormula);
+  outsideScalePreset.addEventListener('change', ()=>{
+    if(outsideScalePreset.value === 'custom') return;
+    const preset = SCALE_PRESET_OPTIONS.find(p => p.id === outsideScalePreset.value);
+    if(!preset) return;
+    outsideFormulaInput.value = preset.formula; state.outsideFormula = preset.formula; render();
+  });
+  outsideFormulaInput.addEventListener('input', e=>{
+    state.outsideFormula = e.target.value; syncScaleSelect(outsideScalePreset, state.outsideFormula); render();
+  });
 
   const overlayToggleBtn = document.getElementById('overlayToggleBtn');
   overlayToggleBtn.addEventListener('click', ()=>{
     state.overlayEnabled = !state.overlayEnabled;
     overlayToggleBtn.classList.toggle('active', state.overlayEnabled);
     overlayToggleBtn.setAttribute('aria-pressed', state.overlayEnabled ? 'true' : 'false');
-    document.getElementById('overlayPanel').style.display = state.overlayEnabled ? 'block' : 'none';
+    overlayToggleBtn.textContent = state.overlayEnabled ? 'Remove Tension Scale' : 'Add Tension Scale →';
+    document.getElementById('overlayPanel').classList.toggle('inactive', !state.overlayEnabled);
+    outsideRootSel.disabled = !state.overlayEnabled;
+    outsideScalePreset.disabled = !state.overlayEnabled;
+    outsideFormulaInput.disabled = !state.overlayEnabled;
+    document.getElementById('comparisonDetails').style.display = state.overlayEnabled ? 'block' : 'none';
     document.getElementById('playBtn').style.display = state.overlayEnabled ? 'none' : 'inline-block';
     document.getElementById('playInsideBtn').style.display = state.overlayEnabled ? 'inline-block' : 'none';
     document.getElementById('playOutsideBtn').style.display = state.overlayEnabled ? 'inline-block' : 'none';
-    if(state.overlayEnabled){ state.selectedChordId = null; state.selectedChordPcs = null; }
+    if(state.overlayEnabled) clearSelectedChord();
     render();
   });
 
@@ -1112,14 +1299,14 @@ function init(){
   PRESETS_DIATONIC.forEach(([name, formula])=>{
     const b = document.createElement('button');
     b.className = 'preset-btn'; b.textContent = name;
-    b.addEventListener('click', ()=>{ formulaInput.value = formula; state.formula = formula; state.selectedChordId=null; state.selectedChordPcs=null; render(); });
+    b.addEventListener('click', ()=>{ formulaInput.value = formula; state.formula = formula; syncScaleSelect(mainScalePreset, formula); clearSelectedChord(); render(); });
     diatonicWrap.appendChild(b);
   });
   const otherWrap = document.getElementById('presetsOther');
   PRESETS_OTHER.forEach(([name, formula])=>{
     const b = document.createElement('button');
     b.className = 'preset-btn'; b.textContent = name;
-    b.addEventListener('click', ()=>{ formulaInput.value = formula; state.formula = formula; state.selectedChordId=null; state.selectedChordPcs=null; render(); });
+    b.addEventListener('click', ()=>{ formulaInput.value = formula; state.formula = formula; syncScaleSelect(mainScalePreset, formula); clearSelectedChord(); render(); });
     otherWrap.appendChild(b);
   });
 
@@ -1140,7 +1327,8 @@ function init(){
       state.root = findRootIndex(rootName);
       rootSel.value = state.root;
       formulaInput.value = formula; state.formula = formula;
-      state.selectedChordId=null; state.selectedChordPcs=null;
+      syncScaleSelect(mainScalePreset, formula);
+      clearSelectedChord();
       render();
     });
     holdsworthWrap.appendChild(b);
@@ -1171,7 +1359,8 @@ function init(){
       tokens.sort((a,b) => tokenSemitoneMod12(a) - tokenSemitoneMod12(b));
       state.formula = tokens.join(' ');
       formulaInput.value = state.formula;
-      state.selectedChordId=null; state.selectedChordPcs=null;
+      syncScaleSelect(mainScalePreset, state.formula);
+      clearSelectedChord();
       render();
     });
     pillRow.appendChild(p);
