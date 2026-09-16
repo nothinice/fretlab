@@ -32,12 +32,12 @@ free to open one.
 - Interactive fretboard, Notes/Degrees toggle, click-to-play audio
 - Presets: diatonic modes, common scales, all 15 of Allan Holdsworth's
   "usable scales"
-- Chord harmonization (triads/7th chords), arpeggio view
-- Separate scale and arpeggio interfaces; every selected chord exposes compact E/D/C/A/G form prototypes
+- Chord harmonization (triads/7th chords) with a separate arpeggio mode
+- Playable Shape builds one ordered one-octave arpeggio route from a root on string 6, 5, 4, or 3
 - Fretboard area selection (whole neck / fret ranges), Octave Shape and
   Playable Run diagonal patterns across the whole neck
 - Two-scale comparison with Main Scale, Shared Notes, and Tension Notes
-- Independent Main/Tension/Compare views for Octave Shape and Playable Run
+- Focused two-scale comparison without unrelated chord or fingering controls
 - Side-by-side Main Scale and Tension Scale selectors with named presets and custom formulas
 
 ## Roadmap
