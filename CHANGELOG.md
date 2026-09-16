@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.0 — 2026-09-16
+
+- Reframed scale comparison as Main Scale, Shared Notes, and Tension Notes.
+- Simplified comparison colors: neutral main notes, green shared notes, and orange tension notes.
+- Added independent Main, Tension, and Compare paths to Octave Shape.
+- Added independent Main, Tension, and Compare paths to Playable Run.
+- Added path-specific playback and warnings for incomplete or dense two-string shapes.
+- Removed the earlier restriction that forced comparison back to Whole Neck.
+
 ## 0.2.1 — 2026-09-16
 
 - Rebuilt Playable Run around an ordered ascending degree sequence instead of pitch-class coverage.
