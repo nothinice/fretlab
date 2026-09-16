@@ -13,11 +13,13 @@ This file is the shared handoff between Danila, Claude, and Codex.
 
 ## Current review priorities
 
-1. Visually verify the Inside/Outside overlay across enharmonic roots and custom formulas.
-2. Keep Octave Shape and Playable Run conceptually separate in both UI and code.
-3. Review chord labels and distinguish traditional tertian harmony from generalized
+1. User-test whether Main Scale, Shared Notes, and Tension Notes are immediately understandable.
+2. Visually verify Main/Tension/Compare in Octave Shape and Playable Run across enharmonic roots.
+3. Decide whether a guided Transition Run should be added after the two independent paths are validated.
+4. Keep Octave Shape and Playable Run conceptually separate in both UI and code.
+5. Review chord labels and distinguish traditional tertian harmony from generalized
    scale-step stacks.
-4. Convert the current algorithm checks into permanent regression tests before splitting
+6. Convert the current algorithm checks into permanent regression tests before splitting
    the single-file prototype into modules.
 
 ## Implemented safeguards
