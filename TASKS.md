@@ -13,12 +13,21 @@ This file is the shared handoff between Danila, Claude, and Codex.
 
 ## Current review priorities
 
-1. Verify the Inside/Outside overlay across enharmonic roots and custom formulas.
-2. Test Playable Run for pentatonic, diatonic, diminished, and dense 8/9-note scales.
-3. Keep Octave Shape and Playable Run conceptually separate in both UI and code.
-4. Review chord labels and distinguish traditional tertian harmony from generalized
+1. Visually verify the Inside/Outside overlay across enharmonic roots and custom formulas.
+2. Keep Octave Shape and Playable Run conceptually separate in both UI and code.
+3. Review chord labels and distinguish traditional tertian harmony from generalized
    scale-step stacks.
-5. Add regression tests before splitting the single-file prototype into modules.
+4. Convert the current algorithm checks into permanent regression tests before splitting
+   the single-file prototype into modules.
+
+## Implemented safeguards
+
+- Playable Run follows every scale degree in ascending order.
+- Playable Run never returns to a lower string or skips a string.
+- A string is limited to three notes for scales of up to seven notes per octave,
+  and four notes for denser scales; the local fret span is limited to five frets.
+- Incomplete two-string Octave Shapes are rejected instead of displayed as valid.
+- Fingering modes are disabled while Inside/Outside Overlay is active.
 
 ## Later roadmap
 
