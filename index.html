@@ -484,7 +484,7 @@ const ALL_NAMED_SCALES = [...DIATONIC_KEYS, ...OTHER_KEYS, ...HOLDSWORTH_KEYS];
 let state = {
   root: findRootIndex('A'), formula: '1 2 b3 4 5 6 7', mode: 'notes',
   selectedChordId: null, selectedChordPcs: null,
-  selectedChordLabel: null, selectedChordQuality: null, arpeggioStartString: 0,
+  selectedChordLabel: null, selectedChordQuality: null, arpeggioStartString: 0, arpeggioVariant: 'compact',
   viewMode: 'whole', // 'whole' | 'range' | 'octaveShape' | 'playableRun' | 'arpeggioShape'
   rangePreset: null, // '0-4' | '5-9' | '10-15' | 'custom' | null
   rangeFrom: 0, rangeTo: 4,
@@ -568,7 +568,7 @@ function detectChordQuality(pcs){
   return ({'4,7,11':'maj7','4,7,10':'7','3,7,10':'m7','3,6,10':'m7b5','3,6,9':'dim7'})[key] || null;
 }
 
-function computeArpeggioShape(pcs, startStringIdx, maxFret){
+function computeArpeggioShape(pcs, startStringIdx, maxFret, variant='compact'){
   if(!pcs || !pcs.length || startStringIdx < 0 || startStringIdx > 3) return {path:[], complete:false};
   const strings = [...OPEN_STRINGS_TOP_TO_BOTTOM].slice().reverse();
   const rootPc = pcs[0];
@@ -590,36 +590,52 @@ function computeArpeggioShape(pcs, startStringIdx, maxFret){
     return result;
   };
 
-  let layer = [{str:startString,stringIdx:startStringIdx,fret:startFret,midi:startMidi,
-    minFret:startFret,maxFret:startFret,notesOnString:1,cost:0,prev:null}];
-  for(let noteIdx=1; noteIdx<targetMidis.length; noteIdx++){
-    const nextLayer = [];
-    positionsForMidi(targetMidis[noteIdx]).forEach(pos => {
-      let best = null;
-      layer.forEach(previous => {
-        const stringDelta = pos.stringIdx - previous.stringIdx;
-        if(stringDelta < 0 || stringDelta > 1) return;
-        const minFret = Math.min(previous.minFret,pos.fret);
-        const maxSeenFret = Math.max(previous.maxFret,pos.fret);
-        if(maxSeenFret-minFret > 5) return;
-        const notesOnString = stringDelta === 0 ? previous.notesOnString+1 : 1;
-        if(notesOnString > 3) return;
-        let cost = previous.cost + Math.abs(pos.fret-startFret)*0.25;
-        if(stringDelta === 0) cost += 1.2;
-        else cost += Math.abs(pos.fret-previous.fret)*0.12;
-        const candidate={...pos,minFret,maxFret:maxSeenFret,notesOnString,cost,prev:previous};
-        if(!best || candidate.cost < best.cost) best=candidate;
-      });
-      if(best) nextLayer.push(best);
+  const routes=[];
+  const first={str:startString,stringIdx:startStringIdx,fret:startFret,midi:startMidi};
+  function buildRoutes(noteIdx,path,minFret,maxSeenFret,notesOnString){
+    if(noteIdx===targetMidis.length){routes.push(path);return;}
+    positionsForMidi(targetMidis[noteIdx]).forEach(pos=>{
+      const previous=path[path.length-1];
+      const stringDelta=pos.stringIdx-previous.stringIdx;
+      if(stringDelta<0||stringDelta>1)return;
+      const nextMin=Math.min(minFret,pos.fret);
+      const nextMax=Math.max(maxSeenFret,pos.fret);
+      if(nextMax-nextMin>5)return;
+      const nextCount=stringDelta===0?notesOnString+1:1;
+      if(nextCount>3)return;
+      buildRoutes(noteIdx+1,[...path,pos],nextMin,nextMax,nextCount);
     });
-    if(!nextLayer.length) return {path:[], complete:false};
-    layer=nextLayer;
   }
-  let end=layer.reduce((best,s)=>!best||s.cost<best.cost?s:best,null);
-  const path=[];
-  while(end){path.push({str:end.str,fret:end.fret,midi:end.midi});end=end.prev;}
-  path.reverse();
-  return {path:path.map((p,i)=>({...p,order:i+1})),complete:true};
+  buildRoutes(1,[first],startFret,startFret,1);
+  if(!routes.length)return {path:[],complete:false,alternatives:0};
+
+  const routeKey=route=>route.map(p=>`${p.stringIdx}:${p.fret}`).join('|');
+  const compactScore=route=>{
+    const frets=route.map(p=>p.fret);
+    const span=Math.max(...frets)-Math.min(...frets);
+    let movement=0,sameString=0;
+    for(let i=1;i<route.length;i++){
+      movement+=Math.abs(route[i].fret-route[i-1].fret);
+      if(route[i].stringIdx===route[i-1].stringIdx)sameString++;
+    }
+    return span*10+movement*0.5+sameString*0.4;
+  };
+  const acrossScore=route=>{
+    const frets=route.map(p=>p.fret);
+    const span=Math.max(...frets)-Math.min(...frets);
+    let movement=0,sameString=0;
+    for(let i=1;i<route.length;i++){
+      movement+=Math.abs(route[i].fret-route[i-1].fret);
+      if(route[i].stringIdx===route[i-1].stringIdx)sameString++;
+    }
+    return sameString*20+span*2+movement*0.2;
+  };
+  const compact=[...routes].sort((a,b)=>compactScore(a)-compactScore(b))[0];
+  const otherRoutes=routes.filter(route=>routeKey(route)!==routeKey(compact));
+  const chosen=variant==='across'&&otherRoutes.length
+    ? [...otherRoutes].sort((a,b)=>acrossScore(a)-acrossScore(b))[0]
+    : compact;
+  return {path:chosen.map((p,i)=>({...p,order:i+1})),complete:true,alternatives:routes.length};
 }
 
 function chordIntervalLabel(pc, rootPc){
@@ -1035,6 +1051,8 @@ function render(){
       message.textContent = 'Select a chord below to build a playable arpeggio shape.';
       arpeggioFormRow.appendChild(message);
     } else {
+      const shapeAvailability=computeArpeggioShape(state.selectedChordPcs,state.arpeggioStartString,FRET_COUNT,'compact');
+      if(shapeAvailability.alternatives<2)state.arpeggioVariant='compact';
       const label = document.createElement('span');
       label.className = 'hint'; label.style.margin = '6px 4px 0 0';
       label.textContent = 'Start on root on:';
@@ -1048,6 +1066,21 @@ function render(){
         btn.addEventListener('click', ()=>{ state.arpeggioStartString = stringIdx; render(); });
         arpeggioFormRow.appendChild(btn);
       });
+      const variantLabel = document.createElement('span');
+      variantLabel.className = 'hint'; variantLabel.style.margin = '6px 4px 0 10px';
+      variantLabel.textContent = 'Shape:';
+      arpeggioFormRow.appendChild(variantLabel);
+      [['compact','Compact'],['across','Across Strings']].forEach(([variant,label]) => {
+        const btn = document.createElement('button');
+        btn.type='button';
+        btn.disabled=variant==='across'&&shapeAvailability.alternatives<2;
+        btn.className='chip clickable'+(state.arpeggioVariant===variant?' active':'');
+        btn.setAttribute('aria-pressed',state.arpeggioVariant===variant?'true':'false');
+        btn.textContent=label;
+        if(btn.disabled)btn.title='No second comfortable route from this root within 15 frets.';
+        btn.addEventListener('click',()=>{state.arpeggioVariant=variant;render();});
+        arpeggioFormRow.appendChild(btn);
+      });
     }
   }
 
@@ -1056,7 +1089,7 @@ function render(){
   const octaveWarning = document.getElementById('octaveShapeWarning');
   octaveWarning.style.display = 'none';
   if(state.viewMode === 'arpeggioShape' && arpeggioMode){
-    const shapeResult = computeArpeggioShape(state.selectedChordPcs, state.arpeggioStartString, FRET_COUNT);
+    const shapeResult = computeArpeggioShape(state.selectedChordPcs, state.arpeggioStartString, FRET_COUNT, state.arpeggioVariant);
     activePath = shapeResult.path;
     currentPlayableMidi = activePath.map(p => p.midi);
     if(!shapeResult.complete){
