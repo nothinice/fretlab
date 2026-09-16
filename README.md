@@ -35,7 +35,8 @@ free to open one.
 - Chord harmonization (triads/7th chords), arpeggio view
 - Fretboard area selection (whole neck / fret ranges), Octave Shape and
   Playable Run diagonal patterns across the whole neck
-- Inside/Outside overlay for comparing two scales at once
+- Two-scale comparison with Main Scale, Shared Notes, and Tension Notes
+- Independent Main/Tension/Compare views for Octave Shape and Playable Run
 
 ## Roadmap
 
