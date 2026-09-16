@@ -13,13 +13,15 @@ This file is the shared handoff between Danila, Claude, and Codex.
 
 ## Current review priorities
 
-1. User-test whether Main Scale, Shared Notes, and Tension Notes are immediately understandable.
-2. Visually verify Main/Tension/Compare in Octave Shape and Playable Run across enharmonic roots.
-3. Decide whether a guided Transition Run should be added after the two independent paths are validated.
-4. Keep Octave Shape and Playable Run conceptually separate in both UI and code.
-5. Review chord labels and distinguish traditional tertian harmony from generalized
+1. Validate the prototype E/D/C/A/G chord-form windows against Popov's exact diagrams.
+2. Replace provisional compact windows with verified per-quality route data from the book.
+3. User-test the side-by-side Main Scale and Tension Scale selectors.
+4. User-test whether Main Scale, Shared Notes, and Tension Notes are immediately understandable.
+5. Visually verify Main/Tension/Compare in Octave Shape and Playable Run across enharmonic roots.
+6. Decide whether a guided Transition Run should be added after the two independent paths are validated.
+7. Review chord labels and distinguish traditional tertian harmony from generalized
    scale-step stacks.
-6. Convert the current algorithm checks into permanent regression tests before splitting
+8. Convert the current algorithm checks into permanent regression tests before splitting
    the single-file prototype into modules.
 
 ## Implemented safeguards
@@ -30,6 +32,7 @@ This file is the shared handoff between Danila, Claude, and Codex.
   and four notes for denser scales; the local fret span is limited to five frets.
 - Incomplete two-string Octave Shapes are rejected instead of displayed as valid.
 - Fingering modes are disabled while Inside/Outside Overlay is active.
+- Scale fingering modes are removed when an arpeggio is selected; arpeggios use Chord Forms instead.
 
 ## Later roadmap
 
