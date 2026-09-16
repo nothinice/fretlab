@@ -613,27 +613,18 @@ function computeArpeggioShape(pcs, startStringIdx, maxFret, variant='compact'){
   const compactScore=route=>{
     const frets=route.map(p=>p.fret);
     const span=Math.max(...frets)-Math.min(...frets);
-    let movement=0,sameString=0;
+    let movement=0,sameString=0,drift=0;
     for(let i=1;i<route.length;i++){
       movement+=Math.abs(route[i].fret-route[i-1].fret);
       if(route[i].stringIdx===route[i-1].stringIdx)sameString++;
+      drift+=Math.abs(route[i].fret-route[0].fret);
     }
-    return span*10+movement*0.5+sameString*0.4;
-  };
-  const acrossScore=route=>{
-    const frets=route.map(p=>p.fret);
-    const span=Math.max(...frets)-Math.min(...frets);
-    let movement=0,sameString=0;
-    for(let i=1;i<route.length;i++){
-      movement+=Math.abs(route[i].fret-route[i-1].fret);
-      if(route[i].stringIdx===route[i-1].stringIdx)sameString++;
-    }
-    return sameString*20+span*2+movement*0.2;
+    return span*10+movement*0.5+sameString*0.4+drift*0.6;
   };
   const compact=[...routes].sort((a,b)=>compactScore(a)-compactScore(b))[0];
   const otherRoutes=routes.filter(route=>routeKey(route)!==routeKey(compact));
-  const chosen=variant==='across'&&otherRoutes.length
-    ? [...otherRoutes].sort((a,b)=>acrossScore(a)-acrossScore(b))[0]
+  const chosen=variant==='alternative'&&otherRoutes.length
+    ? [...otherRoutes].sort((a,b)=>compactScore(a)-compactScore(b))[0]
     : compact;
   return {path:chosen.map((p,i)=>({...p,order:i+1})),complete:true,alternatives:routes.length};
 }
@@ -1070,10 +1061,10 @@ function render(){
       variantLabel.className = 'hint'; variantLabel.style.margin = '6px 4px 0 10px';
       variantLabel.textContent = 'Shape:';
       arpeggioFormRow.appendChild(variantLabel);
-      [['compact','Compact'],['across','Across Strings']].forEach(([variant,label]) => {
+      [['compact','Compact'],['alternative','Alternative']].forEach(([variant,label]) => {
         const btn = document.createElement('button');
         btn.type='button';
-        btn.disabled=variant==='across'&&shapeAvailability.alternatives<2;
+        btn.disabled=variant==='alternative'&&shapeAvailability.alternatives<2;
         btn.className='chip clickable'+(state.arpeggioVariant===variant?' active':'');
         btn.setAttribute('aria-pressed',state.arpeggioVariant===variant?'true':'false');
         btn.textContent=label;
