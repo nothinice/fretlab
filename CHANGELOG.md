@@ -7,7 +7,7 @@
 - Collapsed the older quick-preset buttons into a secondary Scale Library.
 - Split scale and arpeggio navigation: selected chords no longer use scale Octave Shape or Playable Run.
 - Added a prototype Chord Forms mode with distinct E, D, C, A, and G compact windows.
-- Limited chord forms to recognized maj7, 7, m7, m7b5, and dim7 structures.
+- Chord forms work from the selected chord's actual notes, including altered, minor-major, suspended, and unnamed structures.
 - Clearly marked the current chord forms as provisional pending exact validation against Popov's diagrams.
 
 ## 0.3.0 — 2026-09-16
