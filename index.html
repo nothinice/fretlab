@@ -12,7 +12,7 @@
     --wood:#D8C9A8; --wood-dark:#C3B08A; --brass:#A8672B; --teal:#3E5C55;
     --border:#DCD2BC; --string:#6B6357; --fret-wire:#A79C87; --danger:#B3453A;
     --warn:#8A6A1E; --warn-bg:#F3E6C4;
-    --ov-outside:#B5651D; --ov-common:#3B5BA5;
+    --ov-outside:#B5651D; --ov-common:#3E5C55;
   }
   @media (prefers-color-scheme: dark){
     :root:not([data-theme="light"]){
@@ -20,7 +20,7 @@
       --wood:#3B2A20; --wood-dark:#2C1E16; --brass:#D68C4C; --teal:#6FA093;
       --border:#3A3128; --string:#D8D2C4; --fret-wire:#8F8672; --danger:#D97C6F;
       --warn:#E3C878; --warn-bg:#3A2F16;
-      --ov-outside:#E08A45; --ov-common:#7C97D6;
+      --ov-outside:#E08A45; --ov-common:#6FA093;
     }
   }
   :root[data-theme="dark"]{
@@ -28,7 +28,7 @@
     --wood:#3B2A20; --wood-dark:#2C1E16; --brass:#D68C4C; --teal:#6FA093;
     --border:#3A3128; --string:#D8D2C4; --fret-wire:#8F8672; --danger:#D97C6F;
     --warn:#E3C878; --warn-bg:#3A2F16;
-    --ov-outside:#E08A45; --ov-common:#7C97D6;
+    --ov-outside:#E08A45; --ov-common:#6FA093;
   }
   *{box-sizing:border-box;}
   body{
@@ -102,7 +102,7 @@
   .legend{display:flex; gap:16px; flex-wrap:wrap; font-size:12px; color:var(--muted); margin-top:8px;}
   .legend-item{display:flex; align-items:center; gap:6px;}
   .swatch{width:14px; height:14px; border-radius:50%; display:inline-block; border:1px solid rgba(0,0,0,.2);}
-  .sw-inside{background:var(--teal);} .sw-outside{background:var(--ov-outside);}
+  .sw-inside{background:#EFE7D6;} .sw-outside{background:var(--ov-outside);}
   .sw-common{background:var(--ov-common);} .sw-root{background:var(--panel); box-shadow:0 0 0 2px var(--ink) inset;}
   .overlay-lists{display:flex; gap:24px; flex-wrap:wrap; font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--muted); margin-top:10px;}
 
@@ -152,7 +152,7 @@
   }
   .note:active{ transform: scale(0.88); }
   .note.root{ background:var(--brass); color:#211408; font-weight:700; box-shadow:0 0 0 2px rgba(0,0,0,.15); }
-  .note.ov-inside{ background:var(--teal); color:#fff; }
+  .note.ov-inside{ background:#EFE7D6; color:#241E19; }
   .note.ov-outside{ background:var(--ov-outside); color:#241505; }
   .note.ov-common{ background:var(--ov-common); color:#fff; }
   .note.ov-is-root{ box-shadow:0 0 0 2px var(--ink), 0 0 0 4px var(--wood); }
@@ -209,31 +209,32 @@
       <button data-mode="degrees" aria-pressed="false">Degrees</button>
     </div>
     <button id="playBtn" class="play-btn">▶ Play</button>
-    <button id="playInsideBtn" class="play-btn" style="display:none;">▶ Play Inside</button>
-    <button id="playOutsideBtn" class="play-btn outside" style="display:none;">▶ Play Outside</button>
+    <button id="playInsideBtn" class="play-btn" style="display:none;">▶ Play Main</button>
+    <button id="playOutsideBtn" class="play-btn outside" style="display:none;">▶ Play Tension</button>
   </div>
 
   <div class="overlay-toggle-row">
-    <button id="overlayToggleBtn" class="overlay-btn" aria-pressed="false">Inside/Outside Overlay</button>
+    <button id="overlayToggleBtn" class="overlay-btn" aria-pressed="false">Compare two scales</button>
   </div>
 
   <div class="overlay-panel" id="overlayPanel" style="display:none;">
     <div class="overlay-grid">
       <div>
-        <label for="outsideRoot">Outside Root</label>
+        <label for="outsideRoot">Tension Scale Root</label>
         <select id="outsideRoot"></select>
       </div>
       <div style="grid-column: span 2;">
-        <label for="outsideFormula">Outside Formula</label>
+        <label for="outsideFormula">Tension Scale Formula</label>
         <input type="text" id="outsideFormula" value="1 b2 b3 3 b5 5 6 b7">
       </div>
     </div>
     <div class="legend" aria-hidden="true">
-      <span class="legend-item"><span class="swatch sw-inside"></span> Inside only</span>
-      <span class="legend-item"><span class="swatch sw-outside"></span> Outside only</span>
-      <span class="legend-item"><span class="swatch sw-common"></span> Common tone</span>
-      <span class="legend-item"><span class="swatch sw-root"></span> Root of Inside and/or Outside</span>
+      <span class="legend-item"><span class="swatch sw-inside"></span> Main Scale</span>
+      <span class="legend-item"><span class="swatch sw-common"></span> Shared Notes</span>
+      <span class="legend-item"><span class="swatch sw-outside"></span> Tension Notes</span>
+      <span class="legend-item"><span class="swatch sw-root"></span> Scale Root</span>
     </div>
+    <p class="hint" style="margin:10px 0 0;">Shared Notes exist in both scales. Tension Notes are the new notes introduced by the Tension Scale.</p>
     <div class="overlay-lists" id="overlayLists"></div>
   </div>
 
@@ -243,6 +244,7 @@
   <div class="readout" id="readout"></div>
 
   <div class="chip-row" id="viewModeRow" role="group" aria-label="Visible fretboard area" style="margin-bottom:6px;"></div>
+  <div class="chip-row" id="overlayPathModeRow" role="group" aria-label="Scale path to display" style="display:none; margin:8px 0 6px;"></div>
   <div class="range-controls" id="customRangeControls" style="display:none;">
     <label for="rangeFromInput" style="display:inline; margin:0;">From fret</label>
     <input type="number" id="rangeFromInput" min="0" max="15" value="0">
@@ -408,6 +410,7 @@ let state = {
   rangePreset: null, // '0-4' | '5-9' | '10-15' | 'custom' | null
   rangeFrom: 0, rangeTo: 4,
   overlayEnabled: false,
+  overlayPathMode: 'compare', // 'main' | 'tension' | 'compare'
   outsideRoot: findRootIndex('A'), outsideFormula: '1 b2 b3 3 b5 5 6 b7'
 };
 let currentPlayableMidi = [];
@@ -677,8 +680,8 @@ function render(){
   const playBtn = document.getElementById('playBtn');
   const playInsideBtn = document.getElementById('playInsideBtn');
   const playOutsideBtn = document.getElementById('playOutsideBtn');
-  document.getElementById('rootLabelTag').textContent = state.overlayEnabled ? '(Inside)' : '';
-  document.getElementById('formulaLabelTag').textContent = state.overlayEnabled ? '(Inside)' : '';
+  document.getElementById('rootLabelTag').textContent = state.overlayEnabled ? '(Main Scale)' : '';
+  document.getElementById('formulaLabelTag').textContent = state.overlayEnabled ? '(Main Scale)' : '';
 
   let scale;
   try{
@@ -810,11 +813,7 @@ function render(){
     btn.className = 'chip clickable' + (currentModeKey === m.key ? ' active' : '');
     btn.setAttribute('aria-pressed', currentModeKey === m.key ? 'true' : 'false');
     btn.textContent = m.label;
-    const incompatibleWithOverlay = state.overlayEnabled && (m.key === 'octaveShape' || m.key === 'playableRun');
-    btn.disabled = incompatibleWithOverlay;
-    if(incompatibleWithOverlay) btn.title = 'Turn off Inside/Outside Overlay to use this fingering mode.';
     btn.addEventListener('click', ()=>{
-      if(incompatibleWithOverlay) return;
       if(m.key === 'whole'){ state.viewMode = 'whole'; state.rangePreset = null; }
       else if(m.key === 'octaveShape'){ state.viewMode = 'octaveShape'; }
       else if(m.key === 'playableRun'){ state.viewMode = 'playableRun'; }
@@ -836,6 +835,31 @@ function render(){
   rangeToInput.value = state.rangeTo;
   document.getElementById('customRangeControls').style.display = (state.viewMode === 'range' && state.rangePreset === 'custom') ? 'flex' : 'none';
 
+  const overlayPathModeRow = document.getElementById('overlayPathModeRow');
+  const pathComparisonActive = state.overlayEnabled && (state.viewMode === 'octaveShape' || state.viewMode === 'playableRun');
+  overlayPathModeRow.style.display = pathComparisonActive ? 'flex' : 'none';
+  overlayPathModeRow.innerHTML = '';
+  if(pathComparisonActive){
+    const pathLabel = document.createElement('span');
+    pathLabel.className = 'hint';
+    pathLabel.style.margin = '6px 4px 0 0';
+    pathLabel.textContent = 'Show path:';
+    overlayPathModeRow.appendChild(pathLabel);
+    [
+      ['main', 'Main'],
+      ['tension', 'Tension'],
+      ['compare', 'Compare']
+    ].forEach(([key, label]) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'chip clickable' + (state.overlayPathMode === key ? ' active' : '');
+      btn.setAttribute('aria-pressed', state.overlayPathMode === key ? 'true' : 'false');
+      btn.textContent = label;
+      btn.addEventListener('click', ()=>{ state.overlayPathMode = key; render(); });
+      overlayPathModeRow.appendChild(btn);
+    });
+  }
+
   // ---- Octave Shape / Playable Run path (only relevant in those modes) ----
   let activePath = [];
   const octaveWarning = document.getElementById('octaveShapeWarning');
@@ -844,10 +868,10 @@ function render(){
     const { path, secondStringCount, complete } = computeOctaveShapePath(pcsForPlayback, FRET_COUNT);
     activePath = path;
     currentPlayableMidi = path.map(p => p.str.midi + p.fret).sort((a,b)=>a-b);
-    if(!complete){
+    if(!complete && (!state.overlayEnabled || state.overlayPathMode === 'main' || state.overlayPathMode === 'compare')){
       octaveWarning.style.display = 'block';
       octaveWarning.textContent = 'A complete two-string octave shape does not fit within the displayed 15 frets for this root. No incomplete shape is shown.';
-    } else if(secondStringCount > 5){
+    } else if(complete && secondStringCount > 5 && (!state.overlayEnabled || state.overlayPathMode === 'main' || state.overlayPathMode === 'compare')){
       octaveWarning.style.display = 'block';
       octaveWarning.textContent = `This scale (${pcsForPlayback.length} notes) doesn't fit comfortably into a two-string octave shape — the second string needs ${secondStringCount} notes to complete the octave. Shown as-is rather than forcing an unplayable stretch elsewhere.`;
     }
@@ -858,6 +882,7 @@ function render(){
 
   // ---- Inside/Outside overlay data ----
   let overlayInfo = null;
+  let outsideActivePath = [];
   if(state.overlayEnabled){
     const outRootObj = ROOTS[state.outsideRoot];
     let outsideScale = [];
@@ -876,14 +901,33 @@ function render(){
     outsidePlayableMidi = outsideOrderedPcs.length ? ascendingMidiFromPcs(outsideOrderedPcs, lowestFretboardMidiForPc(outsideOrderedPcs[0])) : [];
     playOutsideBtn.disabled = Boolean(outsideError) || outsidePlayableMidi.length === 0;
 
+    if(!outsideError && state.viewMode === 'octaveShape'){
+      const outsideShape = computeOctaveShapePath(outsideOrderedPcs, FRET_COUNT);
+      outsideActivePath = outsideShape.path;
+      outsidePlayableMidi = outsideActivePath.map(p => p.str.midi + p.fret).sort((a,b)=>a-b);
+      if(!outsideShape.complete && (state.overlayPathMode === 'tension' || state.overlayPathMode === 'compare')){
+        const existing = octaveWarning.style.display !== 'none' ? octaveWarning.textContent + ' ' : '';
+        octaveWarning.style.display = 'block';
+        octaveWarning.textContent = existing + 'The Tension Scale does not form a complete two-string octave shape within 15 frets.';
+      } else if(outsideShape.complete && outsideShape.secondStringCount > 5 && (state.overlayPathMode === 'tension' || state.overlayPathMode === 'compare')){
+        const existing = octaveWarning.style.display !== 'none' ? octaveWarning.textContent + ' ' : '';
+        octaveWarning.style.display = 'block';
+        octaveWarning.textContent = existing + `The Tension Scale needs ${outsideShape.secondStringCount} notes on the second string of its octave cell.`;
+      }
+      if(activePath.length) insidePlayableMidi = activePath.map(p => p.str.midi + p.fret).sort((a,b)=>a-b);
+    } else if(!outsideError && state.viewMode === 'playableRun'){
+      outsideActivePath = computePlayableRunPath(outsideOrderedPcs, FRET_COUNT);
+      outsidePlayableMidi = outsideActivePath.map(p => p.str.midi + p.fret).sort((a,b)=>a-b);
+      if(activePath.length) insidePlayableMidi = activePath.map(p => p.str.midi + p.fret).sort((a,b)=>a-b);
+    }
+
     const listsEl = document.getElementById('overlayLists');
     const nameFor = (pc, map) => map.has(pc) ? map.get(pc).noteName : '';
     listsEl.innerHTML = outsideError
-      ? `<div style="color:var(--danger)"><strong>Outside formula error</strong><br>${outsideError}</div>`
+      ? `<div style="color:var(--danger)"><strong>Tension Scale formula error</strong><br>${outsideError}</div>`
       : `
-        <div><strong>Common tones</strong><br>${commonPcs.length ? commonPcs.map(pc=>nameFor(pc,pcMap)).join(' ') : '—'}</div>
-        <div><strong>Outside-only</strong><br>${outsideOnlyPcs.length ? outsideOnlyPcs.map(pc=>nameFor(pc,outsidePcMap)).join(' ') : '—'}</div>
-        <div><strong>Inside-only</strong><br>${insideOnlyPcs.length ? insideOnlyPcs.map(pc=>nameFor(pc,pcMap)).join(' ') : '—'}</div>
+        <div><strong>Shared Notes</strong><br>${commonPcs.length ? commonPcs.map(pc=>nameFor(pc,pcMap)).join(' ') : '—'}</div>
+        <div><strong>Tension Notes</strong><br>${outsideOnlyPcs.length ? outsideOnlyPcs.map(pc=>nameFor(pc,outsidePcMap)).join(' ') : '—'}</div>
       `;
   }
 
@@ -929,13 +973,24 @@ function render(){
 
       const pc = (str.pc + f) % 12;
       const inRange = !rangeActive || (f >= state.rangeFrom && f <= state.rangeTo);
-      const inPath = !pathActive || activePath.some(p => p.str === str && p.fret === f);
-      const areaOk = inRange && inPath;
+      const inInsidePath = !pathActive || activePath.some(p => p.str === str && p.fret === f);
+      const inOutsidePath = !pathActive || outsideActivePath.some(p => p.str === str && p.fret === f);
+      const areaOk = inRange && inInsidePath;
+      let overlayAreaOk = inRange;
+      if(pathActive){
+        if(state.overlayPathMode === 'main') overlayAreaOk = inInsidePath;
+        else if(state.overlayPathMode === 'tension') overlayAreaOk = inOutsidePath;
+        else overlayAreaOk = inInsidePath || inOutsidePath;
+      }
 
       if(state.overlayEnabled && overlayInfo){
         const inInside = overlayInfo.insidePcMap.has(pc);
         const inOutside = overlayInfo.outsidePcMap.has(pc);
-        if(areaOk && (inInside || inOutside)){
+        const belongsToSelectedPath = !pathActive ||
+          (state.overlayPathMode === 'main' ? (inInside && inInsidePath) :
+           state.overlayPathMode === 'tension' ? (inOutside && inOutsidePath) :
+           ((inInside && inInsidePath) || (inOutside && inOutsidePath)));
+        if(overlayAreaOk && belongsToSelectedPath && (inInside || inOutside)){
           const isRootMark = pc === overlayInfo.insideRootPc || pc === overlayInfo.outsideRootPc;
           let ovClass = inInside && inOutside ? 'ov-common' : (inInside ? 'ov-inside' : 'ov-outside');
           const insideInfo = inInside ? overlayInfo.insidePcMap.get(pc) : null;
@@ -967,7 +1022,8 @@ function render(){
         noteEl.addEventListener('click', (e)=>{ e.stopPropagation(); playMidi(midiHere); });
         cell.appendChild(noteEl);
       }
-      if(!areaOk) cell.classList.add('dimmed');
+      const cellIsActive = state.overlayEnabled && overlayInfo ? overlayAreaOk : areaOk;
+      if(!cellIsActive) cell.classList.add('dimmed');
       board.appendChild(cell);
     }
   });
@@ -1017,7 +1073,7 @@ function init(){
     document.getElementById('playBtn').style.display = state.overlayEnabled ? 'none' : 'inline-block';
     document.getElementById('playInsideBtn').style.display = state.overlayEnabled ? 'inline-block' : 'none';
     document.getElementById('playOutsideBtn').style.display = state.overlayEnabled ? 'inline-block' : 'none';
-    if(state.overlayEnabled){ state.selectedChordId = null; state.selectedChordPcs = null; if(state.viewMode==='octaveShape'||state.viewMode==='playableRun') state.viewMode='whole'; }
+    if(state.overlayEnabled){ state.selectedChordId = null; state.selectedChordPcs = null; }
     render();
   });
 
