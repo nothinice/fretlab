@@ -33,7 +33,7 @@ free to open one.
 - Presets: diatonic modes, common scales, all 15 of Allan Holdsworth's
   "usable scales"
 - Chord harmonization (triads/7th chords), arpeggio view
-- Separate scale and arpeggio interfaces; supported seventh chords expose compact E/D/C/A/G form prototypes
+- Separate scale and arpeggio interfaces; every selected chord exposes compact E/D/C/A/G form prototypes
 - Fretboard area selection (whole neck / fret ranges), Octave Shape and
   Playable Run diagonal patterns across the whole neck
 - Two-scale comparison with Main Scale, Shared Notes, and Tension Notes
