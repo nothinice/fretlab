@@ -7,7 +7,7 @@ Allan Holdsworth "usable scale" is calculated from its formula.
 
 **Live demo:** after GitHub Pages is enabled for the `main` branch, the
 app is available at
-`https://nothinice.github.io/fretboard-formula-engine/`.
+`https://nothinice.github.io/fretlab/`.
 
 ## What's in here
 
