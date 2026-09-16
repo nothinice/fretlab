@@ -4,7 +4,7 @@
 
 - Replaced the provisional E/D/C/A/G windows with a real ordered Playable Shape.
 - Added root-start selection on strings 6, 5, 4, and 3.
-- Added Compact and Across Strings variants, with duplicate alternatives automatically disabled.
+- Added Compact and Alternative variants, both ranked by ergonomic movement rather than maximum string changes.
 - Added numbered route positions and route-ordered playback.
 - Added chord-relative degree labels such as R, b3, 5, and b7.
 - Added an explicit Arpeggio banner and Back to Scale action.
