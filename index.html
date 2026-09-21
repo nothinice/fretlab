@@ -713,6 +713,10 @@ function clusterArpeggioRoutes(routes,octaveCount){
   return representatives;
 }
 
+function resolveArpeggioOctaveCount(requestedOctaves,twoOctaveComplete){
+  return requestedOctaves===2&&!twoOctaveComplete?1:requestedOctaves;
+}
+
 const ARPEGGIO_CATEGORY_LABELS={
   position:'Позиционная', sweep:'Для свипа', smooth:'Плавная',
   diagonal:'Диагональная', twoPerString:'Две ноты на струне'
@@ -1187,7 +1191,7 @@ function render(){
   const arpeggioFormRow = document.getElementById('arpeggioFormRow');
   const arpeggioRouteInfo = document.getElementById('arpeggioRouteInfo');
   let currentArpeggioAnalysis = null;
-  let twoOctaveContinuesBeyondBoard = false;
+  let twoOctaveDoesNotFit = false;
   arpeggioFormRow.innerHTML = '';
   arpeggioRouteInfo.style.display = 'none';
   arpeggioFormRow.style.display = state.viewMode === 'arpeggioShape' ? 'flex' : 'none';
@@ -1200,11 +1204,12 @@ function render(){
     } else {
       const oneOctaveAvailability=analyzeArpeggioRoutes(state.selectedChordPcs,state.arpeggioStartString,FRET_COUNT,1);
       const twoOctaveAvailability=analyzeArpeggioRoutes(state.selectedChordPcs,state.arpeggioStartString,FRET_COUNT,2);
-      twoOctaveContinuesBeyondBoard=!twoOctaveAvailability.complete;
+      twoOctaveDoesNotFit=!twoOctaveAvailability.complete;
       // When a new starting string cannot fit the previously selected
       // two-octave route, keep the usable one-octave fingering visible.
-      if(state.arpeggioOctaves===2&&twoOctaveContinuesBeyondBoard){
-        state.arpeggioOctaves=1;
+      const resolvedOctaves=resolveArpeggioOctaveCount(state.arpeggioOctaves,twoOctaveAvailability.complete);
+      if(resolvedOctaves!==state.arpeggioOctaves){
+        state.arpeggioOctaves=resolvedOctaves;
         state.arpeggioOtherIndex=0;
       }
       currentArpeggioAnalysis=state.arpeggioOctaves===2?twoOctaveAvailability:oneOctaveAvailability;
@@ -1323,7 +1328,7 @@ function render(){
       octaveWarning.textContent=state.arpeggioOctaves===2
         ? 'Две октавы не помещаются от выбранной струны в пределах 15 ладов. Выберите более низкую струну.'
         : 'Удобная однооктавная аппликатура не помещается от этой тоники в пределах 15 ладов.';
-    }else if(twoOctaveContinuesBeyondBoard){
+    }else if(twoOctaveDoesNotFit){
       octaveWarning.style.display='block';
       octaveWarning.textContent=`От ${6-state.arpeggioStartString}-й струны две октавы выходят за 15-й лад — продолжайте вдоль грифа.`;
     }

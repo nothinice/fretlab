@@ -8,8 +8,12 @@ const logicSource = script.slice(
   script.indexOf('function buildArpeggioRoutes'),
   script.indexOf('function chordIntervalLabel')
 );
-const load = new Function(`${stringsSource}\n${logicSource}\nreturn {buildArpeggioRoutes,analyzeArpeggioRoutes,selectArpeggioRoute,arpeggioRouteKey,arpeggioRouteFeatures};`);
+const load = new Function(`${stringsSource}\n${logicSource}\nreturn {buildArpeggioRoutes,analyzeArpeggioRoutes,selectArpeggioRoute,arpeggioRouteKey,arpeggioRouteFeatures,resolveArpeggioOctaveCount};`);
 const api = load();
+
+assert.equal(api.resolveArpeggioOctaveCount(2,false),1,'Unavailable two-octave routes must fall back to one octave');
+assert.equal(api.resolveArpeggioOctaveCount(2,true),2,'Available two-octave routes must stay selected');
+assert.equal(api.resolveArpeggioOctaveCount(1,false),1,'One-octave selection must remain stable');
 
 const qualities = {
   major:[0,4,7], minor:[0,3,7],
