@@ -13,15 +13,18 @@ This file is the shared handoff between Danila, Claude, and Codex.
 
 ## Current review priorities
 
-1. User-test the curated Popov-based maj7, 7, m7, m7b5, and dim7 forms on a real guitar.
-2. Verify every newly transcribed point and the ascending playback order against the source diagrams.
-3. Record any hands-on corrections as fixed coordinates before adding derived exotic qualities.
-4. User-test the explicit Scale / Compare / Arpeggio states and Back to Scale action.
-5. User-test the side-by-side Main Mode and Outside Mode selectors.
-6. User-test whether Main Mode, Shared Notes, and Outside Mode Notes are immediately understandable.
-7. Review chord labels and distinguish traditional tertian harmony from generalized
+1. Obtain a clear source page for Popov's triad arpeggio forms; do not derive them by merely deleting the seventh from the current shapes.
+2. Transcribe every triad quality shown by Popov as fixed relative geometry and connect supported triad chips to the curated form selector.
+3. Add fixed-coordinate tests plus all-root transposition, boundary, degree, and ascending-playback checks for the triad library.
+4. User-test the curated Popov-based triad and seventh-chord forms on a real guitar.
+5. Verify every transcribed point and the ascending playback order against the source diagrams.
+6. Record any hands-on corrections as fixed coordinates before adding derived exotic qualities.
+7. User-test the explicit Scale / Compare / Arpeggio states and Back to Scale action.
+8. User-test the side-by-side Main Mode and Outside Mode selectors.
+9. User-test whether Main Mode, Shared Notes, and Outside Mode Notes are immediately understandable.
+10. Review chord labels and distinguish traditional tertian harmony from generalized
    scale-step stacks.
-8. Expand permanent regression tests before splitting
+11. Expand permanent regression tests before splitting
    the single-file prototype into modules.
 
 ## Implemented safeguards
@@ -45,6 +48,7 @@ This file is the shared handoff between Danila, Claude, and Codex.
 
 ## Later roadmap
 
+- Re-evaluate Octave Shape and Playable Run separately after the Popov triad library is complete: clarify their teaching purpose, inspect generated routes on a real guitar, simplify their controls, and keep only musically useful behavior.
 - Derived exotic qualities based on approved Popov forms, with each result checked on a real guitar before publication.
 - String-set and technique-specific libraries only after the Popov system is validated.
 - String-set arpeggios on 6–5–4, 5–4–3, 4–3–2, and 3–2–1.
