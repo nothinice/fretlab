@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Fretboard Engine — Formula Prototype</title>
+<title>Fretlab — формулы, гаммы и арпеджио</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -213,72 +213,72 @@
 </head>
 <body>
 <div class="wrap">
-  <h1>Formula Engine — fretboard prototype</h1>
-  <p class="sub">Root + interval formula → notes, spelled by scale degree (not just nearest sharp/flat), rendered live on the fretboard. Type any formula: <span style="font-family:'IBM Plex Mono',monospace">1 2 b3 4 5 6 7</span>, <span style="font-family:'IBM Plex Mono',monospace">1-b3-5-bb7</span>, whatever.</p>
+  <h1>Fretlab — формулы на грифе</h1>
+  <p class="sub">Выберите тонику и задайте интервальную формулу — приложение правильно назовёт ноты и покажет их на грифе. Можно вводить любую формулу: <span style="font-family:'IBM Plex Mono',monospace">1 2 b3 4 5 6 7</span> или <span style="font-family:'IBM Plex Mono',monospace">1-b3-5-bb7</span>.</p>
 
   <div class="scale-compare-grid">
     <section class="scale-card" aria-labelledby="mainScaleHeading">
-      <h2 id="mainScaleHeading">Main Scale</h2>
+      <h2 id="mainScaleHeading">Основная гамма</h2>
       <div class="scale-card-fields">
         <div>
-          <label for="root">Root</label>
+          <label for="root">Тоника</label>
           <select id="root"></select>
         </div>
         <div>
-          <label for="mainScalePreset">Scale</label>
+          <label for="mainScalePreset">Гамма</label>
           <select id="mainScalePreset"></select>
         </div>
         <div class="formula-field">
-          <label for="formula">Formula</label>
+          <label for="formula">Формула</label>
           <input type="text" id="formula" value="1 2 b3 4 5 6 7">
         </div>
       </div>
     </section>
 
     <div class="comparison-action">
-      <button id="overlayToggleBtn" class="overlay-btn" aria-pressed="false">Add Tension Scale →</button>
+      <button id="overlayToggleBtn" class="overlay-btn" aria-pressed="false">Добавить гамму напряжения →</button>
     </div>
 
     <section class="scale-card inactive" id="overlayPanel" aria-labelledby="tensionScaleHeading">
-      <h2 id="tensionScaleHeading">Tension Scale</h2>
+      <h2 id="tensionScaleHeading">Гамма напряжения</h2>
       <div class="scale-card-fields">
         <div>
-          <label for="outsideRoot">Root</label>
+          <label for="outsideRoot">Тоника</label>
           <select id="outsideRoot" disabled></select>
         </div>
         <div>
-          <label for="outsideScalePreset">Scale</label>
+          <label for="outsideScalePreset">Гамма</label>
           <select id="outsideScalePreset" disabled></select>
         </div>
         <div class="formula-field">
-          <label for="outsideFormula">Formula</label>
+          <label for="outsideFormula">Формула</label>
           <input type="text" id="outsideFormula" value="1 b2 b3 3 b5 5 6 b7" disabled>
         </div>
       </div>
     </section>
   </div>
 
-  <div class="pill-row" id="pillRow" role="group" aria-label="Chromatic degree picker"></div>
-  <p class="hint">Click a degree above to add/remove it — the text field and fretboard update together. Or type formulas directly: spaces, dashes or commas all work.</p>
+  <div class="pill-row" id="pillRow" role="group" aria-label="Выбор хроматических ступеней"></div>
+  <p class="hint">Нажмите на ступень, чтобы добавить или убрать её. Формулу также можно вводить вручную через пробелы, дефисы или запятые.</p>
 
   <div class="toggles">
-    <div class="toggle-group" id="displayToggle" role="group" aria-label="Notes or degrees">
-      <button data-mode="notes" class="active" aria-pressed="true">Notes</button>
-      <button data-mode="degrees" aria-pressed="false">Degrees</button>
+    <div class="toggle-group" id="displayToggle" role="group" aria-label="Ноты или ступени">
+      <button data-mode="notes" class="active" aria-pressed="true">Ноты</button>
+      <button data-mode="degrees" aria-pressed="false">Ступени</button>
     </div>
-    <button id="playBtn" class="play-btn">▶ Play</button>
-    <button id="playInsideBtn" class="play-btn" style="display:none;">▶ Play Main</button>
-    <button id="playOutsideBtn" class="play-btn outside" style="display:none;">▶ Play Tension</button>
+    <button id="playBtn" class="play-btn">▶ Играть</button>
+    <button id="playInsideBtn" class="play-btn" style="display:none;">▶ Основная</button>
+    <button id="playOutsideBtn" class="play-btn outside" style="display:none;">▶ Напряжение</button>
   </div>
 
   <div class="comparison-details" id="comparisonDetails" style="display:none;">
     <div class="legend" aria-hidden="true">
-      <span class="legend-item"><span class="swatch sw-inside"></span> Main Scale</span>
-      <span class="legend-item"><span class="swatch sw-common"></span> Shared Notes</span>
-      <span class="legend-item"><span class="swatch sw-outside"></span> Tension Notes</span>
-      <span class="legend-item"><span class="swatch sw-root"></span> Scale Root</span>
+      <span class="legend-item"><span class="swatch sw-inside"></span> Основная гамма</span>
+      <span class="legend-item"><span class="swatch sw-common"></span> Общие ноты</span>
+      <span class="legend-item"><span class="swatch sw-outside"></span> Ноты напряжения</span>
+      <span class="legend-item"><span class="swatch sw-root"></span> Тоника</span>
     </div>
-    <p class="hint" style="margin:10px 0 0;">Shared Notes exist in both scales. Tension Notes are the new notes introduced by the Tension Scale.</p>
+    <p class="hint" style="margin:10px 0 0;">Общие ноты входят в обе гаммы. Ноты напряжения появляются только в гамме напряжения.</p>
     <div class="overlay-lists" id="overlayLists"></div>
   </div>
 
@@ -287,13 +287,13 @@
 
   <div class="readout" id="readout"></div>
 
-  <div class="chip-row" id="viewModeRow" role="group" aria-label="Visible fretboard area" style="margin-bottom:6px;"></div>
-  <div class="chip-row" id="overlayPathModeRow" role="group" aria-label="Scale path to display" style="display:none; margin:8px 0 6px;"></div>
-  <div class="chip-row" id="arpeggioFormRow" role="group" aria-label="Arpeggio starting string" style="display:none; margin:8px 0 6px;"></div>
+  <div class="chip-row" id="viewModeRow" role="group" aria-label="Область грифа" style="margin-bottom:6px;"></div>
+  <div class="chip-row" id="overlayPathModeRow" role="group" aria-label="Маршрут гаммы" style="display:none; margin:8px 0 6px;"></div>
+  <div class="chip-row" id="arpeggioFormRow" role="group" aria-label="Настройки арпеджио" style="display:none; margin:8px 0 6px;"></div>
   <div class="range-controls" id="customRangeControls" style="display:none;">
-    <label for="rangeFromInput" style="display:inline; margin:0;">From fret</label>
+    <label for="rangeFromInput" style="display:inline; margin:0;">От лада</label>
     <input type="number" id="rangeFromInput" min="0" max="15" value="0">
-    <label for="rangeToInput" style="display:inline; margin:0;">To fret</label>
+    <label for="rangeToInput" style="display:inline; margin:0;">До лада</label>
     <input type="number" id="rangeToInput" min="0" max="15" value="4">
   </div>
   <p class="hint" id="octaveShapeWarning" style="display:none;"></p>
@@ -303,20 +303,20 @@
   </div>
 
   <div class="chords-section" id="chordsSection">
-    <h2 id="triadsHeading">Triads</h2>
+    <h2 id="triadsHeading">Трезвучия</h2>
     <div class="chip-row" id="triadsRow"></div>
-    <h2 style="margin-top:16px;" id="tetradsHeading">Four-note chords</h2>
+    <h2 style="margin-top:16px;" id="tetradsHeading">Септаккорды</h2>
     <div class="chip-row" id="tetradsRow"></div>
     <p class="hint" style="margin-top:8px;" id="harmonizationHint"></p>
   </div>
 
   <details class="presets">
-    <summary>Scale Library</summary>
-    <h2>Diatonic modes</h2>
+    <summary>Библиотека гамм</summary>
+    <h2>Диатонические лады</h2>
     <div class="preset-grid" id="presetsDiatonic"></div>
-    <h2 style="margin-top:16px;">Other scales</h2>
+    <h2 style="margin-top:16px;">Другие гаммы</h2>
     <div class="preset-grid" id="presetsOther"></div>
-    <h2 style="margin-top:16px;">Allan Holdsworth's 15 Usable Scales</h2>
+    <h2 style="margin-top:16px;">15 используемых гамм Аллана Холдсворта</h2>
     <div class="preset-grid" id="presetsHoldsworth"></div>
   </details>
 </div>
@@ -397,40 +397,40 @@ const MARKER_FRETS = new Set([3,5,7,9,12,15]);
 const DOUBLE_MARKER_FRETS = new Set([12]);
 
 const PRESETS_DIATONIC = [
-  ['Ionian / Major','1 2 3 4 5 6 7'], ['Dorian','1 2 b3 4 5 6 b7'],
-  ['Phrygian','1 b2 b3 4 5 b6 b7'], ['Lydian','1 2 3 #4 5 6 7'],
-  ['Mixolydian','1 2 3 4 5 6 b7'], ['Aeolian / Nat. Minor','1 2 b3 4 5 b6 b7'],
-  ['Locrian','1 b2 b3 4 b5 b6 b7']
+  ['Ионийский / мажор','1 2 3 4 5 6 7'], ['Дорийский','1 2 b3 4 5 6 b7'],
+  ['Фригийский','1 b2 b3 4 5 b6 b7'], ['Лидийский','1 2 3 #4 5 6 7'],
+  ['Миксолидийский','1 2 3 4 5 6 b7'], ['Эолийский / натуральный минор','1 2 b3 4 5 b6 b7'],
+  ['Локрийский','1 b2 b3 4 b5 b6 b7']
 ];
 const PRESETS_OTHER = [
-  ['Harmonic Minor','1 2 b3 4 5 b6 7'], ['Melodic Minor','1 2 b3 4 5 6 7'],
-  ['Major Pentatonic','1 2 3 5 6'], ['Minor Pentatonic','1 b3 4 5 b7'],
-  ['Blues','1 b3 4 b5 5 b7'], ['Whole Tone','1 2 3 #4 #5 b7'],
-  ['Phrygian Dominant','1 b2 3 4 5 b6 b7'], ['Lydian Dominant','1 2 3 #4 5 6 b7'],
-  ['Dim. whole-half','1 2 b3 4 b5 b6 6 7'], ['Dim. half-whole','1 b2 b3 3 b5 5 6 b7']
+  ['Гармонический минор','1 2 b3 4 5 b6 7'], ['Мелодический минор','1 2 b3 4 5 6 7'],
+  ['Мажорная пентатоника','1 2 3 5 6'], ['Минорная пентатоника','1 b3 4 5 b7'],
+  ['Блюзовая','1 b3 4 b5 5 b7'], ['Целотонная','1 2 3 #4 #5 b7'],
+  ['Фригийский доминантовый','1 b2 3 4 5 b6 b7'], ['Лидийский доминантовый','1 2 3 #4 5 6 b7'],
+  ['Уменьшённая тон-полутон','1 2 b3 4 b5 b6 6 7'], ['Уменьшённая полутон-тон','1 b2 b3 3 b5 5 6 b7']
 ];
 const PRESETS_HOLDSWORTH = [
-  ['Dorian','D','1 2 b3 4 5 6 b7'],
-  ['Melodic Minor','D','1 2 b3 4 5 6 7'],
-  ['Harmonic Minor','A','1 2 b3 4 5 b6 7'],
-  ['Melodic Minor #4','A','1 2 b3 #4 5 6 7'],
-  ['Dominant Diminished (M2)','G','1 b2 b3 3 #4 5 6 b7'],
-  ['Jazz Major','Bb','1 2 3 4 5 b6 6 7'],
-  ['Jazz Dominant','C','1 2 3 4 5 6 b7 7'],
-  ['Bebop Dorian','B','1 2 b3 4 5 6 b7 7'],
-  ['Bebop Melodic Minor','A','1 2 b3 4 5 b6 6 7'],
-  ['Tcherepnin (M3)','C','1 2 b3 3 #4 5 b6 b7 7'],
-  ['Jazz Minor (add #4)','Db','1 2 b3 4 #4 5 6 7'],
-  ['Jazz Dominant (add b3, nat7)','C','1 2 b3 3 4 5 6 b7 7'],
-  ['Jazz Major (add b3, b6)','C','1 2 b3 3 4 5 b6 6 7'],
-  ['Mixolydian #9','C','1 b3 3 4 5 6 b7'],
-  ['Whole Tone','F','1 2 3 #4 #5 b7']
+  ['Дорийский','D','1 2 b3 4 5 6 b7'],
+  ['Мелодический минор','D','1 2 b3 4 5 6 7'],
+  ['Гармонический минор','A','1 2 b3 4 5 b6 7'],
+  ['Мелодический минор #4','A','1 2 b3 #4 5 6 7'],
+  ['Доминантовая уменьшённая (M2)','G','1 b2 b3 3 #4 5 6 b7'],
+  ['Джазовый мажор','Bb','1 2 3 4 5 b6 6 7'],
+  ['Джазовый доминантовый','C','1 2 3 4 5 6 b7 7'],
+  ['Бибоп-дорийский','B','1 2 b3 4 5 6 b7 7'],
+  ['Бибоп-мелодический минор','A','1 2 b3 4 5 b6 6 7'],
+  ['Черепнин (M3)','C','1 2 b3 3 #4 5 b6 b7 7'],
+  ['Джазовый минор (добавлена #4)','Db','1 2 b3 4 #4 5 6 7'],
+  ['Джазовый доминантовый (добавлены b3 и 7)','C','1 2 b3 3 4 5 6 b7 7'],
+  ['Джазовый мажор (добавлены b3 и b6)','C','1 2 b3 3 4 5 b6 6 7'],
+  ['Миксолидийский #9','C','1 b3 3 4 5 6 b7'],
+  ['Целотонная','F','1 2 3 #4 #5 b7']
 ];
 
 const SCALE_PRESET_OPTIONS = [
-  ...PRESETS_DIATONIC.map(([name, formula], i) => ({id:`diatonic-${i}`, group:'Diatonic modes', name, formula})),
-  ...PRESETS_OTHER.map(([name, formula], i) => ({id:`other-${i}`, group:'Other scales', name, formula})),
-  ...PRESETS_HOLDSWORTH.map(([name, root, formula], i) => ({id:`holdsworth-${i}`, group:"Holdsworth's usable scales", name:`${name} [Holdsworth]`, formula}))
+  ...PRESETS_DIATONIC.map(([name, formula], i) => ({id:`diatonic-${i}`, group:'Диатонические лады', name, formula})),
+  ...PRESETS_OTHER.map(([name, formula], i) => ({id:`other-${i}`, group:'Другие гаммы', name, formula})),
+  ...PRESETS_HOLDSWORTH.map(([name, root, formula], i) => ({id:`holdsworth-${i}`, group:'Гаммы Холдсворта', name:`${name} [Холдсворт]`, formula}))
 ];
 
 function formulaSignature(text){
@@ -451,7 +451,7 @@ function populateScaleSelect(select){
     groups.get(preset.group).appendChild(option);
   });
   const custom = document.createElement('option');
-  custom.value = 'custom'; custom.textContent = 'Custom Formula';
+  custom.value = 'custom'; custom.textContent = 'Своя формула';
   select.appendChild(custom);
 }
 function syncScaleSelect(select, formula){
@@ -478,13 +478,15 @@ function semitoneSetKey(formulaText){
 
 const DIATONIC_KEYS = PRESETS_DIATONIC.map(([name, formula]) => ({name, key: semitoneSetKey(formula)}));
 const OTHER_KEYS = PRESETS_OTHER.map(([name, formula]) => ({name, key: semitoneSetKey(formula)}));
-const HOLDSWORTH_KEYS = PRESETS_HOLDSWORTH.map(([name, root, formula]) => ({name: name + ' [Holdsworth]', key: semitoneSetKey(formula)}));
+const HOLDSWORTH_KEYS = PRESETS_HOLDSWORTH.map(([name, root, formula]) => ({name: name + ' [Холдсворт]', key: semitoneSetKey(formula)}));
 const ALL_NAMED_SCALES = [...DIATONIC_KEYS, ...OTHER_KEYS, ...HOLDSWORTH_KEYS];
 
 let state = {
   root: findRootIndex('A'), formula: '1 2 b3 4 5 6 7', mode: 'notes',
   selectedChordId: null, selectedChordPcs: null,
-  selectedChordLabel: null, selectedChordQuality: null, arpeggioStartString: 0, arpeggioVariant: 'compact',
+  selectedChordLabel: null, selectedChordQuality: null,
+  arpeggioStartString: 0, arpeggioVariant: 'wide', arpeggioOctaves: 1,
+  arpeggioIntervalMode: 'simple',
   viewMode: 'whole', // 'whole' | 'range' | 'octaveShape' | 'playableRun' | 'arpeggioShape'
   rangePreset: null, // '0-4' | '5-9' | '10-15' | 'custom' | null
   rangeFrom: 0, rangeTo: 4,
@@ -568,8 +570,9 @@ function detectChordQuality(pcs){
   return ({'4,7,11':'maj7','4,7,10':'7','3,7,10':'m7','3,6,10':'m7b5','3,6,9':'dim7'})[key] || null;
 }
 
-function computeArpeggioShape(pcs, startStringIdx, maxFret, variant='compact'){
+function computeArpeggioShape(pcs, startStringIdx, maxFret, variant='wide', octaveCount=1){
   if(!pcs || !pcs.length || startStringIdx < 0 || startStringIdx > 3) return {path:[], complete:false};
+  if(octaveCount !== 1 && octaveCount !== 2) return {path:[], complete:false, alternatives:0};
   const strings = [...OPEN_STRINGS_TOP_TO_BOTTOM].slice().reverse();
   const rootPc = pcs[0];
   const intervals = [...new Set(pcs.map(pc => ((pc-rootPc)%12+12)%12))].sort((a,b)=>a-b);
@@ -578,8 +581,11 @@ function computeArpeggioShape(pcs, startStringIdx, maxFret, variant='compact'){
   const startFret = ((rootPc - startString.pc) % 12 + 12) % 12;
   if(startFret > maxFret) return {path:[], complete:false};
   const startMidi = startString.midi + startFret;
-  const targetMidis = intervals.map(interval => startMidi + interval);
-  targetMidis.push(startMidi + 12);
+  const targetMidis = [];
+  for(let octave=0; octave<octaveCount; octave++){
+    intervals.forEach(interval => targetMidis.push(startMidi + interval + octave*12));
+  }
+  targetMidis.push(startMidi + octaveCount*12);
 
   const positionsForMidi = midi => {
     const result = [];
@@ -600,7 +606,11 @@ function computeArpeggioShape(pcs, startStringIdx, maxFret, variant='compact'){
       if(stringDelta<0||stringDelta>1)return;
       const nextMin=Math.min(minFret,pos.fret);
       const nextMax=Math.max(maxSeenFret,pos.fret);
-      if(nextMax-nextMin>5)return;
+      // A two-octave route may travel diagonally along the neck. Limit the
+      // one-octave box, but do not reject a valid two-octave route merely
+      // because its first and last notes are far apart.
+      const allowedSpan=octaveCount===1?5:maxFret;
+      if(nextMax-nextMin>allowedSpan)return;
       const nextCount=stringDelta===0?notesOnString+1:1;
       if(nextCount>3)return;
       buildRoutes(noteIdx+1,[...path,pos],nextMin,nextMax,nextCount);
@@ -610,27 +620,41 @@ function computeArpeggioShape(pcs, startStringIdx, maxFret, variant='compact'){
   if(!routes.length)return {path:[],complete:false,alternatives:0};
 
   const routeKey=route=>route.map(p=>`${p.stringIdx}:${p.fret}`).join('|');
-  const compactScore=route=>{
+  const wideScore=route=>{
     const frets=route.map(p=>p.fret);
     const span=Math.max(...frets)-Math.min(...frets);
     let movement=0,sameString=0,drift=0;
+    const perString=new Map();
+    route.forEach(p=>perString.set(p.stringIdx,(perString.get(p.stringIdx)||0)+1));
     for(let i=1;i<route.length;i++){
       movement+=Math.abs(route[i].fret-route[i-1].fret);
       if(route[i].stringIdx===route[i-1].stringIdx)sameString++;
       drift+=Math.abs(route[i].fret-route[0].fret);
     }
-    return span*10+movement*0.5+sameString*0.4+drift*0.6;
+    const maxOnString=Math.max(...perString.values());
+    return sameString*8+maxOnString*4+span*1.2+movement*0.7+drift*0.15;
   };
-  const compact=[...routes].sort((a,b)=>compactScore(a)-compactScore(b))[0];
-  const otherRoutes=routes.filter(route=>routeKey(route)!==routeKey(compact));
+  const wide=[...routes].sort((a,b)=>wideScore(a)-wideScore(b))[0];
+  const otherRoutes=routes.filter(route=>routeKey(route)!==routeKey(wide));
   const chosen=variant==='alternative'&&otherRoutes.length
-    ? [...otherRoutes].sort((a,b)=>compactScore(a)-compactScore(b))[0]
-    : compact;
+    ? [...otherRoutes].sort((a,b)=>wideScore(a)-wideScore(b))[0]
+    : wide;
   return {path:chosen.map((p,i)=>({...p,order:i+1})),complete:true,alternatives:routes.length};
 }
 
 function chordIntervalLabel(pc, rootPc){
   return ['R','b2','2','b3','3','4','b5','5','#5','6','b7','7'][((pc-rootPc)%12+12)%12];
+}
+
+function compoundArpeggioIntervalLabel(position, firstMidi, rootPc){
+  if(!position || !Number.isFinite(firstMidi)) return '';
+  const simple=chordIntervalLabel(position.midi%12,rootPc);
+  const octave=Math.floor((position.midi-firstMidi)/12);
+  const match=simple.match(/^([b#]*)(R|\d+)$/);
+  if(!match)return simple;
+  const accidental=match[1];
+  const degree=match[2]==='R'?1:Number(match[2]);
+  return accidental+String(degree+octave*7);
 }
 
 // ---------- Octave Shape (geometric, "2 frets + 2 strings") ----------
@@ -798,12 +822,12 @@ function parseToken(tok){
 
 function buildScale(rootPc, rootLetter, formulaText){
   const tokens = formulaText.split(/[\s,\-]+/).filter(Boolean);
-  if(tokens.length === 0) throw new Error('Enter at least one degree, e.g. 1');
+  if(tokens.length === 0) throw new Error('Введите хотя бы одну ступень, например 1');
   const rootLetterIdx = LETTERS.indexOf(rootLetter);
   const notes = [];
   for(const tok of tokens){
     const parsed = parseToken(tok);
-    if(!parsed) throw new Error(`Can't parse "${tok}" — use forms like 1, b3, #4, bb7`);
+    if(!parsed) throw new Error(`Не удалось распознать «${tok}». Используйте обозначения 1, b3, #4 или bb7`);
     const baseDegree = ((parsed.degree - 1) % 7) + 1;
     const octaveShift = Math.floor((parsed.degree - 1) / 7) * 12;
     const semitone = DEGREE_NATURAL[baseDegree] + parsed.acc + octaveShift;
@@ -866,9 +890,9 @@ function render(){
 
   const conflicts = findPitchClassConflicts(scale);
   if(conflicts){
-    const parts = conflicts.map(list => `${list.map(n=>n.degreeLabel).join(' & ')} both land on ${list[0].noteName}`);
+    const parts = conflicts.map(list => `${list.map(n=>n.degreeLabel).join(' и ')} совпадают на ноте ${list[0].noteName}`);
     warnBox.style.display = 'block';
-    warnBox.textContent = `Heads up — some degrees share a pitch: ${parts.join('; ')}. Using one pitch per position on the fretboard; harmonization is disabled for this formula since it isn't a clean set of distinct tones.`;
+    warnBox.textContent = `Некоторые ступени совпадают по высоте: ${parts.join('; ')}. На каждой позиции показана одна нота; гармонизация для такой формулы отключена.`;
   } else {
     warnBox.style.display = 'none';
   }
@@ -886,16 +910,16 @@ function render(){
 
   const currentKey = [...new Set(semitones.map(s => ((s%12)+12)%12))].sort((a,b)=>a-b).join(',');
   const matches = currentKey ? ALL_NAMED_SCALES.filter(s => s.key === currentKey).map(s => s.name) : [];
-  const matchLabel = matches.length ? matches.join(', ') : (currentKey ? 'Custom / unnamed' : '—');
+  const matchLabel = matches.length ? matches.join(', ') : (currentKey ? 'Своя формула / без названия' : '—');
 
   const arpeggioMode = Boolean(state.selectedChordPcs) && !state.overlayEnabled;
   const readout = document.getElementById('readout');
   readout.innerHTML = `${arpeggioMode ? `
-    <div class="mode-banner"><span>Arpeggio: <strong>${state.selectedChordLabel}</strong></span><button type="button" class="chip clickable" id="backToScaleBtn">← Back to Scale</button></div>` : ''}
-    <div>${state.overlayEnabled ? 'Compare' : 'Scale'}: <strong>${matchLabel}</strong></div>
-    <div>Notes: <strong>${sortedBySemitone.map(n=>n.noteName).join(' ')}</strong></div>
-    <div>Normalized: <strong>${sortedBySemitone.map(n=>n.degreeLabel).join('-')}</strong></div>
-    <div>Semitone pattern: <strong>${pattern.join('-')}</strong></div>
+    <div class="mode-banner"><span>Арпеджио: <strong>${state.selectedChordLabel}</strong></span><button type="button" class="chip clickable" id="backToScaleBtn">← Вернуться к гамме</button></div>` : ''}
+    <div>${state.overlayEnabled ? 'Сравнение' : 'Гамма'}: <strong>${matchLabel}</strong></div>
+    <div>Ноты: <strong>${sortedBySemitone.map(n=>n.noteName).join(' ')}</strong></div>
+    <div>Ступени: <strong>${sortedBySemitone.map(n=>n.degreeLabel).join('-')}</strong></div>
+    <div>Полутоновая структура: <strong>${pattern.join('-')}</strong></div>
   `;
   if(arpeggioMode) document.getElementById('backToScaleBtn').addEventListener('click',()=>{clearSelectedChord();render();});
 
@@ -913,17 +937,17 @@ function render(){
     chordsSection.style.opacity = '.5';
     document.getElementById('triadsRow').innerHTML = '<div class="chip">—</div>';
     document.getElementById('tetradsRow').innerHTML = '<div class="chip">—</div>';
-    harmonizationHint.textContent = 'Harmonization disabled: this formula has degrees that collapse onto the same pitch, so stacking thirds through it isn\'t well-defined.';
+    harmonizationHint.textContent = 'Гармонизация отключена: в формуле есть ступени, совпадающие по высоте.';
   } else {
     chordsSection.style.opacity = '1';
     const triads = harmonizeScale(uniqueNotes, 3);
     const tetrads = harmonizeScale(uniqueNotes, 4);
     const isSevenNote = uniqueNotes.length === 7;
-    document.getElementById('triadsHeading').textContent = isSevenNote ? 'Triads (Diatonic/Tertian Harmony)' : 'Triads (Scale-step Stacks)';
-    document.getElementById('tetradsHeading').textContent = isSevenNote ? 'Four-note chords (Diatonic/Tertian Harmony)' : 'Four-note chords (Scale-step Stacks)';
+    document.getElementById('triadsHeading').textContent = isSevenNote ? 'Трезвучия (диатоническая гармония)' : 'Трезвучия по ступеням гаммы';
+    document.getElementById('tetradsHeading').textContent = isSevenNote ? 'Септаккорды (диатоническая гармония)' : 'Четырёхзвучные аккорды по ступеням';
     harmonizationHint.textContent = isSevenNote
-      ? 'Standard tertian harmony: stacking thirds through a 7-note scale gives ordinary triads/7th chords.'
-      : `This scale has ${uniqueNotes.length} notes, not 7 — these are Scale-step Stacks: a generalized "every other note of the scale" structure, not traditional tertian harmony. Chords with no standard name show their notes instead of a symbol.`;
+      ? 'Стандартная терцовая гармония: трезвучия и септаккорды строятся по ступеням семинотной гаммы.'
+      : `В этой гамме ${uniqueNotes.length} нот. Аккорды строятся через одну ступень и не всегда имеют стандартное название.`;
 
     function renderChordRow(containerId, chords){
       const row = document.getElementById(containerId);
@@ -940,7 +964,7 @@ function render(){
         chip.disabled = state.overlayEnabled;
         chip.setAttribute('aria-pressed', state.selectedChordId === id ? 'true' : 'false');
         chip.textContent = chord.label;
-        if(aliases.length) chip.title = `Same notes as: ${aliases.join(', ')} (built from a different scale degree)`;
+        if(aliases.length) chip.title = `Те же ноты: ${aliases.join(', ')} — построено от другой ступени гаммы`;
         chip.addEventListener('click', ()=>{
           if(state.selectedChordId === id){
             clearSelectedChord();
@@ -966,17 +990,17 @@ function render(){
   if(!arpeggioMode && state.viewMode === 'arpeggioShape') state.viewMode = 'whole';
   if(state.overlayEnabled && state.viewMode !== 'whole') state.viewMode = 'whole';
   const commonModeButtons = [
-    {key:'whole', label:'All Notes'},
-    {key:'range-0-4', label:'Frets 0–4'},
-    {key:'range-5-9', label:'Frets 5–9'},
-    {key:'range-10-15', label:'Frets 10–15'},
-    {key:'range-custom', label:'Custom range'}
+    {key:'whole', label:'Все ноты'},
+    {key:'range-0-4', label:'Лады 0–4'},
+    {key:'range-5-9', label:'Лады 5–9'},
+    {key:'range-10-15', label:'Лады 10–15'},
+    {key:'range-custom', label:'Свой диапазон'}
   ];
   const modeButtons = state.overlayEnabled
-    ? [{key:'whole',label:'Compare Scales'}]
+    ? [{key:'whole',label:'Сравнение гамм'}]
     : arpeggioMode
-      ? [{key:'whole',label:'All Notes'},{key:'arpeggioShape',label:'Playable Shape'}]
-      : [...commonModeButtons, {key:'octaveShape', label:'Octave Shape'}, {key:'playableRun', label:'Playable Run'}];
+      ? [{key:'whole',label:'Все ноты'},{key:'arpeggioShape',label:'Аппликатура арпеджио'}]
+      : [...commonModeButtons, {key:'octaveShape', label:'Октавная форма'}, {key:'playableRun', label:'Игровой маршрут'}];
   const currentModeKey = state.viewMode === 'range' ? ('range-' + (state.rangePreset || 'custom')) : state.viewMode;
   modeButtons.forEach(m => {
     const btn = document.createElement('button');
@@ -1015,12 +1039,12 @@ function render(){
     const pathLabel = document.createElement('span');
     pathLabel.className = 'hint';
     pathLabel.style.margin = '6px 4px 0 0';
-    pathLabel.textContent = 'Show path:';
+    pathLabel.textContent = 'Показать маршрут:';
     overlayPathModeRow.appendChild(pathLabel);
     [
-      ['main', 'Main'],
-      ['tension', 'Tension'],
-      ['compare', 'Compare']
+      ['main', 'Основной'],
+      ['tension', 'Напряжение'],
+      ['compare', 'Сравнение']
     ].forEach(([key, label]) => {
       const btn = document.createElement('button');
       btn.type = 'button';
@@ -1039,16 +1063,18 @@ function render(){
     if(!arpeggioMode){
       const message = document.createElement('span');
       message.className = 'hint'; message.style.margin = '6px 0 0';
-      message.textContent = 'Select a chord below to build a playable arpeggio shape.';
+      message.textContent = 'Выберите аккорд ниже, чтобы построить аппликатуру арпеджио.';
       arpeggioFormRow.appendChild(message);
     } else {
-      const shapeAvailability=computeArpeggioShape(state.selectedChordPcs,state.arpeggioStartString,FRET_COUNT,'compact');
-      if(shapeAvailability.alternatives<2)state.arpeggioVariant='compact';
+      const oneOctaveAvailability=computeArpeggioShape(state.selectedChordPcs,state.arpeggioStartString,FRET_COUNT,'wide',1);
+      const twoOctaveAvailability=computeArpeggioShape(state.selectedChordPcs,state.arpeggioStartString,FRET_COUNT,'wide',2);
+      const shapeAvailability=state.arpeggioOctaves===2?twoOctaveAvailability:oneOctaveAvailability;
+      if(shapeAvailability.alternatives<2)state.arpeggioVariant='wide';
       const label = document.createElement('span');
       label.className = 'hint'; label.style.margin = '6px 4px 0 0';
-      label.textContent = 'Start on root on:';
+      label.textContent = 'Начать с тоники на:';
       arpeggioFormRow.appendChild(label);
-      [[0,'6th string'],[1,'5th string'],[2,'4th string'],[3,'3rd string']].forEach(([stringIdx,stringLabel]) => {
+      [[0,'6-й струне'],[1,'5-й струне'],[2,'4-й струне'],[3,'3-й струне']].forEach(([stringIdx,stringLabel]) => {
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'chip clickable' + (state.arpeggioStartString === stringIdx ? ' active' : '');
@@ -1057,21 +1083,51 @@ function render(){
         btn.addEventListener('click', ()=>{ state.arpeggioStartString = stringIdx; render(); });
         arpeggioFormRow.appendChild(btn);
       });
+      const octaveLabel = document.createElement('span');
+      octaveLabel.className = 'hint'; octaveLabel.style.margin = '6px 4px 0 10px';
+      octaveLabel.textContent = 'Диапазон:';
+      arpeggioFormRow.appendChild(octaveLabel);
+      [[1,'1 октава'],[2,'2 октавы']].forEach(([octaves,text])=>{
+        const btn=document.createElement('button');
+        btn.type='button';
+        btn.disabled=octaves===2&&!twoOctaveAvailability.complete;
+        btn.className='chip clickable'+(state.arpeggioOctaves===octaves?' active':'');
+        btn.setAttribute('aria-pressed',state.arpeggioOctaves===octaves?'true':'false');
+        btn.textContent=text;
+        if(btn.disabled)btn.title='Две октавы не помещаются от выбранной струны в пределах 15 ладов.';
+        btn.addEventListener('click',()=>{state.arpeggioOctaves=octaves;render();});
+        arpeggioFormRow.appendChild(btn);
+      });
       const variantLabel = document.createElement('span');
       variantLabel.className = 'hint'; variantLabel.style.margin = '6px 4px 0 10px';
-      variantLabel.textContent = 'Shape:';
+      variantLabel.textContent = 'Аппликатура:';
       arpeggioFormRow.appendChild(variantLabel);
-      [['compact','Compact'],['alternative','Alternative']].forEach(([variant,label]) => {
+      [['wide','Широкая'],['alternative','Альтернативная']].forEach(([variant,label]) => {
         const btn = document.createElement('button');
         btn.type='button';
         btn.disabled=variant==='alternative'&&shapeAvailability.alternatives<2;
         btn.className='chip clickable'+(state.arpeggioVariant===variant?' active':'');
         btn.setAttribute('aria-pressed',state.arpeggioVariant===variant?'true':'false');
         btn.textContent=label;
-        if(btn.disabled)btn.title='No second comfortable route from this root within 15 frets.';
+        if(btn.disabled)btn.title='В пределах 15 ладов нет второго удобного маршрута.';
         btn.addEventListener('click',()=>{state.arpeggioVariant=variant;render();});
         arpeggioFormRow.appendChild(btn);
       });
+      if(state.arpeggioOctaves===2){
+        const intervalLabel=document.createElement('span');
+        intervalLabel.className='hint'; intervalLabel.style.margin='6px 4px 0 10px';
+        intervalLabel.textContent='Подписи:';
+        arpeggioFormRow.appendChild(intervalLabel);
+        [['simple','Простые ступени'],['compound','Составные интервалы']].forEach(([mode,text])=>{
+          const btn=document.createElement('button');
+          btn.type='button';
+          btn.className='chip clickable'+(state.arpeggioIntervalMode===mode?' active':'');
+          btn.setAttribute('aria-pressed',state.arpeggioIntervalMode===mode?'true':'false');
+          btn.textContent=text;
+          btn.addEventListener('click',()=>{state.arpeggioIntervalMode=mode;render();});
+          arpeggioFormRow.appendChild(btn);
+        });
+      }
     }
   }
 
@@ -1080,12 +1136,14 @@ function render(){
   const octaveWarning = document.getElementById('octaveShapeWarning');
   octaveWarning.style.display = 'none';
   if(state.viewMode === 'arpeggioShape' && arpeggioMode){
-    const shapeResult = computeArpeggioShape(state.selectedChordPcs, state.arpeggioStartString, FRET_COUNT, state.arpeggioVariant);
+    const shapeResult = computeArpeggioShape(state.selectedChordPcs, state.arpeggioStartString, FRET_COUNT, state.arpeggioVariant, state.arpeggioOctaves);
     activePath = shapeResult.path;
     currentPlayableMidi = activePath.map(p => p.midi);
     if(!shapeResult.complete){
       octaveWarning.style.display='block';
-      octaveWarning.textContent='A comfortable one-octave route does not fit from this root within 15 frets.';
+      octaveWarning.textContent=state.arpeggioOctaves===2
+        ? 'Две октавы не помещаются от выбранной струны в пределах 15 ладов. Выберите более низкую струну.'
+        : 'Удобная однооктавная аппликатура не помещается от этой тоники в пределах 15 ладов.';
     }
   } else if(state.viewMode === 'octaveShape'){
     const { path, secondStringCount, complete } = computeOctaveShapePath(pcsForPlayback, FRET_COUNT);
@@ -1093,10 +1151,10 @@ function render(){
     currentPlayableMidi = path.map(p => p.str.midi + p.fret).sort((a,b)=>a-b);
     if(!complete && (!state.overlayEnabled || state.overlayPathMode === 'main' || state.overlayPathMode === 'compare')){
       octaveWarning.style.display = 'block';
-      octaveWarning.textContent = 'A complete two-string octave shape does not fit within the displayed 15 frets for this root. No incomplete shape is shown.';
+      octaveWarning.textContent = 'Полная двухструнная октавная форма не помещается от этой тоники в пределах 15 ладов.';
     } else if(complete && secondStringCount > 5 && (!state.overlayEnabled || state.overlayPathMode === 'main' || state.overlayPathMode === 'compare')){
       octaveWarning.style.display = 'block';
-      octaveWarning.textContent = `This scale (${pcsForPlayback.length} notes) doesn't fit comfortably into a two-string octave shape — the second string needs ${secondStringCount} notes to complete the octave. Shown as-is rather than forcing an unplayable stretch elsewhere.`;
+      octaveWarning.textContent = `Эта гамма (${pcsForPlayback.length} нот) плохо помещается в двухструнную октавную форму: на второй струне требуется ${secondStringCount} нот.`;
     }
   } else if(state.viewMode === 'playableRun'){
     activePath = computePlayableRunPath(pcsForPlayback, FRET_COUNT);
@@ -1131,11 +1189,11 @@ function render(){
       if(!outsideShape.complete && (state.overlayPathMode === 'tension' || state.overlayPathMode === 'compare')){
         const existing = octaveWarning.style.display !== 'none' ? octaveWarning.textContent + ' ' : '';
         octaveWarning.style.display = 'block';
-        octaveWarning.textContent = existing + 'The Tension Scale does not form a complete two-string octave shape within 15 frets.';
+        octaveWarning.textContent = existing + 'Гамма напряжения не образует полную двухструнную октавную форму в пределах 15 ладов.';
       } else if(outsideShape.complete && outsideShape.secondStringCount > 5 && (state.overlayPathMode === 'tension' || state.overlayPathMode === 'compare')){
         const existing = octaveWarning.style.display !== 'none' ? octaveWarning.textContent + ' ' : '';
         octaveWarning.style.display = 'block';
-        octaveWarning.textContent = existing + `The Tension Scale needs ${outsideShape.secondStringCount} notes on the second string of its octave cell.`;
+        octaveWarning.textContent = existing + `Для гаммы напряжения требуется ${outsideShape.secondStringCount} нот на второй струне октавной формы.`;
       }
       if(activePath.length) insidePlayableMidi = activePath.map(p => p.str.midi + p.fret).sort((a,b)=>a-b);
     } else if(!outsideError && state.viewMode === 'playableRun'){
@@ -1147,10 +1205,10 @@ function render(){
     const listsEl = document.getElementById('overlayLists');
     const nameFor = (pc, map) => map.has(pc) ? map.get(pc).noteName : '';
     listsEl.innerHTML = outsideError
-      ? `<div style="color:var(--danger)"><strong>Tension Scale formula error</strong><br>${outsideError}</div>`
+      ? `<div style="color:var(--danger)"><strong>Ошибка в формуле гаммы напряжения</strong><br>${outsideError}</div>`
       : `
-        <div><strong>Shared Notes</strong><br>${commonPcs.length ? commonPcs.map(pc=>nameFor(pc,pcMap)).join(' ') : '—'}</div>
-        <div><strong>Tension Notes</strong><br>${outsideOnlyPcs.length ? outsideOnlyPcs.map(pc=>nameFor(pc,outsidePcMap)).join(' ') : '—'}</div>
+        <div><strong>Общие ноты</strong><br>${commonPcs.length ? commonPcs.map(pc=>nameFor(pc,pcMap)).join(' ') : '—'}</div>
+        <div><strong>Ноты напряжения</strong><br>${outsideOnlyPcs.length ? outsideOnlyPcs.map(pc=>nameFor(pc,outsidePcMap)).join(' ') : '—'}</div>
       `;
   }
 
@@ -1228,7 +1286,7 @@ function render(){
           noteEl.className = 'note ' + ovClass + (isRootMark ? ' ov-is-root' : '') + (label.includes('/') ? ' dual-label' : '');
           noteEl.textContent = label;
           const midiHere = str.midi + f;
-          noteEl.setAttribute('aria-label', `${label}, fret ${f}, string ${str.label}. Play note.`);
+          noteEl.setAttribute('aria-label', `${label}, лад ${f}, струна ${str.label}. Воспроизвести ноту.`);
           noteEl.addEventListener('click', (e)=>{ e.stopPropagation(); playMidi(midiHere); });
           cell.appendChild(noteEl);
         }
@@ -1244,10 +1302,14 @@ function render(){
         if(routePosition) noteEl.dataset.order = routePosition.order;
         const label = state.mode === 'notes'
           ? info.noteName
-          : (state.selectedChordPcs ? chordIntervalLabel(pc,state.selectedChordPcs[0]) : info.degreeLabel);
+          : (state.selectedChordPcs
+            ? (routePosition && state.arpeggioOctaves===2 && state.arpeggioIntervalMode==='compound'
+              ? compoundArpeggioIntervalLabel(routePosition,activePath[0].midi,state.selectedChordPcs[0])
+              : chordIntervalLabel(pc,state.selectedChordPcs[0]))
+            : info.degreeLabel);
         noteEl.textContent = label;
         const midiHere = str.midi + f;
-        noteEl.setAttribute('aria-label', `${info.noteName}, fret ${f}, string ${str.label}. Play note.`);
+        noteEl.setAttribute('aria-label', `${info.noteName}, лад ${f}, струна ${str.label}. Воспроизвести ноту.`);
         noteEl.addEventListener('click', (e)=>{ e.stopPropagation(); playMidi(midiHere); });
         cell.appendChild(noteEl);
       }
@@ -1322,7 +1384,7 @@ function init(){
     state.overlayEnabled = !state.overlayEnabled;
     overlayToggleBtn.classList.toggle('active', state.overlayEnabled);
     overlayToggleBtn.setAttribute('aria-pressed', state.overlayEnabled ? 'true' : 'false');
-    overlayToggleBtn.textContent = state.overlayEnabled ? 'Remove Tension Scale' : 'Add Tension Scale →';
+    overlayToggleBtn.textContent = state.overlayEnabled ? 'Убрать гамму напряжения' : 'Добавить гамму напряжения →';
     document.getElementById('overlayPanel').classList.toggle('inactive', !state.overlayEnabled);
     outsideRootSel.disabled = !state.overlayEnabled;
     outsideScalePreset.disabled = !state.overlayEnabled;
@@ -1393,7 +1455,7 @@ function init(){
     }
     const b = document.createElement('button');
     b.className = 'preset-btn'; b.textContent = name;
-    b.title = `Root ${rootName}: ${formula}`;
+    b.title = `Тоника ${rootName}: ${formula}`;
     b.addEventListener('click', ()=>{
       state.root = findRootIndex(rootName);
       rootSel.value = state.root;
@@ -1408,7 +1470,7 @@ function init(){
     const note = document.createElement('p');
     note.className = 'hint';
     note.style.marginTop = '8px';
-    note.textContent = `Same notes, not repeated as separate buttons: ${holdsworthDupeNotes.join(' · ')}.`;
+    note.textContent = `Те же наборы нот не дублируются отдельными кнопками: ${holdsworthDupeNotes.join(' · ')}.`;
     holdsworthWrap.parentElement.appendChild(note);
   }
 

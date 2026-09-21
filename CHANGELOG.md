@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.6.0-preview — 2026-09-21
+
+- Added one- and two-octave arpeggio shapes from roots on strings 6, 5, 4, and 3 when the physical fretboard range allows them.
+- Reworked arpeggio routing around Wide and Alternative fingering variants for both octave ranges.
+- Added switchable simple-degree and compound-interval labels for two-octave routes.
+- Added clear Russian availability messages instead of displaying incomplete two-octave shapes.
+- Translated the main application interface, controls, hints, and validation messages into Russian.
+
 ## 0.5.0-preview — 2026-09-16
 
 - Replaced the provisional E/D/C/A/G windows with a real ordered Playable Shape.
