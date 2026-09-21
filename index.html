@@ -494,6 +494,7 @@ let state = {
   root: findRootIndex('A'), formula: '1 2 b3 4 5 6 7', mode: 'notes',
   selectedChordId: null, selectedChordPcs: null,
   selectedChordLabel: null, selectedChordQuality: null,
+  arpeggioForm: 'E',
   arpeggioStartString: 0, arpeggioVariant: 'position', arpeggioOtherIndex: 0, arpeggioOctaves: 1,
   arpeggioIntervalMode: 'simple',
   viewMode: 'whole', // 'whole' | 'range' | 'octaveShape' | 'playableRun' | 'arpeggioShape'
@@ -569,6 +570,76 @@ function lowestFretboardMidiForPc(pc){
 }
 
 // ---------- Playable Shape (arpeggio mode) ----------
+// Curated chord-form library. These maj7 shapes preserve the geometry of the
+// five chord forms described by Popov; they are data, not scoring results.
+// Every fret offset is measured from the form's circled root anchor.
+const POPOV_MAJ7_FORMS = [
+  {
+    id:'E', name:'E', anchorStringIdx:5,
+    positions:[
+      [0,-1,'7'],[0,0,'1'],[1,0,'5'],[2,1,'3'],[3,1,'7'],
+      [3,2,'1'],[4,-1,'3'],[4,2,'5'],[5,0,'1']
+    ]
+  },
+  {
+    id:'D', name:'D', anchorStringIdx:5,
+    positions:[
+      [1,4,'7'],[1,5,'1'],[2,1,'3'],[2,4,'5'],[3,1,'7'],
+      [3,2,'1'],[4,2,'5'],[5,0,'1'],[5,4,'3']
+    ]
+  },
+  {
+    id:'C', name:'C', anchorStringIdx:4,
+    positions:[
+      [0,-3,'3'],[0,0,'5'],[1,-3,'7'],[1,-2,'1'],
+      [2,-3,'5'],[3,-1,'3'],[4,0,'1']
+    ]
+  },
+  {
+    id:'A', name:'A', anchorStringIdx:4,
+    positions:[
+      [0,0,'5'],[0,4,'7'],[1,2,'3'],[2,1,'7'],
+      [2,2,'1'],[3,2,'5'],[4,0,'1']
+    ]
+  },
+  {
+    id:'G', name:'G', anchorStringIdx:5,
+    positions:[
+      [0,-1,'7'],[0,0,'1'],[1,0,'5'],[2,-4,'7'],[2,-3,'1'],
+      [2,1,'3'],[3,-3,'5'],[4,-1,'3'],[5,0,'1']
+    ]
+  }
+].map(form=>({...form,positions:form.positions.map(([stringIdx,fretOffset,degree],i)=>({
+  id:`${form.id}-${i+1}`,stringIdx,fretOffset,degree
+}))}));
+
+const CHORD_DEGREE_SEMITONES={'1':0,'3':4,'5':7,'7':11};
+
+function realizePopovMaj7Form(rootPc,formId,maxFret=FRET_COUNT){
+  const form=POPOV_MAJ7_FORMS.find(entry=>entry.id===formId);
+  if(!form||!Number.isFinite(rootPc))return {complete:false,path:[],form:null,reason:'missing'};
+  const anchorString=OPEN_STRINGS_TOP_TO_BOTTOM[form.anchorStringIdx];
+  const lowestAnchor=((rootPc-anchorString.pc)%12+12)%12;
+  let anchorFret=null;
+  for(let candidate=lowestAnchor;candidate<=maxFret;candidate+=12){
+    const frets=form.positions.map(position=>candidate+position.fretOffset);
+    if(frets.every(fret=>fret>=0&&fret<=maxFret)){anchorFret=candidate;break;}
+  }
+  if(anchorFret===null)return {complete:false,path:[],form,reason:'outside'};
+  const positions=form.positions.map(position=>{
+    const str=OPEN_STRINGS_TOP_TO_BOTTOM[position.stringIdx];
+    const fret=anchorFret+position.fretOffset;
+    return {...position,str,fret,midi:str.midi+fret};
+  });
+  const invalid=positions.find(position=>{
+    const expected=(rootPc+CHORD_DEGREE_SEMITONES[position.degree])%12;
+    return position.midi%12!==expected;
+  });
+  if(invalid)return {complete:false,path:[],form,reason:'invalid'};
+  const path=[...positions].sort((a,b)=>a.midi-b.midi).map((position,index)=>({...position,order:index+1}));
+  return {complete:true,path,form,anchorFret,reason:null};
+}
+
 // Build one exact ascending octave of chord tones from a root on the chosen
 // string. Unlike the earlier five-fret window, this returns one connected
 // route: every displayed position has a definite order and playback follows it.
@@ -1194,8 +1265,7 @@ function render(){
 
   const arpeggioFormRow = document.getElementById('arpeggioFormRow');
   const arpeggioRouteInfo = document.getElementById('arpeggioRouteInfo');
-  let currentArpeggioAnalysis = null;
-  let twoOctaveDoesNotFit = false;
+  let currentCuratedForm = null;
   arpeggioFormRow.innerHTML = '';
   arpeggioRouteInfo.style.display = 'none';
   arpeggioFormRow.style.display = state.viewMode === 'arpeggioShape' ? 'flex' : 'none';
@@ -1206,105 +1276,31 @@ function render(){
       message.textContent = 'Выберите аккорд ниже, чтобы построить аппликатуру арпеджио.';
       arpeggioFormRow.appendChild(message);
     } else {
-      const oneOctaveAvailability=analyzeArpeggioRoutes(state.selectedChordPcs,state.arpeggioStartString,FRET_COUNT,1);
-      const twoOctaveAvailability=analyzeArpeggioRoutes(state.selectedChordPcs,state.arpeggioStartString,FRET_COUNT,2);
-      twoOctaveDoesNotFit=!twoOctaveAvailability.complete;
-      // When a new starting string cannot fit the previously selected
-      // two-octave route, keep the usable one-octave fingering visible.
-      const resolvedOctaves=resolveArpeggioOctaveCount(state.arpeggioOctaves,twoOctaveAvailability.complete);
-      if(resolvedOctaves!==state.arpeggioOctaves){
-        state.arpeggioOctaves=resolvedOctaves;
-        state.arpeggioOtherIndex=0;
-      }
-      currentArpeggioAnalysis=state.arpeggioOctaves===2?twoOctaveAvailability:oneOctaveAvailability;
-      const availableCategories=new Set(currentArpeggioAnalysis.categories.flatMap(item=>item.categories));
-      if(state.arpeggioVariant!=='other'&&!availableCategories.has(state.arpeggioVariant))state.arpeggioVariant='position';
-      if(state.arpeggioVariant==='other'&&!currentArpeggioAnalysis.others.length)state.arpeggioVariant='position';
-      if(state.arpeggioVariant!=='other'){
-        const selectedGroup=currentArpeggioAnalysis.categories.find(item=>item.categories.includes(state.arpeggioVariant));
-        if(selectedGroup)state.arpeggioVariant=selectedGroup.categories[0];
-      }
-      const label = document.createElement('span');
-      label.className = 'hint'; label.style.margin = '6px 4px 0 0';
-      label.textContent = 'Основной тон на:';
-      arpeggioFormRow.appendChild(label);
-      [[0,'6-й струне'],[1,'5-й струне'],[2,'4-й струне'],[3,'3-й струне']].forEach(([stringIdx,stringLabel]) => {
+      const quality=detectChordQuality(state.selectedChordPcs);
+      if(quality==='maj7'){
+        const label = document.createElement('span');
+        label.className = 'hint'; label.style.margin = '6px 4px 0 0';
+        label.textContent = 'Аккордовая форма:';
+        arpeggioFormRow.appendChild(label);
+        POPOV_MAJ7_FORMS.forEach(form => {
         const btn = document.createElement('button');
         btn.type = 'button';
-        btn.className = 'chip clickable' + (state.arpeggioStartString === stringIdx ? ' active' : '');
-        btn.setAttribute('aria-pressed', state.arpeggioStartString === stringIdx ? 'true' : 'false');
-        btn.textContent = stringLabel;
-        btn.addEventListener('click', ()=>{ state.arpeggioStartString=stringIdx; state.arpeggioOtherIndex=0; render(); });
+          btn.className = 'chip clickable' + (state.arpeggioForm === form.id ? ' active' : '');
+          btn.setAttribute('aria-pressed', state.arpeggioForm === form.id ? 'true' : 'false');
+          btn.textContent = form.name;
+          btn.addEventListener('click', ()=>{ state.arpeggioForm=form.id; render(); });
         arpeggioFormRow.appendChild(btn);
-      });
-      const octaveLabel = document.createElement('span');
-      octaveLabel.className = 'hint'; octaveLabel.style.margin = '6px 4px 0 10px';
-      octaveLabel.textContent = 'Диапазон:';
-      arpeggioFormRow.appendChild(octaveLabel);
-      [[1,'1 октава'],[2,'2 октавы']].forEach(([octaves,text])=>{
-        const btn=document.createElement('button');
-        btn.type='button';
-        btn.disabled=octaves===2&&!twoOctaveAvailability.complete;
-        btn.className='chip clickable'+(state.arpeggioOctaves===octaves?' active':'');
-        btn.setAttribute('aria-pressed',state.arpeggioOctaves===octaves?'true':'false');
-        btn.textContent=text;
-        if(btn.disabled)btn.title=`От ${6-state.arpeggioStartString}-й струны две октавы выходят за 15-й лад — продолжайте вдоль грифа.`;
-        btn.addEventListener('click',()=>{state.arpeggioOctaves=octaves;state.arpeggioOtherIndex=0;render();});
-        arpeggioFormRow.appendChild(btn);
-      });
-      const variantLabel = document.createElement('span');
-      variantLabel.className = 'hint'; variantLabel.style.margin = '6px 4px 0 10px';
-      variantLabel.textContent = 'Аппликатура:';
-      arpeggioFormRow.appendChild(variantLabel);
-      currentArpeggioAnalysis.categories.forEach(entry => {
-        const variant=entry.categories[0];
-        const btn = document.createElement('button');
-        btn.type='button';
-        btn.className='chip clickable'+(state.arpeggioVariant===variant?' active':'');
-        btn.setAttribute('aria-pressed',state.arpeggioVariant===variant?'true':'false');
-        btn.textContent=ARPEGGIO_CATEGORY_LABELS[variant];
-        if(entry.categories.length>1){
-          const also=document.createElement('span');
-          also.className='route-tag';
-          also.textContent='Также: '+entry.categories.slice(1).map(key=>ARPEGGIO_CATEGORY_LABELS[key]).join(', ');
-          btn.appendChild(also);
-        }
-        btn.addEventListener('click',()=>{state.arpeggioVariant=variant;render();});
-        arpeggioFormRow.appendChild(btn);
-      });
-      if(currentArpeggioAnalysis.others.length){
-        const otherBtn=document.createElement('button');
-        otherBtn.type='button';
-        otherBtn.className='chip clickable'+(state.arpeggioVariant==='other'?' active':'');
-        otherBtn.textContent=`Другие варианты (${currentArpeggioAnalysis.others.length})`;
-        otherBtn.addEventListener('click',()=>{state.arpeggioVariant='other';state.arpeggioOtherIndex=0;render();});
-        arpeggioFormRow.appendChild(otherBtn);
-        if(state.arpeggioVariant==='other'){
-          const previous=document.createElement('button');
-          previous.type='button'; previous.className='chip clickable'; previous.textContent='←';
-          previous.disabled=state.arpeggioOtherIndex<=0;
-          previous.addEventListener('click',()=>{state.arpeggioOtherIndex--;render();});
-          const next=document.createElement('button');
-          next.type='button'; next.className='chip clickable'; next.textContent='→';
-          next.disabled=state.arpeggioOtherIndex>=currentArpeggioAnalysis.others.length-1;
-          next.addEventListener('click',()=>{state.arpeggioOtherIndex++;render();});
-          arpeggioFormRow.appendChild(previous); arpeggioFormRow.appendChild(next);
-        }
-      }
-      if(state.arpeggioOctaves===2){
-        const intervalLabel=document.createElement('span');
-        intervalLabel.className='hint'; intervalLabel.style.margin='6px 4px 0 10px';
-        intervalLabel.textContent='Подписи:';
-        arpeggioFormRow.appendChild(intervalLabel);
-        [['simple','Простые ступени'],['compound','Составные интервалы']].forEach(([mode,text])=>{
-          const btn=document.createElement('button');
-          btn.type='button';
-          btn.className='chip clickable'+(state.arpeggioIntervalMode===mode?' active':'');
-          btn.setAttribute('aria-pressed',state.arpeggioIntervalMode===mode?'true':'false');
-          btn.textContent=text;
-          btn.addEventListener('click',()=>{state.arpeggioIntervalMode=mode;render();});
-          arpeggioFormRow.appendChild(btn);
         });
+        const note=document.createElement('span');
+        note.className='hint'; note.style.margin='6px 0 0 10px';
+        note.textContent='Проверенные аккордовые формы на основе системы Попова.';
+        arpeggioFormRow.appendChild(note);
+        currentCuratedForm=realizePopovMaj7Form(state.selectedChordPcs[0],state.arpeggioForm,FRET_COUNT);
+      }else{
+        const message=document.createElement('span');
+        message.className='hint'; message.style.margin='6px 0 0';
+        message.textContent='Для этого типа септаккорда проверенные аккордовые формы пока не добавлены.';
+        arpeggioFormRow.appendChild(message);
       }
     }
   }
@@ -1314,27 +1310,20 @@ function render(){
   const octaveWarning = document.getElementById('octaveShapeWarning');
   octaveWarning.style.display = 'none';
   if(state.viewMode === 'arpeggioShape' && arpeggioMode){
-    currentArpeggioAnalysis=currentArpeggioAnalysis||analyzeArpeggioRoutes(state.selectedChordPcs,state.arpeggioStartString,FRET_COUNT,state.arpeggioOctaves);
-    const shapeResult=selectArpeggioRoute(currentArpeggioAnalysis,state.arpeggioVariant,state.arpeggioOtherIndex);
-    activePath = shapeResult.path;
+    const shapeResult=currentCuratedForm||{complete:false,path:[],reason:'missing'};
+    activePath=shapeResult.path;
     currentPlayableMidi = activePath.map(p => p.midi);
     if(shapeResult.complete){
       const features=arpeggioRouteFeatures(activePath);
-      const strings=[...new Set(activePath.map(p=>6-p.stringIdx))];
-      const title=state.arpeggioVariant==='other'
-        ? `Вариант ${shapeResult.meta.otherIndex+1} из ${currentArpeggioAnalysis.others.length}`
-        : shapeResult.meta.categories.map(key=>ARPEGGIO_CATEGORY_LABELS[key]).join(' · ');
+      const strings=[...new Set(activePath.map(p=>p.stringIdx+1))];
       arpeggioRouteInfo.style.display='block';
-      arpeggioRouteInfo.innerHTML=`<strong>${title}</strong> · нот по струнам: ${features.distribution.join('–')} · диапазон: ${features.fretSpan} ладов · струны: ${strings.join(', ')}`;
+      arpeggioRouteInfo.innerHTML=`<strong>Форма ${shapeResult.form.name}</strong> · ${activePath.length} нот · диапазон: ${features.fretSpan} ладов · струны: ${strings.join(', ')}`;
     }
     if(!shapeResult.complete){
       octaveWarning.style.display='block';
-      octaveWarning.textContent=state.arpeggioOctaves===2
-        ? 'Две октавы не помещаются от выбранной струны в пределах 15 ладов. Выберите более низкую струну.'
-        : 'Удобная однооктавная аппликатура не помещается от этой тоники в пределах 15 ладов.';
-    }else if(twoOctaveDoesNotFit){
-      octaveWarning.style.display='block';
-      octaveWarning.textContent=`От ${6-state.arpeggioStartString}-й струны две октавы выходят за 15-й лад — продолжайте вдоль грифа.`;
+      octaveWarning.textContent=shapeResult.reason==='outside'
+        ? 'Эта аккордовая форма выходит за пределы отображаемого грифа.'
+        : 'Для этого аккорда проверенная аппликатура пока не добавлена.';
     }
   } else if(state.viewMode === 'octaveShape'){
     const { path, secondStringCount, complete } = computeOctaveShapePath(pcsForPlayback, FRET_COUNT);

@@ -13,9 +13,9 @@ This file is the shared handoff between Danila, Claude, and Codex.
 
 ## Current review priorities
 
-1. User-test Position, Sweep, Smooth, Diagonal, and Two notes per string routes from roots on strings 6, 5, 4, and 3.
-2. Verify that numbered one- and two-octave routes feel natural on the guitar for triads and seventh chords.
-3. Decide which route families deserve permanent product names after hands-on testing.
+1. User-test the five curated Popov-based maj7 forms (E, D, C, A, G) on a real guitar.
+2. Verify every transcribed point and the ascending playback order against the source diagrams.
+3. After approval, transcribe the Popov rows for 7, m7, m7b5, and dim7.
 4. User-test the explicit Scale / Compare / Arpeggio states and Back to Scale action.
 5. User-test the side-by-side Main Mode and Outside Mode selectors.
 6. User-test whether Main Mode, Shared Notes, and Outside Mode Notes are immediately understandable.
@@ -35,16 +35,16 @@ This file is the shared handoff between Danila, Claude, and Codex.
 - Scale fingering modes are removed when an arpeggio is selected.
 - Playable Shape follows one exact ascending octave, begins on the chosen root string,
   stays within five frets, and carries an explicit note order used by playback.
-- Named arpeggio categories are selected from one shared route pool and identical winners
-  are merged rather than duplicated.
-- Sweep routes allow one or two notes per string and strongly penalize three-note groups.
-- Two-octave near-duplicates are grouped by string-sequence similarity before they reach
-  the Other variants navigator.
+- The student-facing maj7 arpeggio view uses curated E/D/C/A/G geometry rather than
+  presenting an algorithmic score winner as a traditional fingering.
+- Curated forms are rigidly transposed from one root anchor and independently checked
+  against their stored chord degrees.
+- Forms that do not fit between frets 0 and 15 are rejected instead of clipped.
 
 ## Later roadmap
 
-- Exact Popov/CAGED E, D, C, A, and G chord-shape templates with verified routes.
-- A CAGED/Chord Shapes view alongside the simpler root-string Playable Shape.
+- Curated Popov rows for 7, m7, m7b5, and dim7 after the maj7 forms are approved.
+- String-set and technique-specific libraries only after the Popov system is validated.
 - String-set arpeggios on 6–5–4, 5–4–3, 4–3–2, and 3–2–1.
 - Alternative starting chord tones (third, fifth, or seventh) and descending routes.
 - Arpeggio + Tensions: show Main/Shared/Tension notes around a selected chord.
