@@ -41,6 +41,7 @@ This file is the shared handoff between Danila, Claude, and Codex.
 - Curated forms are rigidly transposed from one root anchor and independently checked
   against their stored chord degrees.
 - Forms that do not fit between frets 0 and 15 are rejected instead of clipped.
+- Chords without a curated fingering remain visible in harmonization but are not presented as actionable arpeggio buttons.
 
 ## Later roadmap
 

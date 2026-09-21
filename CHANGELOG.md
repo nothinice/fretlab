@@ -14,6 +14,9 @@
 - Added the four-form diminished row with the shared E/G form exactly as represented by the source system.
 - Generalized the form selector and transposition engine across all five supported chord qualities.
 - Expanded fixed-coordinate and all-root regression coverage to 24 forms and 279 valid realizations inside the 0-15 fret range.
+- Removed the duplicate bottom scale-library button collection; every preset remains available from the main Mode selector.
+- Made triads and unsupported four-note qualities informational chips instead of misleading arpeggio buttons.
+- Removed the permanently hidden legacy route-comparison control container.
 
 ## 0.7.0-preview — 2026-09-21
 

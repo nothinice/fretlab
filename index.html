@@ -208,15 +208,6 @@
   .route-tag{display:inline-block; margin-left:6px; color:var(--teal); font-size:11px;}
   .chip.active .route-tag{color:#fff; opacity:.8;}
 
-  .presets{margin-top:22px;}
-  .presets summary{cursor:pointer; font-weight:600; color:var(--teal); margin-bottom:12px;}
-  .presets h2{font-family:'Fraunces',serif; font-size:16px; font-weight:600; margin:0 0 10px;}
-  .preset-grid{display:flex; flex-wrap:wrap; gap:6px;}
-  .preset-btn{
-    font-size:12px; padding:6px 10px; border-radius:20px; border:1px solid var(--border);
-    background:var(--panel); color:var(--ink); cursor:pointer; font-family:'IBM Plex Sans',sans-serif;
-  }
-  .preset-btn:hover{border-color:var(--teal);}
 </style>
 </head>
 <body>
@@ -296,7 +287,6 @@
   <div class="readout" id="readout"></div>
 
   <div class="chip-row" id="viewModeRow" role="group" aria-label="Область грифа" style="margin-bottom:6px;"></div>
-  <div class="chip-row" id="overlayPathModeRow" role="group" aria-label="Маршрут лада" style="display:none; margin:8px 0 6px;"></div>
   <div class="chip-row" id="arpeggioFormRow" role="group" aria-label="Настройки арпеджио" style="display:none; margin:8px 0 6px;"></div>
   <div class="route-info" id="arpeggioRouteInfo" style="display:none;"></div>
   <div class="range-controls" id="customRangeControls" style="display:none;">
@@ -319,15 +309,6 @@
     <p class="hint" style="margin-top:8px;" id="harmonizationHint"></p>
   </div>
 
-  <details class="presets">
-    <summary>Библиотека гамм и ладов</summary>
-    <h2>Диатонические лады</h2>
-    <div class="preset-grid" id="presetsDiatonic"></div>
-    <h2 style="margin-top:16px;">Другие гаммы</h2>
-    <div class="preset-grid" id="presetsOther"></div>
-    <h2 style="margin-top:16px;">15 звукорядов Аллана Холдсворта</h2>
-    <div class="preset-grid" id="presetsHoldsworth"></div>
-  </details>
 </div>
 
 <script>
@@ -1327,24 +1308,28 @@ function render(){
         const id = containerId + '-' + i;
         const key = [...chord.pcs].sort((a,b)=>a-b).join(',');
         const aliases = aliasMap.get(key).filter(l => l !== chord.label);
-        const chip = document.createElement('button');
-        chip.type = 'button';
-        chip.className = 'chip clickable' + (state.selectedChordId === id ? ' active' : '') + (state.overlayEnabled ? ' disabled' : '');
-        chip.disabled = state.overlayEnabled;
-        chip.setAttribute('aria-pressed', state.selectedChordId === id ? 'true' : 'false');
+        const quality = detectChordQuality(chord.pcs);
+        const hasCuratedForms = Boolean(quality && POPOV_FORM_LIBRARY[quality]?.length);
+        const chip = document.createElement(hasCuratedForms ? 'button' : 'span');
+        if(hasCuratedForms) chip.type = 'button';
+        chip.className = 'chip' + (hasCuratedForms ? ' clickable' : '') + (state.selectedChordId === id ? ' active' : '');
         chip.textContent = chord.label;
-        if(aliases.length) chip.title = `Те же ноты: ${aliases.join(', ')} — построено от другой ступени гаммы`;
-        chip.addEventListener('click', ()=>{
-          if(state.selectedChordId === id){
-            clearSelectedChord();
-          } else {
-            state.selectedChordId = id; state.selectedChordPcs = chord.pcs.slice();
-            state.selectedChordLabel = chord.label;
-            state.selectedChordQuality = detectChordQuality(chord.pcs);
-            state.viewMode = 'arpeggioShape';
-          }
-          render();
-        });
+        const aliasHint = aliases.length ? `Те же ноты: ${aliases.join(', ')} — построено от другой ступени гаммы. ` : '';
+        chip.title = aliasHint + (hasCuratedForms ? 'Открыть проверенные аппликатуры.' : 'Проверенная аппликатура пока не добавлена.');
+        if(hasCuratedForms){
+          chip.setAttribute('aria-pressed', state.selectedChordId === id ? 'true' : 'false');
+          chip.addEventListener('click', ()=>{
+            if(state.selectedChordId === id){
+              clearSelectedChord();
+            } else {
+              state.selectedChordId = id; state.selectedChordPcs = chord.pcs.slice();
+              state.selectedChordLabel = chord.label;
+              state.selectedChordQuality = quality;
+              state.viewMode = 'arpeggioShape';
+            }
+            render();
+          });
+        }
         row.appendChild(chip);
       });
     }
@@ -1399,31 +1384,6 @@ function render(){
   rangeFromInput.value = state.rangeFrom;
   rangeToInput.value = state.rangeTo;
   document.getElementById('customRangeControls').style.display = (state.viewMode === 'range' && state.rangePreset === 'custom') ? 'flex' : 'none';
-
-  const overlayPathModeRow = document.getElementById('overlayPathModeRow');
-  const pathComparisonActive = false;
-  overlayPathModeRow.style.display = pathComparisonActive ? 'flex' : 'none';
-  overlayPathModeRow.innerHTML = '';
-  if(pathComparisonActive){
-    const pathLabel = document.createElement('span');
-    pathLabel.className = 'hint';
-    pathLabel.style.margin = '6px 4px 0 0';
-    pathLabel.textContent = 'Показать маршрут:';
-    overlayPathModeRow.appendChild(pathLabel);
-    [
-      ['main', 'Основной'],
-      ['tension', 'Напряжение'],
-      ['compare', 'Сравнение']
-    ].forEach(([key, label]) => {
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'chip clickable' + (state.overlayPathMode === key ? ' active' : '');
-      btn.setAttribute('aria-pressed', state.overlayPathMode === key ? 'true' : 'false');
-      btn.textContent = label;
-      btn.addEventListener('click', ()=>{ state.overlayPathMode = key; render(); });
-      overlayPathModeRow.appendChild(btn);
-    });
-  }
 
   const arpeggioFormRow = document.getElementById('arpeggioFormRow');
   const arpeggioRouteInfo = document.getElementById('arpeggioRouteInfo');
@@ -1773,52 +1733,6 @@ function init(){
   }
   rangeFromInput.addEventListener('change', applyCustomRange);
   rangeToInput.addEventListener('change', applyCustomRange);
-
-  const diatonicWrap = document.getElementById('presetsDiatonic');
-  PRESETS_DIATONIC.forEach(([name, formula])=>{
-    const b = document.createElement('button');
-    b.className = 'preset-btn'; b.textContent = name;
-    b.addEventListener('click', ()=>{ formulaInput.value = formula; state.formula = formula; syncScaleSelect(mainScalePreset, formula); clearSelectedChord(); render(); });
-    diatonicWrap.appendChild(b);
-  });
-  const otherWrap = document.getElementById('presetsOther');
-  PRESETS_OTHER.forEach(([name, formula])=>{
-    const b = document.createElement('button');
-    b.className = 'preset-btn'; b.textContent = name;
-    b.addEventListener('click', ()=>{ formulaInput.value = formula; state.formula = formula; syncScaleSelect(mainScalePreset, formula); clearSelectedChord(); render(); });
-    otherWrap.appendChild(b);
-  });
-
-  const holdsworthWrap = document.getElementById('presetsHoldsworth');
-  const holdsworthDupeNotes = [];
-  PRESETS_HOLDSWORTH.forEach(([name, rootName, formula], idx)=>{
-    const key = semitoneSetKey(formula);
-    const dupe = [...DIATONIC_KEYS, ...OTHER_KEYS].find(e => e.key === key);
-    if(dupe){
-      const label = name === dupe.name ? `#${idx+1}` : `#${idx+1} (${name})`;
-      holdsworthDupeNotes.push(`${label} = ${dupe.name}`);
-      return;
-    }
-    const b = document.createElement('button');
-    b.className = 'preset-btn'; b.textContent = name;
-    b.title = `Тоника ${rootName}: ${formula}`;
-    b.addEventListener('click', ()=>{
-      state.root = findRootIndex(rootName);
-      rootSel.value = state.root;
-      formulaInput.value = formula; state.formula = formula;
-      syncScaleSelect(mainScalePreset, formula);
-      clearSelectedChord();
-      render();
-    });
-    holdsworthWrap.appendChild(b);
-  });
-  if(holdsworthDupeNotes.length){
-    const note = document.createElement('p');
-    note.className = 'hint';
-    note.style.marginTop = '8px';
-    note.textContent = `Те же наборы нот не дублируются отдельными кнопками: ${holdsworthDupeNotes.join(' · ')}.`;
-    holdsworthWrap.parentElement.appendChild(note);
-  }
 
   const BLACK_SEMITONES = new Set([1,3,6,8,10]);
   const pillRow = document.getElementById('pillRow');
