@@ -640,7 +640,7 @@ function arpeggioRouteFeatures(route){
   const counts=new Map();
   route.forEach(p=>counts.set(p.stringIdx,(counts.get(p.stringIdx)||0)+1));
   const distribution=[...counts.values()];
-  let movement=0,maxJump=0,sameString=0,longestCrossingRun=0,currentCrossingRun=0;
+  let movement=0,maxJump=0,sameString=0,lowStringRepeatPenalty=0,longestCrossingRun=0,currentCrossingRun=0;
   let directionChanges=0,largeBacktracks=0,previousDirection=0;
   const crossingShifts=[];
   for(let i=1;i<route.length;i++){
@@ -649,7 +649,11 @@ function arpeggioRouteFeatures(route){
     movement+=absDelta;
     maxJump=Math.max(maxJump,absDelta);
     if(route[i].stringIdx===route[i-1].stringIdx){
-      sameString++; currentCrossingRun=0;
+      sameString++;
+      // In common sweep shapes, repeated/legato notes are more natural on
+      // the upper strings than at the beginning of the low-string rake.
+      lowStringRepeatPenalty+=6-route[i].stringIdx;
+      currentCrossingRun=0;
     }else{
       currentCrossingRun++;
       longestCrossingRun=Math.max(longestCrossingRun,currentCrossingRun);
@@ -667,7 +671,7 @@ function arpeggioRouteFeatures(route){
     ? crossingShifts.reduce((sum,value)=>sum+Math.pow(value-averageShift,2),0)/crossingShifts.length
     : 0;
   return {
-    fretSpan:Math.max(...frets)-Math.min(...frets), movement, maxJump, sameString,
+    fretSpan:Math.max(...frets)-Math.min(...frets), movement, maxJump, sameString,lowStringRepeatPenalty,
     longestCrossingRun, directionChanges, largeBacktracks, shiftVariance,
     totalDrift:route[route.length-1].fret-route[0].fret,
     distribution, usedStrings:distribution.length,
@@ -688,7 +692,7 @@ function arpeggioCategoryScores(route){
   const f=arpeggioRouteFeatures(route);
   return {
     position:[f.fretSpan,f.movement,f.maxOnString,f.maxJump],
-    sweep:[f.threeNoteStrings,f.sameString,-f.longestCrossingRun,f.maxJump,f.movement],
+    sweep:[f.threeNoteStrings,f.sameString,f.maxJump,f.movement,f.lowStringRepeatPenalty,-f.longestCrossingRun],
     smooth:[f.movement,f.maxJump,f.fretSpan,f.sameString],
     diagonal:[f.largeBacktracks,f.directionChanges,f.threeNoteStrings,-f.usedStrings,f.shiftVariance,-f.totalDrift,f.maxJump,f.movement],
     twoPerString:[f.maxOnString>2?1:0,f.twoNoteDeviation,f.movement,f.fretSpan]

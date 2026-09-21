@@ -12,6 +12,7 @@
 - Filtered unexplained three-note-per-string routes out of Other variants so the browser presents plausible general fingerings rather than every mechanically valid path.
 - Kept the one-octave fingering visible when two octaves exceed the 15-fret board and added a concise reminder to continue the route along the neck.
 - Extracted and regression-tested the two-to-one-octave fallback decision as pure logic.
+- Rebalanced Sweep routes to avoid abrupt position transfers before rewarding long string-crossing runs, and to prefer repeated/legato notes on upper strings.
 - Refined Russian terminology for modes, outside playing, Holdsworth collections, and octave fingerings.
 
 ## 0.6.0-preview — 2026-09-21

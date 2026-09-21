@@ -59,7 +59,16 @@ function validateCategoryMeaning(analysis){
   const sweepCandidates=analysis.routes.filter(route=>api.arpeggioRouteFeatures(route).threeNoteStrings===minThreeNoteStrings);
   const sweepFeatures=api.arpeggioRouteFeatures(sweep);
   assert.equal(sweepFeatures.threeNoteStrings,minThreeNoteStrings,'Sweep must first minimize three-note groups');
-  assert.equal(sweepFeatures.sameString,minimum(sweepCandidates,'sameString'),'Sweep must then minimize repeated notes on a string');
+  const minSameString=minimum(sweepCandidates,'sameString');
+  assert.equal(sweepFeatures.sameString,minSameString,'Sweep must then minimize repeated notes on a string');
+  const sameStringCandidates=sweepCandidates.filter(route=>api.arpeggioRouteFeatures(route).sameString===minSameString);
+  const minSweepJump=minimum(sameStringCandidates,'maxJump');
+  assert.equal(sweepFeatures.maxJump,minSweepJump,'Sweep must avoid abrupt hand-position jumps before maximizing string-crossing runs');
+  const smoothSweepCandidates=sameStringCandidates.filter(route=>api.arpeggioRouteFeatures(route).maxJump===minSweepJump);
+  const minSweepMovement=minimum(smoothSweepCandidates,'movement');
+  assert.equal(sweepFeatures.movement,minSweepMovement,'Sweep must minimize total hand movement after its structural criteria tie');
+  const equalMovementCandidates=smoothSweepCandidates.filter(route=>api.arpeggioRouteFeatures(route).movement===minSweepMovement);
+  assert.equal(sweepFeatures.lowStringRepeatPenalty,minimum(equalMovementCandidates,'lowStringRepeatPenalty'),'Sweep must prefer repeated notes on upper strings after movement criteria tie');
 
   if(twoPerString)assert.ok(api.arpeggioRouteFeatures(twoPerString).maxOnString<=2,'Two-notes-per-string must never exceed two');
 
