@@ -690,7 +690,7 @@ function arpeggioCategoryScores(route){
     position:[f.fretSpan,f.movement,f.maxOnString,f.maxJump],
     sweep:[f.threeNoteStrings,f.sameString,-f.longestCrossingRun,f.maxJump,f.movement],
     smooth:[f.movement,f.maxJump,f.fretSpan,f.sameString],
-    diagonal:[f.largeBacktracks,f.directionChanges,f.threeNoteStrings,f.shiftVariance,-f.totalDrift,f.maxJump,f.movement],
+    diagonal:[f.largeBacktracks,f.directionChanges,f.threeNoteStrings,-f.usedStrings,f.shiftVariance,-f.totalDrift,f.maxJump,f.movement],
     twoPerString:[f.maxOnString>2?1:0,f.twoNoteDeviation,f.movement,f.fretSpan]
   };
 }

@@ -33,6 +33,43 @@ function validateRoute(route, expectedLength, octaves){
   assert.equal(route.at(-1).midi-route[0].midi, octaves*12);
 }
 
+function categoryPath(analysis,category){
+  return analysis.categories.find(entry=>entry.categories.includes(category))?.path || null;
+}
+
+function minimum(routes,feature){
+  return Math.min(...routes.map(route=>api.arpeggioRouteFeatures(route)[feature]));
+}
+
+function validateCategoryMeaning(analysis){
+  const position=categoryPath(analysis,'position');
+  const sweep=categoryPath(analysis,'sweep');
+  const smooth=categoryPath(analysis,'smooth');
+  const diagonal=categoryPath(analysis,'diagonal');
+  const twoPerString=categoryPath(analysis,'twoPerString');
+
+  assert.equal(api.arpeggioRouteFeatures(position).fretSpan,minimum(analysis.routes,'fretSpan'),'Position must minimize fret span');
+  assert.equal(api.arpeggioRouteFeatures(smooth).movement,minimum(analysis.routes,'movement'),'Smooth must minimize total movement');
+
+  const minThreeNoteStrings=minimum(analysis.routes,'threeNoteStrings');
+  const sweepCandidates=analysis.routes.filter(route=>api.arpeggioRouteFeatures(route).threeNoteStrings===minThreeNoteStrings);
+  const sweepFeatures=api.arpeggioRouteFeatures(sweep);
+  assert.equal(sweepFeatures.threeNoteStrings,minThreeNoteStrings,'Sweep must first minimize three-note groups');
+  assert.equal(sweepFeatures.sameString,minimum(sweepCandidates,'sameString'),'Sweep must then minimize repeated notes on a string');
+
+  if(twoPerString)assert.ok(api.arpeggioRouteFeatures(twoPerString).maxOnString<=2,'Two-notes-per-string must never exceed two');
+
+  const allFeatures=analysis.routes.map(route=>({route,features:api.arpeggioRouteFeatures(route)}));
+  const minBacktracks=Math.min(...allFeatures.map(item=>item.features.largeBacktracks));
+  const noBacktracks=allFeatures.filter(item=>item.features.largeBacktracks===minBacktracks);
+  const minDirectionChanges=Math.min(...noBacktracks.map(item=>item.features.directionChanges));
+  const stableDirection=noBacktracks.filter(item=>item.features.directionChanges===minDirectionChanges);
+  const minThreeNoteDiagonal=Math.min(...stableDirection.map(item=>item.features.threeNoteStrings));
+  const ergonomicDiagonal=stableDirection.filter(item=>item.features.threeNoteStrings===minThreeNoteDiagonal);
+  const maxUsedStrings=Math.max(...ergonomicDiagonal.map(item=>item.features.usedStrings));
+  assert.equal(api.arpeggioRouteFeatures(diagonal).usedStrings,maxUsedStrings,'Diagonal must prefer more strings after its safety criteria tie');
+}
+
 let combinations=0, rawRoutes=0, namedRoutes=0;
 const otherCounts=[];
 for(const intervals of Object.values(qualities)){
@@ -58,6 +95,7 @@ for(const intervals of Object.values(qualities)){
           validateRoute(entry.path,expectedLength,octaves);
           assert.ok(exactKeys.has(entry.key));
         });
+        validateCategoryMeaning(analysis);
         const mergedKeys=analysis.categories.map(entry=>entry.key);
         assert.equal(new Set(mergedKeys).size,mergedKeys.length,'identical category winners must merge');
         const selected=api.selectArpeggioRoute(analysis,'position',0);

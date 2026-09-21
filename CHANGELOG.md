@@ -8,6 +8,7 @@
 - Merged categories that resolve to the same fingering and labelled their additional uses instead of showing duplicate buttons.
 - Added a grouped Other variants navigator with route count, notes-per-string distribution, fret span, and used strings.
 - Added permanent regression coverage across 672 root, chord-quality, starting-string, and octave combinations.
+- Made Diagonal prefer more unique strings after its backtrack, direction-change, and three-note-group safeguards tie; added semantic category assertions to the regression suite.
 - Refined Russian terminology for modes, outside playing, Holdsworth collections, and octave fingerings.
 
 ## 0.6.0-preview — 2026-09-21
