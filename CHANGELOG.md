@@ -7,7 +7,8 @@
 - Separated the curated form source from the existing fretboard renderer and playback path; the earlier route generator remains internal during validation.
 - Removed starting-string, octave-count, generated-category, and Other-variants controls from the curated form UI.
 - Added honest unavailable-state messages for unsupported chord qualities and forms that exceed the displayed 15-fret range.
-- Added regression coverage for the exact Cmaj7 coordinates and all 60 form/root combinations; 58 fit the current board and two are correctly rejected at its upper boundary.
+- Added regression coverage for the exact Cmaj7 coordinates and all 60 form/root combinations; 57 fit the current board and three are correctly rejected at its boundaries.
+- Restored the low third on the D string in the A-form route after hands-on comparison with Popov's diagram.
 
 ## 0.7.0-preview — 2026-09-21
 

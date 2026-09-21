@@ -23,7 +23,7 @@ const expectedC={
   E:['5:8:1','4:7:3','4:10:5','3:9:7','3:10:1','2:9:3','1:8:5','0:7:7','0:8:1'],
   D:['5:8:1','5:12:3','4:10:5','3:9:7','3:10:1','2:9:3','2:12:5','1:12:7','1:13:1'],
   C:['4:3:1','3:2:3','2:0:5','1:0:7','1:1:1','0:0:3','0:3:5'],
-  A:['4:3:1','3:5:5','2:4:7','2:5:1','1:5:3','0:3:5','0:7:7'],
+  A:['4:3:1','3:2:3','3:5:5','2:4:7','2:5:1','1:5:3','0:3:5','0:7:7'],
   G:['5:8:1','4:7:3','3:5:5','2:4:7','2:5:1','2:9:3','1:8:5','0:7:7','0:8:1']
 };
 
@@ -51,5 +51,5 @@ for(let rootPc=0;rootPc<12;rootPc++){
   }
 }
 
-assert.equal(completeCount,58,'Only two high-register form/root combinations should exceed fret 15');
+assert.equal(completeCount,57,'Three form/root combinations should exceed the 0-15 fretboard range');
 console.log(`OK: ${completeCount} curated maj7 form/root realizations validated`);
