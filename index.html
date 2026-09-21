@@ -737,7 +737,12 @@ function analyzeArpeggioRoutes(pcs,startStringIdx,maxFret,octaveCount=1){
     else merged.push({key:winner.key,path:winner.path,categories:[winner.category]});
   });
   const winnerKeys=new Set(merged.map(item=>item.key));
-  const others=clusterArpeggioRoutes(routes,octaveCount)
+  // "Other" is a small library of plausible fingerings, not a dump of every
+  // mechanically valid DFS result. Three-note groups can still win a named
+  // category when no better route exists, but are too specialized to present
+  // as an unexplained general alternative.
+  const generalAlternatives=routes.filter(route=>arpeggioRouteFeatures(route).maxOnString<=2);
+  const others=clusterArpeggioRoutes(generalAlternatives,octaveCount)
     .filter(route=>!winnerKeys.has(arpeggioRouteKey(route)))
     .map(route=>({key:arpeggioRouteKey(route),path:route}));
   return {routes,categories:merged,others,complete:true,alternatives:routes.length};

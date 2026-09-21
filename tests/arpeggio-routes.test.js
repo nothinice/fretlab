@@ -94,6 +94,7 @@ for(const intervals of Object.values(qualities)){
         analysis.others.forEach(entry=>{
           validateRoute(entry.path,expectedLength,octaves);
           assert.ok(exactKeys.has(entry.key));
+          assert.ok(api.arpeggioRouteFeatures(entry.path).maxOnString<=2,'Other variants must not expose unexplained three-note groups');
         });
         validateCategoryMeaning(analysis);
         const mergedKeys=analysis.categories.map(entry=>entry.key);
