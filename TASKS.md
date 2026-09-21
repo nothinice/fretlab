@@ -13,14 +13,15 @@ This file is the shared handoff between Danila, Claude, and Codex.
 
 ## Current review priorities
 
-1. User-test Playable Shape from roots on strings 6, 5, 4, and 3.
-2. Verify that numbered routes feel natural on the guitar for triads and seventh chords.
-3. User-test the explicit Scale / Compare / Arpeggio states and Back to Scale action.
-4. User-test the side-by-side Main Scale and Tension Scale selectors.
-5. User-test whether Main Scale, Shared Notes, and Tension Notes are immediately understandable.
-6. Review chord labels and distinguish traditional tertian harmony from generalized
+1. User-test Position, Sweep, Smooth, Diagonal, and Two notes per string routes from roots on strings 6, 5, 4, and 3.
+2. Verify that numbered one- and two-octave routes feel natural on the guitar for triads and seventh chords.
+3. Decide which route families deserve permanent product names after hands-on testing.
+4. User-test the explicit Scale / Compare / Arpeggio states and Back to Scale action.
+5. User-test the side-by-side Main Mode and Outside Mode selectors.
+6. User-test whether Main Mode, Shared Notes, and Outside Mode Notes are immediately understandable.
+7. Review chord labels and distinguish traditional tertian harmony from generalized
    scale-step stacks.
-7. Convert the current algorithm checks into permanent regression tests before splitting
+8. Expand permanent regression tests before splitting
    the single-file prototype into modules.
 
 ## Implemented safeguards
@@ -34,16 +35,18 @@ This file is the shared handoff between Danila, Claude, and Codex.
 - Scale fingering modes are removed when an arpeggio is selected.
 - Playable Shape follows one exact ascending octave, begins on the chosen root string,
   stays within five frets, and carries an explicit note order used by playback.
-- Compact and Alternative are guaranteed to use different fretboard routes when
-  a second comfortable route exists; unavailable alternatives are disabled rather than duplicated.
+- Named arpeggio categories are selected from one shared route pool and identical winners
+  are merged rather than duplicated.
+- Sweep routes allow one or two notes per string and strongly penalize three-note groups.
+- Two-octave near-duplicates are grouped by string-sequence similarity before they reach
+  the Other variants navigator.
 
 ## Later roadmap
 
 - Exact Popov/CAGED E, D, C, A, and G chord-shape templates with verified routes.
 - A CAGED/Chord Shapes view alongside the simpler root-string Playable Shape.
 - String-set arpeggios on 6–5–4, 5–4–3, 4–3–2, and 3–2–1.
-- Technique-specific Across Strings and sweep/economy-picking routes.
-- Descending routes, two-octave routes, and alternative starting positions for the same string.
+- Alternative starting chord tones (third, fifth, or seventh) and descending routes.
 - Arpeggio + Tensions: show Main/Shared/Tension notes around a selected chord.
 - Scale-path comparison for Main/Tension Octave Shape and Playable Run.
 - Guided Transition Run between Main and Tension scales.

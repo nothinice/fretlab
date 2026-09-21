@@ -199,6 +199,14 @@
   .range-controls{display:flex; gap:8px; align-items:center; margin-top:8px; flex-wrap:wrap;}
   .range-controls input[type=number]{width:70px;}
   .range-controls label{margin:0; display:inline;}
+  .route-info{
+    width:100%; margin:4px 0 0; padding:8px 10px; border-radius:8px;
+    background:var(--panel); border:1px solid var(--border); color:var(--muted);
+    font:12px/1.5 'IBM Plex Mono',monospace;
+  }
+  .route-info strong{color:var(--ink);}
+  .route-tag{display:inline-block; margin-left:6px; color:var(--teal); font-size:11px;}
+  .chip.active .route-tag{color:#fff; opacity:.8;}
 
   .presets{margin-top:22px;}
   .presets summary{cursor:pointer; font-weight:600; color:var(--teal); margin-bottom:12px;}
@@ -218,14 +226,14 @@
 
   <div class="scale-compare-grid">
     <section class="scale-card" aria-labelledby="mainScaleHeading">
-      <h2 id="mainScaleHeading">Основная гамма</h2>
+      <h2 id="mainScaleHeading">Основной лад</h2>
       <div class="scale-card-fields">
         <div>
           <label for="root">Тоника</label>
           <select id="root"></select>
         </div>
         <div>
-          <label for="mainScalePreset">Гамма</label>
+          <label for="mainScalePreset">Лад</label>
           <select id="mainScalePreset"></select>
         </div>
         <div class="formula-field">
@@ -236,18 +244,18 @@
     </section>
 
     <div class="comparison-action">
-      <button id="overlayToggleBtn" class="overlay-btn" aria-pressed="false">Добавить гамму напряжения →</button>
+      <button id="overlayToggleBtn" class="overlay-btn" aria-pressed="false">Добавить аутсайд-лад →</button>
     </div>
 
     <section class="scale-card inactive" id="overlayPanel" aria-labelledby="tensionScaleHeading">
-      <h2 id="tensionScaleHeading">Гамма напряжения</h2>
+      <h2 id="tensionScaleHeading">Аутсайд-лад</h2>
       <div class="scale-card-fields">
         <div>
           <label for="outsideRoot">Тоника</label>
           <select id="outsideRoot" disabled></select>
         </div>
         <div>
-          <label for="outsideScalePreset">Гамма</label>
+          <label for="outsideScalePreset">Лад</label>
           <select id="outsideScalePreset" disabled></select>
         </div>
         <div class="formula-field">
@@ -267,18 +275,18 @@
       <button data-mode="degrees" aria-pressed="false">Ступени</button>
     </div>
     <button id="playBtn" class="play-btn">▶ Играть</button>
-    <button id="playInsideBtn" class="play-btn" style="display:none;">▶ Основная</button>
-    <button id="playOutsideBtn" class="play-btn outside" style="display:none;">▶ Напряжение</button>
+    <button id="playInsideBtn" class="play-btn" style="display:none;">▶ Основной лад</button>
+    <button id="playOutsideBtn" class="play-btn outside" style="display:none;">▶ Аутсайд-лад</button>
   </div>
 
   <div class="comparison-details" id="comparisonDetails" style="display:none;">
     <div class="legend" aria-hidden="true">
-      <span class="legend-item"><span class="swatch sw-inside"></span> Основная гамма</span>
+      <span class="legend-item"><span class="swatch sw-inside"></span> Основной лад</span>
       <span class="legend-item"><span class="swatch sw-common"></span> Общие ноты</span>
-      <span class="legend-item"><span class="swatch sw-outside"></span> Ноты напряжения</span>
+      <span class="legend-item"><span class="swatch sw-outside"></span> Ноты аутсайд-лада</span>
       <span class="legend-item"><span class="swatch sw-root"></span> Тоника</span>
     </div>
-    <p class="hint" style="margin:10px 0 0;">Общие ноты входят в обе гаммы. Ноты напряжения появляются только в гамме напряжения.</p>
+    <p class="hint" style="margin:10px 0 0;">Общие ноты входят в оба лада. Ноты аутсайд-лада появляются только при выходе из основного лада.</p>
     <div class="overlay-lists" id="overlayLists"></div>
   </div>
 
@@ -288,8 +296,9 @@
   <div class="readout" id="readout"></div>
 
   <div class="chip-row" id="viewModeRow" role="group" aria-label="Область грифа" style="margin-bottom:6px;"></div>
-  <div class="chip-row" id="overlayPathModeRow" role="group" aria-label="Маршрут гаммы" style="display:none; margin:8px 0 6px;"></div>
+  <div class="chip-row" id="overlayPathModeRow" role="group" aria-label="Маршрут лада" style="display:none; margin:8px 0 6px;"></div>
   <div class="chip-row" id="arpeggioFormRow" role="group" aria-label="Настройки арпеджио" style="display:none; margin:8px 0 6px;"></div>
+  <div class="route-info" id="arpeggioRouteInfo" style="display:none;"></div>
   <div class="range-controls" id="customRangeControls" style="display:none;">
     <label for="rangeFromInput" style="display:inline; margin:0;">От лада</label>
     <input type="number" id="rangeFromInput" min="0" max="15" value="0">
@@ -311,12 +320,12 @@
   </div>
 
   <details class="presets">
-    <summary>Библиотека гамм</summary>
+    <summary>Библиотека гамм и ладов</summary>
     <h2>Диатонические лады</h2>
     <div class="preset-grid" id="presetsDiatonic"></div>
     <h2 style="margin-top:16px;">Другие гаммы</h2>
     <div class="preset-grid" id="presetsOther"></div>
-    <h2 style="margin-top:16px;">15 используемых гамм Аллана Холдсворта</h2>
+    <h2 style="margin-top:16px;">15 звукорядов Аллана Холдсворта</h2>
     <div class="preset-grid" id="presetsHoldsworth"></div>
   </details>
 </div>
@@ -485,7 +494,7 @@ let state = {
   root: findRootIndex('A'), formula: '1 2 b3 4 5 6 7', mode: 'notes',
   selectedChordId: null, selectedChordPcs: null,
   selectedChordLabel: null, selectedChordQuality: null,
-  arpeggioStartString: 0, arpeggioVariant: 'wide', arpeggioOctaves: 1,
+  arpeggioStartString: 0, arpeggioVariant: 'position', arpeggioOtherIndex: 0, arpeggioOctaves: 1,
   arpeggioIntervalMode: 'simple',
   viewMode: 'whole', // 'whole' | 'range' | 'octaveShape' | 'playableRun' | 'arpeggioShape'
   rangePreset: null, // '0-4' | '5-9' | '10-15' | 'custom' | null
@@ -570,16 +579,16 @@ function detectChordQuality(pcs){
   return ({'4,7,11':'maj7','4,7,10':'7','3,7,10':'m7','3,6,10':'m7b5','3,6,9':'dim7'})[key] || null;
 }
 
-function computeArpeggioShape(pcs, startStringIdx, maxFret, variant='wide', octaveCount=1){
-  if(!pcs || !pcs.length || startStringIdx < 0 || startStringIdx > 3) return {path:[], complete:false};
-  if(octaveCount !== 1 && octaveCount !== 2) return {path:[], complete:false, alternatives:0};
+function buildArpeggioRoutes(pcs, startStringIdx, maxFret, octaveCount=1){
+  if(!pcs || !pcs.length || startStringIdx < 0 || startStringIdx > 3) return [];
+  if(octaveCount !== 1 && octaveCount !== 2) return [];
   const strings = [...OPEN_STRINGS_TOP_TO_BOTTOM].slice().reverse();
   const rootPc = pcs[0];
   const intervals = [...new Set(pcs.map(pc => ((pc-rootPc)%12+12)%12))].sort((a,b)=>a-b);
   if(intervals[0] !== 0) intervals.unshift(0);
   const startString = strings[startStringIdx];
   const startFret = ((rootPc - startString.pc) % 12 + 12) % 12;
-  if(startFret > maxFret) return {path:[], complete:false};
+  if(startFret > maxFret) return [];
   const startMidi = startString.midi + startFret;
   const targetMidis = [];
   for(let octave=0; octave<octaveCount; octave++){
@@ -617,29 +626,143 @@ function computeArpeggioShape(pcs, startStringIdx, maxFret, variant='wide', octa
     });
   }
   buildRoutes(1,[first],startFret,startFret,1);
-  if(!routes.length)return {path:[],complete:false,alternatives:0};
+  return routes;
+}
 
-  const routeKey=route=>route.map(p=>`${p.stringIdx}:${p.fret}`).join('|');
-  const wideScore=route=>{
-    const frets=route.map(p=>p.fret);
-    const span=Math.max(...frets)-Math.min(...frets);
-    let movement=0,sameString=0,drift=0;
-    const perString=new Map();
-    route.forEach(p=>perString.set(p.stringIdx,(perString.get(p.stringIdx)||0)+1));
-    for(let i=1;i<route.length;i++){
-      movement+=Math.abs(route[i].fret-route[i-1].fret);
-      if(route[i].stringIdx===route[i-1].stringIdx)sameString++;
-      drift+=Math.abs(route[i].fret-route[0].fret);
+function arpeggioRouteKey(route){
+  // With fixed ascending target pitches, the string sequence uniquely defines
+  // every fret as well. Keeping the key compact also makes similarity useful.
+  return route.map(p=>p.stringIdx).join('');
+}
+
+function arpeggioRouteFeatures(route){
+  const frets=route.map(p=>p.fret);
+  const counts=new Map();
+  route.forEach(p=>counts.set(p.stringIdx,(counts.get(p.stringIdx)||0)+1));
+  const distribution=[...counts.values()];
+  let movement=0,maxJump=0,sameString=0,longestCrossingRun=0,currentCrossingRun=0;
+  let directionChanges=0,largeBacktracks=0,previousDirection=0;
+  const crossingShifts=[];
+  for(let i=1;i<route.length;i++){
+    const fretDelta=route[i].fret-route[i-1].fret;
+    const absDelta=Math.abs(fretDelta);
+    movement+=absDelta;
+    maxJump=Math.max(maxJump,absDelta);
+    if(route[i].stringIdx===route[i-1].stringIdx){
+      sameString++; currentCrossingRun=0;
+    }else{
+      currentCrossingRun++;
+      longestCrossingRun=Math.max(longestCrossingRun,currentCrossingRun);
+      crossingShifts.push(fretDelta);
+      // A small fret-number drop on a higher string is normal guitar geometry.
+      // Only large reversals and repeated changes of travel direction are costly.
+      if(fretDelta < -5) largeBacktracks+=Math.abs(fretDelta+5);
+      const direction=Math.abs(fretDelta)<=1?0:Math.sign(fretDelta);
+      if(direction&&previousDirection&&direction!==previousDirection)directionChanges++;
+      if(direction)previousDirection=direction;
     }
-    const maxOnString=Math.max(...perString.values());
-    return sameString*8+maxOnString*4+span*1.2+movement*0.7+drift*0.15;
+  }
+  const averageShift=crossingShifts.length?crossingShifts.reduce((a,b)=>a+b,0)/crossingShifts.length:0;
+  const shiftVariance=crossingShifts.length
+    ? crossingShifts.reduce((sum,value)=>sum+Math.pow(value-averageShift,2),0)/crossingShifts.length
+    : 0;
+  return {
+    fretSpan:Math.max(...frets)-Math.min(...frets), movement, maxJump, sameString,
+    longestCrossingRun, directionChanges, largeBacktracks, shiftVariance,
+    totalDrift:route[route.length-1].fret-route[0].fret,
+    distribution, usedStrings:distribution.length,
+    maxOnString:Math.max(...distribution), threeNoteStrings:distribution.filter(n=>n===3).length,
+    twoNoteDeviation:distribution.reduce((sum,n)=>sum+Math.abs(n-2),0)
   };
-  const wide=[...routes].sort((a,b)=>wideScore(a)-wideScore(b))[0];
-  const otherRoutes=routes.filter(route=>routeKey(route)!==routeKey(wide));
-  const chosen=variant==='alternative'&&otherRoutes.length
-    ? [...otherRoutes].sort((a,b)=>wideScore(a)-wideScore(b))[0]
-    : wide;
-  return {path:chosen.map((p,i)=>({...p,order:i+1})),complete:true,alternatives:routes.length};
+}
+
+function compareScore(a,b){
+  for(let i=0;i<Math.max(a.length,b.length);i++){
+    const delta=(a[i]||0)-(b[i]||0);
+    if(delta)return delta;
+  }
+  return 0;
+}
+
+function arpeggioCategoryScores(route){
+  const f=arpeggioRouteFeatures(route);
+  return {
+    position:[f.fretSpan,f.movement,f.maxOnString,f.maxJump],
+    sweep:[f.threeNoteStrings,f.sameString,-f.longestCrossingRun,f.maxJump,f.movement],
+    smooth:[f.movement,f.maxJump,f.fretSpan,f.sameString],
+    diagonal:[f.largeBacktracks,f.directionChanges,f.threeNoteStrings,f.shiftVariance,-f.totalDrift,f.maxJump,f.movement],
+    twoPerString:[f.maxOnString>2?1:0,f.twoNoteDeviation,f.movement,f.fretSpan]
+  };
+}
+
+function arpeggioRouteDistance(a,b){
+  let different=0;
+  for(let i=0;i<Math.max(a.length,b.length);i++)if(!a[i]||!b[i]||a[i].stringIdx!==b[i].stringIdx)different++;
+  return different;
+}
+
+function clusterArpeggioRoutes(routes,octaveCount){
+  if(octaveCount===1)return routes;
+  const sorted=[...routes].sort((a,b)=>compareScore(arpeggioCategoryScores(a).smooth,arpeggioCategoryScores(b).smooth));
+  const representatives=[];
+  sorted.forEach(route=>{
+    // Two routes that differ at only one or two chord tones feel like the same
+    // basic fingering with a small substitution, not two useful alternatives.
+    if(!representatives.some(other=>arpeggioRouteDistance(route,other)<=2))representatives.push(route);
+  });
+  return representatives;
+}
+
+const ARPEGGIO_CATEGORY_LABELS={
+  position:'Позиционная', sweep:'Для свипа', smooth:'Плавная',
+  diagonal:'Диагональная', twoPerString:'Две ноты на струне'
+};
+
+function analyzeArpeggioRoutes(pcs,startStringIdx,maxFret,octaveCount=1){
+  const routes=buildArpeggioRoutes(pcs,startStringIdx,maxFret,octaveCount);
+  if(!routes.length)return {routes:[],categories:[],others:[],complete:false,alternatives:0};
+  const categoryOrder=Object.keys(ARPEGGIO_CATEGORY_LABELS);
+  const winners=categoryOrder.map(category=>{
+    const candidates=category==='twoPerString'
+      ? routes.filter(route=>arpeggioRouteFeatures(route).maxOnString<=2)
+      : routes;
+    if(!candidates.length)return null;
+    const path=[...candidates].sort((a,b)=>compareScore(arpeggioCategoryScores(a)[category],arpeggioCategoryScores(b)[category]))[0];
+    return {category,path,key:arpeggioRouteKey(path)};
+  }).filter(Boolean);
+  const merged=[];
+  winners.forEach(winner=>{
+    const existing=merged.find(item=>item.key===winner.key);
+    if(existing)existing.categories.push(winner.category);
+    else merged.push({key:winner.key,path:winner.path,categories:[winner.category]});
+  });
+  const winnerKeys=new Set(merged.map(item=>item.key));
+  const others=clusterArpeggioRoutes(routes,octaveCount)
+    .filter(route=>!winnerKeys.has(arpeggioRouteKey(route)))
+    .map(route=>({key:arpeggioRouteKey(route),path:route}));
+  return {routes,categories:merged,others,complete:true,alternatives:routes.length};
+}
+
+function selectArpeggioRoute(analysis,variant='position',otherIndex=0){
+  if(!analysis.complete)return {path:[],complete:false,alternatives:0,meta:null};
+  let entry=null;
+  if(variant==='other'&&analysis.others.length){
+    const index=Math.max(0,Math.min(otherIndex,analysis.others.length-1));
+    entry={...analysis.others[index],categories:[],otherIndex:index};
+  }else{
+    entry=analysis.categories.find(item=>item.categories.includes(variant))||analysis.categories[0];
+  }
+  return {
+    path:entry.path.map((p,i)=>({...p,order:i+1})), complete:true,
+    alternatives:analysis.alternatives, meta:entry
+  };
+}
+
+// Compatibility wrapper used by older checks and links to the current build.
+function computeArpeggioShape(pcs,startStringIdx,maxFret,variant='position',octaveCount=1){
+  const analysis=analyzeArpeggioRoutes(pcs,startStringIdx,maxFret,octaveCount);
+  const normalizedVariant=variant==='wide'?'sweep':variant==='alternative'?'smooth':variant;
+  return selectArpeggioRoute(analysis,normalizedVariant,0);
 }
 
 function chordIntervalLabel(pc, rootPc){
@@ -915,7 +1038,7 @@ function render(){
   const arpeggioMode = Boolean(state.selectedChordPcs) && !state.overlayEnabled;
   const readout = document.getElementById('readout');
   readout.innerHTML = `${arpeggioMode ? `
-    <div class="mode-banner"><span>Арпеджио: <strong>${state.selectedChordLabel}</strong></span><button type="button" class="chip clickable" id="backToScaleBtn">← Вернуться к гамме</button></div>` : ''}
+    <div class="mode-banner"><span>Арпеджио: <strong>${state.selectedChordLabel}</strong></span><button type="button" class="chip clickable" id="backToScaleBtn">← Вернуться к ладу</button></div>` : ''}
     <div>${state.overlayEnabled ? 'Сравнение' : 'Гамма'}: <strong>${matchLabel}</strong></div>
     <div>Ноты: <strong>${sortedBySemitone.map(n=>n.noteName).join(' ')}</strong></div>
     <div>Ступени: <strong>${sortedBySemitone.map(n=>n.degreeLabel).join('-')}</strong></div>
@@ -1000,7 +1123,7 @@ function render(){
     ? [{key:'whole',label:'Сравнение гамм'}]
     : arpeggioMode
       ? [{key:'whole',label:'Все ноты'},{key:'arpeggioShape',label:'Аппликатура арпеджио'}]
-      : [...commonModeButtons, {key:'octaveShape', label:'Октавная форма'}, {key:'playableRun', label:'Игровой маршрут'}];
+      : [...commonModeButtons, {key:'octaveShape', label:'Октавная аппликатура'}, {key:'playableRun', label:'Игровой маршрут'}];
   const currentModeKey = state.viewMode === 'range' ? ('range-' + (state.rangePreset || 'custom')) : state.viewMode;
   modeButtons.forEach(m => {
     const btn = document.createElement('button');
@@ -1057,7 +1180,10 @@ function render(){
   }
 
   const arpeggioFormRow = document.getElementById('arpeggioFormRow');
+  const arpeggioRouteInfo = document.getElementById('arpeggioRouteInfo');
+  let currentArpeggioAnalysis = null;
   arpeggioFormRow.innerHTML = '';
+  arpeggioRouteInfo.style.display = 'none';
   arpeggioFormRow.style.display = state.viewMode === 'arpeggioShape' ? 'flex' : 'none';
   if(state.viewMode === 'arpeggioShape'){
     if(!arpeggioMode){
@@ -1066,13 +1192,19 @@ function render(){
       message.textContent = 'Выберите аккорд ниже, чтобы построить аппликатуру арпеджио.';
       arpeggioFormRow.appendChild(message);
     } else {
-      const oneOctaveAvailability=computeArpeggioShape(state.selectedChordPcs,state.arpeggioStartString,FRET_COUNT,'wide',1);
-      const twoOctaveAvailability=computeArpeggioShape(state.selectedChordPcs,state.arpeggioStartString,FRET_COUNT,'wide',2);
-      const shapeAvailability=state.arpeggioOctaves===2?twoOctaveAvailability:oneOctaveAvailability;
-      if(shapeAvailability.alternatives<2)state.arpeggioVariant='wide';
+      const oneOctaveAvailability=analyzeArpeggioRoutes(state.selectedChordPcs,state.arpeggioStartString,FRET_COUNT,1);
+      const twoOctaveAvailability=analyzeArpeggioRoutes(state.selectedChordPcs,state.arpeggioStartString,FRET_COUNT,2);
+      currentArpeggioAnalysis=state.arpeggioOctaves===2?twoOctaveAvailability:oneOctaveAvailability;
+      const availableCategories=new Set(currentArpeggioAnalysis.categories.flatMap(item=>item.categories));
+      if(state.arpeggioVariant!=='other'&&!availableCategories.has(state.arpeggioVariant))state.arpeggioVariant='position';
+      if(state.arpeggioVariant==='other'&&!currentArpeggioAnalysis.others.length)state.arpeggioVariant='position';
+      if(state.arpeggioVariant!=='other'){
+        const selectedGroup=currentArpeggioAnalysis.categories.find(item=>item.categories.includes(state.arpeggioVariant));
+        if(selectedGroup)state.arpeggioVariant=selectedGroup.categories[0];
+      }
       const label = document.createElement('span');
       label.className = 'hint'; label.style.margin = '6px 4px 0 0';
-      label.textContent = 'Начать с тоники на:';
+      label.textContent = 'Основной тон на:';
       arpeggioFormRow.appendChild(label);
       [[0,'6-й струне'],[1,'5-й струне'],[2,'4-й струне'],[3,'3-й струне']].forEach(([stringIdx,stringLabel]) => {
         const btn = document.createElement('button');
@@ -1080,7 +1212,7 @@ function render(){
         btn.className = 'chip clickable' + (state.arpeggioStartString === stringIdx ? ' active' : '');
         btn.setAttribute('aria-pressed', state.arpeggioStartString === stringIdx ? 'true' : 'false');
         btn.textContent = stringLabel;
-        btn.addEventListener('click', ()=>{ state.arpeggioStartString = stringIdx; render(); });
+        btn.addEventListener('click', ()=>{ state.arpeggioStartString=stringIdx; state.arpeggioOtherIndex=0; render(); });
         arpeggioFormRow.appendChild(btn);
       });
       const octaveLabel = document.createElement('span');
@@ -1095,24 +1227,48 @@ function render(){
         btn.setAttribute('aria-pressed',state.arpeggioOctaves===octaves?'true':'false');
         btn.textContent=text;
         if(btn.disabled)btn.title='Две октавы не помещаются от выбранной струны в пределах 15 ладов.';
-        btn.addEventListener('click',()=>{state.arpeggioOctaves=octaves;render();});
+        btn.addEventListener('click',()=>{state.arpeggioOctaves=octaves;state.arpeggioOtherIndex=0;render();});
         arpeggioFormRow.appendChild(btn);
       });
       const variantLabel = document.createElement('span');
       variantLabel.className = 'hint'; variantLabel.style.margin = '6px 4px 0 10px';
       variantLabel.textContent = 'Аппликатура:';
       arpeggioFormRow.appendChild(variantLabel);
-      [['wide','Широкая'],['alternative','Альтернативная']].forEach(([variant,label]) => {
+      currentArpeggioAnalysis.categories.forEach(entry => {
+        const variant=entry.categories[0];
         const btn = document.createElement('button');
         btn.type='button';
-        btn.disabled=variant==='alternative'&&shapeAvailability.alternatives<2;
         btn.className='chip clickable'+(state.arpeggioVariant===variant?' active':'');
         btn.setAttribute('aria-pressed',state.arpeggioVariant===variant?'true':'false');
-        btn.textContent=label;
-        if(btn.disabled)btn.title='В пределах 15 ладов нет второго удобного маршрута.';
+        btn.textContent=ARPEGGIO_CATEGORY_LABELS[variant];
+        if(entry.categories.length>1){
+          const also=document.createElement('span');
+          also.className='route-tag';
+          also.textContent='Также: '+entry.categories.slice(1).map(key=>ARPEGGIO_CATEGORY_LABELS[key]).join(', ');
+          btn.appendChild(also);
+        }
         btn.addEventListener('click',()=>{state.arpeggioVariant=variant;render();});
         arpeggioFormRow.appendChild(btn);
       });
+      if(currentArpeggioAnalysis.others.length){
+        const otherBtn=document.createElement('button');
+        otherBtn.type='button';
+        otherBtn.className='chip clickable'+(state.arpeggioVariant==='other'?' active':'');
+        otherBtn.textContent=`Другие варианты (${currentArpeggioAnalysis.others.length})`;
+        otherBtn.addEventListener('click',()=>{state.arpeggioVariant='other';state.arpeggioOtherIndex=0;render();});
+        arpeggioFormRow.appendChild(otherBtn);
+        if(state.arpeggioVariant==='other'){
+          const previous=document.createElement('button');
+          previous.type='button'; previous.className='chip clickable'; previous.textContent='←';
+          previous.disabled=state.arpeggioOtherIndex<=0;
+          previous.addEventListener('click',()=>{state.arpeggioOtherIndex--;render();});
+          const next=document.createElement('button');
+          next.type='button'; next.className='chip clickable'; next.textContent='→';
+          next.disabled=state.arpeggioOtherIndex>=currentArpeggioAnalysis.others.length-1;
+          next.addEventListener('click',()=>{state.arpeggioOtherIndex++;render();});
+          arpeggioFormRow.appendChild(previous); arpeggioFormRow.appendChild(next);
+        }
+      }
       if(state.arpeggioOctaves===2){
         const intervalLabel=document.createElement('span');
         intervalLabel.className='hint'; intervalLabel.style.margin='6px 4px 0 10px';
@@ -1136,9 +1292,19 @@ function render(){
   const octaveWarning = document.getElementById('octaveShapeWarning');
   octaveWarning.style.display = 'none';
   if(state.viewMode === 'arpeggioShape' && arpeggioMode){
-    const shapeResult = computeArpeggioShape(state.selectedChordPcs, state.arpeggioStartString, FRET_COUNT, state.arpeggioVariant, state.arpeggioOctaves);
+    currentArpeggioAnalysis=currentArpeggioAnalysis||analyzeArpeggioRoutes(state.selectedChordPcs,state.arpeggioStartString,FRET_COUNT,state.arpeggioOctaves);
+    const shapeResult=selectArpeggioRoute(currentArpeggioAnalysis,state.arpeggioVariant,state.arpeggioOtherIndex);
     activePath = shapeResult.path;
     currentPlayableMidi = activePath.map(p => p.midi);
+    if(shapeResult.complete){
+      const features=arpeggioRouteFeatures(activePath);
+      const strings=[...new Set(activePath.map(p=>6-p.stringIdx))];
+      const title=state.arpeggioVariant==='other'
+        ? `Вариант ${shapeResult.meta.otherIndex+1} из ${currentArpeggioAnalysis.others.length}`
+        : shapeResult.meta.categories.map(key=>ARPEGGIO_CATEGORY_LABELS[key]).join(' · ');
+      arpeggioRouteInfo.style.display='block';
+      arpeggioRouteInfo.innerHTML=`<strong>${title}</strong> · нот по струнам: ${features.distribution.join('–')} · диапазон: ${features.fretSpan} ладов · струны: ${strings.join(', ')}`;
+    }
     if(!shapeResult.complete){
       octaveWarning.style.display='block';
       octaveWarning.textContent=state.arpeggioOctaves===2
@@ -1189,11 +1355,11 @@ function render(){
       if(!outsideShape.complete && (state.overlayPathMode === 'tension' || state.overlayPathMode === 'compare')){
         const existing = octaveWarning.style.display !== 'none' ? octaveWarning.textContent + ' ' : '';
         octaveWarning.style.display = 'block';
-        octaveWarning.textContent = existing + 'Гамма напряжения не образует полную двухструнную октавную форму в пределах 15 ладов.';
+        octaveWarning.textContent = existing + 'Аутсайд-лад не образует полную двухструнную октавную аппликатуру в пределах 15 ладов.';
       } else if(outsideShape.complete && outsideShape.secondStringCount > 5 && (state.overlayPathMode === 'tension' || state.overlayPathMode === 'compare')){
         const existing = octaveWarning.style.display !== 'none' ? octaveWarning.textContent + ' ' : '';
         octaveWarning.style.display = 'block';
-        octaveWarning.textContent = existing + `Для гаммы напряжения требуется ${outsideShape.secondStringCount} нот на второй струне октавной формы.`;
+        octaveWarning.textContent = existing + `Для аутсайд-лада требуется ${outsideShape.secondStringCount} нот на второй струне октавной аппликатуры.`;
       }
       if(activePath.length) insidePlayableMidi = activePath.map(p => p.str.midi + p.fret).sort((a,b)=>a-b);
     } else if(!outsideError && state.viewMode === 'playableRun'){
@@ -1205,10 +1371,10 @@ function render(){
     const listsEl = document.getElementById('overlayLists');
     const nameFor = (pc, map) => map.has(pc) ? map.get(pc).noteName : '';
     listsEl.innerHTML = outsideError
-      ? `<div style="color:var(--danger)"><strong>Ошибка в формуле гаммы напряжения</strong><br>${outsideError}</div>`
+      ? `<div style="color:var(--danger)"><strong>Ошибка в формуле аутсайд-лада</strong><br>${outsideError}</div>`
       : `
         <div><strong>Общие ноты</strong><br>${commonPcs.length ? commonPcs.map(pc=>nameFor(pc,pcMap)).join(' ') : '—'}</div>
-        <div><strong>Ноты напряжения</strong><br>${outsideOnlyPcs.length ? outsideOnlyPcs.map(pc=>nameFor(pc,outsidePcMap)).join(' ') : '—'}</div>
+        <div><strong>Ноты аутсайд-лада</strong><br>${outsideOnlyPcs.length ? outsideOnlyPcs.map(pc=>nameFor(pc,outsidePcMap)).join(' ') : '—'}</div>
       `;
   }
 
@@ -1384,7 +1550,7 @@ function init(){
     state.overlayEnabled = !state.overlayEnabled;
     overlayToggleBtn.classList.toggle('active', state.overlayEnabled);
     overlayToggleBtn.setAttribute('aria-pressed', state.overlayEnabled ? 'true' : 'false');
-    overlayToggleBtn.textContent = state.overlayEnabled ? 'Убрать гамму напряжения' : 'Добавить гамму напряжения →';
+    overlayToggleBtn.textContent = state.overlayEnabled ? 'Убрать аутсайд-лад' : 'Добавить аутсайд-лад →';
     document.getElementById('overlayPanel').classList.toggle('inactive', !state.overlayEnabled);
     outsideRootSel.disabled = !state.overlayEnabled;
     outsideScalePreset.disabled = !state.overlayEnabled;

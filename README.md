@@ -33,13 +33,18 @@ free to open one.
 - Presets: diatonic modes, common scales, all 15 of Allan Holdsworth's
   "usable scales"
 - Chord harmonization (triads/7th chords) with a separate arpeggio mode
-- Arpeggio Shape builds Wide and Alternative one- or two-octave routes from a root on string 6, 5, 4, or 3 when the available fretboard range allows it
+- Arpeggio Shape builds one- or two-octave routes from a chord root on string 6, 5, 4, or 3 when the available fretboard range allows it
+- Named route families cover Position, Sweep, Smooth, Diagonal, and Two notes per string approaches; duplicate winners merge and additional grouped routes remain browsable
 - Two-octave arpeggios can display repeated simple degrees or compound intervals (8, 10, 12, 14, 15)
 - Fretboard area selection (whole neck / fret ranges), Octave Shape and
   Playable Run diagonal patterns across the whole neck
-- Two-scale comparison with Main Scale, Shared Notes, and Tension Notes
+- Two-scale comparison with Main Mode, Shared Notes, and Outside Mode Notes
 - Focused two-scale comparison without unrelated chord or fingering controls
-- Side-by-side Main Scale and Tension Scale selectors with named presets and custom formulas
+- Side-by-side Main Mode and Outside Mode selectors with named presets and custom formulas
+
+## Checks
+
+Run `node tests/arpeggio-routes.test.js` to verify route mechanics and category selection across the regression matrix.
 
 ## Roadmap
 

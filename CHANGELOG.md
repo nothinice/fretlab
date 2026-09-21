@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.7.0-preview — 2026-09-21
+
+- Replaced the fixed Wide/Alternative pair with route families selected from one complete arpeggio-route search.
+- Added Position, Sweep, Smooth, Diagonal, and Two notes per string categories for one- and two-octave arpeggios.
+- Sweep routing permits useful two-note string groups and strongly penalizes three-note groups instead of imposing an impossible one-note-per-string rule.
+- Merged categories that resolve to the same fingering and labelled their additional uses instead of showing duplicate buttons.
+- Added a grouped Other variants navigator with route count, notes-per-string distribution, fret span, and used strings.
+- Added permanent regression coverage across 672 root, chord-quality, starting-string, and octave combinations.
+- Refined Russian terminology for modes, outside playing, Holdsworth collections, and octave fingerings.
+
 ## 0.6.0-preview — 2026-09-21
 
 - Added one- and two-octave arpeggio shapes from roots on strings 6, 5, 4, and 3 when the physical fretboard range allows them.
