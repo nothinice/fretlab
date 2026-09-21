@@ -1187,6 +1187,7 @@ function render(){
   const arpeggioFormRow = document.getElementById('arpeggioFormRow');
   const arpeggioRouteInfo = document.getElementById('arpeggioRouteInfo');
   let currentArpeggioAnalysis = null;
+  let twoOctaveContinuesBeyondBoard = false;
   arpeggioFormRow.innerHTML = '';
   arpeggioRouteInfo.style.display = 'none';
   arpeggioFormRow.style.display = state.viewMode === 'arpeggioShape' ? 'flex' : 'none';
@@ -1199,6 +1200,13 @@ function render(){
     } else {
       const oneOctaveAvailability=analyzeArpeggioRoutes(state.selectedChordPcs,state.arpeggioStartString,FRET_COUNT,1);
       const twoOctaveAvailability=analyzeArpeggioRoutes(state.selectedChordPcs,state.arpeggioStartString,FRET_COUNT,2);
+      twoOctaveContinuesBeyondBoard=!twoOctaveAvailability.complete;
+      // When a new starting string cannot fit the previously selected
+      // two-octave route, keep the usable one-octave fingering visible.
+      if(state.arpeggioOctaves===2&&twoOctaveContinuesBeyondBoard){
+        state.arpeggioOctaves=1;
+        state.arpeggioOtherIndex=0;
+      }
       currentArpeggioAnalysis=state.arpeggioOctaves===2?twoOctaveAvailability:oneOctaveAvailability;
       const availableCategories=new Set(currentArpeggioAnalysis.categories.flatMap(item=>item.categories));
       if(state.arpeggioVariant!=='other'&&!availableCategories.has(state.arpeggioVariant))state.arpeggioVariant='position';
@@ -1231,7 +1239,7 @@ function render(){
         btn.className='chip clickable'+(state.arpeggioOctaves===octaves?' active':'');
         btn.setAttribute('aria-pressed',state.arpeggioOctaves===octaves?'true':'false');
         btn.textContent=text;
-        if(btn.disabled)btn.title='Две октавы не помещаются от выбранной струны в пределах 15 ладов.';
+        if(btn.disabled)btn.title=`От ${6-state.arpeggioStartString}-й струны две октавы выходят за 15-й лад — продолжайте вдоль грифа.`;
         btn.addEventListener('click',()=>{state.arpeggioOctaves=octaves;state.arpeggioOtherIndex=0;render();});
         arpeggioFormRow.appendChild(btn);
       });
@@ -1315,6 +1323,9 @@ function render(){
       octaveWarning.textContent=state.arpeggioOctaves===2
         ? 'Две октавы не помещаются от выбранной струны в пределах 15 ладов. Выберите более низкую струну.'
         : 'Удобная однооктавная аппликатура не помещается от этой тоники в пределах 15 ладов.';
+    }else if(twoOctaveContinuesBeyondBoard){
+      octaveWarning.style.display='block';
+      octaveWarning.textContent=`От ${6-state.arpeggioStartString}-й струны две октавы выходят за 15-й лад — продолжайте вдоль грифа.`;
     }
   } else if(state.viewMode === 'octaveShape'){
     const { path, secondStringCount, complete } = computeOctaveShapePath(pcsForPlayback, FRET_COUNT);

@@ -10,6 +10,7 @@
 - Added permanent regression coverage across 672 root, chord-quality, starting-string, and octave combinations.
 - Made Diagonal prefer more unique strings after its backtrack, direction-change, and three-note-group safeguards tie; added semantic category assertions to the regression suite.
 - Filtered unexplained three-note-per-string routes out of Other variants so the browser presents plausible general fingerings rather than every mechanically valid path.
+- Kept the one-octave fingering visible when two octaves exceed the 15-fret board and added a concise reminder to continue the route along the neck.
 - Refined Russian terminology for modes, outside playing, Holdsworth collections, and octave fingerings.
 
 ## 0.6.0-preview — 2026-09-21
