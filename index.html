@@ -570,10 +570,16 @@ function lowestFretboardMidiForPc(pc){
 }
 
 // ---------- Playable Shape (arpeggio mode) ----------
-// Curated chord-form library. These maj7 shapes preserve the geometry of the
-// five chord forms described by Popov; they are data, not scoring results.
+// Curated chord-form library. These shapes preserve the geometry of the
+// chord forms described by Popov; they are data, not scoring results.
 // Every fret offset is measured from the form's circled root anchor.
-const POPOV_MAJ7_FORMS = [
+function preparePopovForms(quality,forms){
+  return forms.map(form=>({...form,quality,positions:form.positions.map(([stringIdx,fretOffset,degree],i)=>({
+    id:`${quality}-${form.id}-${i+1}`,stringIdx,fretOffset,degree
+  }))}));
+}
+
+const POPOV_MAJ7_FORMS = preparePopovForms('maj7',[
   {
     id:'E', name:'E', anchorStringIdx:5,
     positions:[
@@ -609,14 +615,166 @@ const POPOV_MAJ7_FORMS = [
       [2,1,'3'],[3,-3,'5'],[4,-1,'3'],[5,0,'1']
     ]
   }
-].map(form=>({...form,positions:form.positions.map(([stringIdx,fretOffset,degree],i)=>({
-  id:`${form.id}-${i+1}`,stringIdx,fretOffset,degree
-}))}));
+]);
 
-const CHORD_DEGREE_SEMITONES={'1':0,'3':4,'5':7,'7':11};
+const POPOV_DOM7_FORMS = preparePopovForms('7',[
+  {
+    id:'E', name:'E', anchorStringIdx:5,
+    positions:[
+      [0,0,'1'],[0,4,'3'],[1,0,'5'],[1,3,'b7'],[2,1,'3'],
+      [3,0,'b7'],[3,2,'1'],[4,-1,'3'],[4,2,'5'],[5,0,'1']
+    ]
+  },
+  {
+    id:'D', name:'D', anchorStringIdx:5,
+    positions:[
+      [0,4,'3'],[1,3,'b7'],[1,5,'1'],[2,1,'3'],[2,4,'5'],
+      [3,0,'b7'],[3,2,'1'],[4,2,'5'],[5,0,'1'],[5,4,'3']
+    ]
+  },
+  {
+    id:'C', name:'C', anchorStringIdx:4,
+    positions:[
+      [0,-3,'3'],[0,0,'5'],[1,-2,'1'],[2,-3,'5'],
+      [2,0,'b7'],[3,-1,'3'],[4,0,'1']
+    ]
+  },
+  {
+    id:'A', name:'A', anchorStringIdx:4,
+    positions:[
+      [0,0,'5'],[0,3,'b7'],[1,2,'3'],[2,0,'b7'],
+      [2,2,'1'],[3,-1,'3'],[3,2,'5'],[4,0,'1']
+    ]
+  },
+  {
+    id:'G', name:'G', anchorStringIdx:5,
+    positions:[
+      [0,-2,'b7'],[0,0,'1'],[1,0,'5'],[2,-3,'1'],[2,1,'3'],
+      [3,-3,'5'],[3,0,'b7'],[4,-1,'3'],[5,0,'1']
+    ]
+  }
+]);
 
-function realizePopovMaj7Form(rootPc,formId,maxFret=FRET_COUNT){
-  const form=POPOV_MAJ7_FORMS.find(entry=>entry.id===formId);
+const POPOV_M7_FORMS = preparePopovForms('m7',[
+  {
+    id:'E', name:'E', anchorStringIdx:5,
+    positions:[
+      [0,0,'1'],[0,3,'b3'],[1,0,'5'],[1,3,'b7'],[2,0,'b3'],
+      [3,0,'b7'],[3,2,'1'],[4,2,'5'],[5,0,'1'],[5,3,'b3']
+    ]
+  },
+  {
+    id:'D', name:'D', anchorStringIdx:3,
+    positions:[
+      [0,1,'b3'],[0,5,'5'],[1,1,'b7'],[1,3,'1'],
+      [2,2,'5'],[3,0,'1'],[3,3,'b3']
+    ]
+  },
+  {
+    id:'C', name:'C', anchorStringIdx:4,
+    positions:[
+      [0,-4,'b3'],[0,0,'5'],[1,-2,'1'],[2,-3,'5'],
+      [2,0,'b7'],[3,-2,'b3'],[4,0,'1']
+    ]
+  },
+  {
+    id:'A', name:'A', anchorStringIdx:4,
+    positions:[
+      [0,0,'5'],[0,3,'b7'],[1,1,'b3'],[2,0,'b7'],
+      [2,2,'1'],[3,2,'5'],[4,0,'1'],[4,3,'b3']
+    ]
+  },
+  {
+    id:'G', name:'G', anchorStringIdx:5,
+    positions:[
+      [0,-2,'b7'],[0,0,'1'],[1,0,'5'],[2,-3,'1'],[2,0,'b3'],
+      [3,-3,'5'],[3,0,'b7'],[4,-2,'b3'],[5,0,'1']
+    ]
+  }
+]);
+
+const POPOV_M7B5_FORMS = preparePopovForms('m7b5',[
+  {
+    id:'E', name:'E', anchorStringIdx:5,
+    positions:[
+      [0,0,'1'],[0,3,'b3'],[1,3,'b7'],[2,0,'b3'],[2,3,'b5'],
+      [3,0,'b7'],[3,2,'1'],[4,1,'b5'],[5,0,'1'],[5,3,'b3']
+    ]
+  },
+  {
+    id:'D', name:'D', anchorStringIdx:3,
+    positions:[
+      [0,1,'b3'],[0,4,'b5'],[1,1,'b7'],[1,3,'1'],
+      [2,1,'b5'],[3,0,'1'],[3,3,'b3']
+    ]
+  },
+  {
+    id:'C', name:'C', anchorStringIdx:4,
+    positions:[
+      [0,-1,'b5'],[0,3,'b7'],[1,-2,'1'],[1,1,'b3'],
+      [2,0,'b7'],[3,-2,'b3'],[3,1,'b5'],[4,0,'1']
+    ]
+  },
+  {
+    id:'A', name:'A', anchorStringIdx:4,
+    positions:[
+      [0,3,'b7'],[1,1,'b3'],[1,4,'b5'],[2,0,'b7'],
+      [2,2,'1'],[3,1,'b5'],[4,0,'1'],[4,3,'b3']
+    ]
+  },
+  {
+    id:'G', name:'G', anchorStringIdx:5,
+    positions:[
+      [0,-2,'b7'],[0,0,'1'],[1,-1,'b5'],[2,-3,'1'],[2,0,'b3'],
+      [3,-4,'b5'],[3,0,'b7'],[4,-2,'b3'],[5,0,'1']
+    ]
+  }
+]);
+
+const POPOV_DIM7_FORMS = preparePopovForms('dim7',[
+  {
+    id:'E/G', name:'E/G', anchorStringIdx:5,
+    positions:[
+      [0,0,'1'],[0,3,'b3'],[1,2,'bb7'],[2,0,'b3'],
+      [3,-1,'bb7'],[3,2,'1'],[4,-2,'b3'],[4,1,'b5'],[5,0,'1']
+    ]
+  },
+  {
+    id:'D', name:'D', anchorStringIdx:3,
+    positions:[
+      [0,1,'b3'],[0,4,'b5'],[1,0,'bb7'],[1,3,'1'],
+      [2,1,'b5'],[3,0,'1'],[3,3,'b3']
+    ]
+  },
+  {
+    id:'C', name:'C', anchorStringIdx:4,
+    positions:[
+      [0,-1,'b5'],[0,2,'bb7'],[1,-2,'1'],[1,1,'b3'],
+      [2,-1,'bb7'],[3,-2,'b3'],[3,1,'b5'],[4,0,'1']
+    ]
+  },
+  {
+    id:'A', name:'A', anchorStringIdx:4,
+    positions:[
+      [0,2,'bb7'],[0,5,'1'],[1,1,'b3'],[1,4,'b5'],[2,2,'1'],
+      [3,1,'b5'],[3,4,'bb7'],[4,0,'1'],[4,3,'b3']
+    ]
+  }
+]);
+
+const POPOV_FORM_LIBRARY={
+  maj7:POPOV_MAJ7_FORMS,
+  '7':POPOV_DOM7_FORMS,
+  m7:POPOV_M7_FORMS,
+  m7b5:POPOV_M7B5_FORMS,
+  dim7:POPOV_DIM7_FORMS
+};
+
+const CHORD_DEGREE_SEMITONES={'1':0,'b3':3,'3':4,'b5':6,'5':7,'bb7':9,'b7':10,'7':11};
+
+function realizePopovForm(rootPc,quality,formId,maxFret=FRET_COUNT){
+  const forms=POPOV_FORM_LIBRARY[quality]||[];
+  const form=forms.find(entry=>entry.id===formId);
   if(!form||!Number.isFinite(rootPc))return {complete:false,path:[],form:null,reason:'missing'};
   const anchorString=OPEN_STRINGS_TOP_TO_BOTTOM[form.anchorStringIdx];
   const lowestAnchor=((rootPc-anchorString.pc)%12+12)%12;
@@ -638,6 +796,10 @@ function realizePopovMaj7Form(rootPc,formId,maxFret=FRET_COUNT){
   if(invalid)return {complete:false,path:[],form,reason:'invalid'};
   const path=[...positions].sort((a,b)=>a.midi-b.midi).map((position,index)=>({...position,order:index+1}));
   return {complete:true,path,form,anchorFret,reason:null};
+}
+
+function realizePopovMaj7Form(rootPc,formId,maxFret=FRET_COUNT){
+  return realizePopovForm(rootPc,'maj7',formId,maxFret);
 }
 
 // Build one exact ascending octave of chord tones from a root on the chosen
@@ -1277,12 +1439,16 @@ function render(){
       arpeggioFormRow.appendChild(message);
     } else {
       const quality=detectChordQuality(state.selectedChordPcs);
-      if(quality==='maj7'){
+      const curatedForms=POPOV_FORM_LIBRARY[quality]||[];
+      if(curatedForms.length){
+        if(!curatedForms.some(form=>form.id===state.arpeggioForm)){
+          state.arpeggioForm=curatedForms[0].id;
+        }
         const label = document.createElement('span');
         label.className = 'hint'; label.style.margin = '6px 4px 0 0';
         label.textContent = 'Аккордовая форма:';
         arpeggioFormRow.appendChild(label);
-        POPOV_MAJ7_FORMS.forEach(form => {
+        curatedForms.forEach(form => {
         const btn = document.createElement('button');
         btn.type = 'button';
           btn.className = 'chip clickable' + (state.arpeggioForm === form.id ? ' active' : '');
@@ -1295,7 +1461,7 @@ function render(){
         note.className='hint'; note.style.margin='6px 0 0 10px';
         note.textContent='Проверенные аккордовые формы на основе системы Попова.';
         arpeggioFormRow.appendChild(note);
-        currentCuratedForm=realizePopovMaj7Form(state.selectedChordPcs[0],state.arpeggioForm,FRET_COUNT);
+        currentCuratedForm=realizePopovForm(state.selectedChordPcs[0],quality,state.arpeggioForm,FRET_COUNT);
       }else{
         const message=document.createElement('span');
         message.className='hint'; message.style.margin='6px 0 0';

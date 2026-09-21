@@ -13,9 +13,9 @@ This file is the shared handoff between Danila, Claude, and Codex.
 
 ## Current review priorities
 
-1. User-test the five curated Popov-based maj7 forms (E, D, C, A, G) on a real guitar.
-2. Verify every transcribed point and the ascending playback order against the source diagrams.
-3. After approval, transcribe the Popov rows for 7, m7, m7b5, and dim7.
+1. User-test the curated Popov-based maj7, 7, m7, m7b5, and dim7 forms on a real guitar.
+2. Verify every newly transcribed point and the ascending playback order against the source diagrams.
+3. Record any hands-on corrections as fixed coordinates before adding derived exotic qualities.
 4. User-test the explicit Scale / Compare / Arpeggio states and Back to Scale action.
 5. User-test the side-by-side Main Mode and Outside Mode selectors.
 6. User-test whether Main Mode, Shared Notes, and Outside Mode Notes are immediately understandable.
@@ -35,7 +35,8 @@ This file is the shared handoff between Danila, Claude, and Codex.
 - Scale fingering modes are removed when an arpeggio is selected.
 - Playable Shape follows one exact ascending octave, begins on the chosen root string,
   stays within five frets, and carries an explicit note order used by playback.
-- The student-facing maj7 arpeggio view uses curated E/D/C/A/G geometry rather than
+- The student-facing arpeggio view uses curated Popov geometry for maj7, 7, m7,
+  m7b5, and dim7 rather than
   presenting an algorithmic score winner as a traditional fingering.
 - Curated forms are rigidly transposed from one root anchor and independently checked
   against their stored chord degrees.
@@ -43,7 +44,7 @@ This file is the shared handoff between Danila, Claude, and Codex.
 
 ## Later roadmap
 
-- Curated Popov rows for 7, m7, m7b5, and dim7 after the maj7 forms are approved.
+- Derived exotic qualities based on approved Popov forms, with each result checked on a real guitar before publication.
 - String-set and technique-specific libraries only after the Popov system is validated.
 - String-set arpeggios on 6–5–4, 5–4–3, 4–3–2, and 3–2–1.
 - Alternative starting chord tones (third, fifth, or seventh) and descending routes.

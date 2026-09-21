@@ -9,6 +9,11 @@
 - Added honest unavailable-state messages for unsupported chord qualities and forms that exceed the displayed 15-fret range.
 - Added regression coverage for the exact Cmaj7 coordinates and all 60 form/root combinations; 57 fit the current board and three are correctly rejected at its boundaries.
 - Restored the low third on the D string in the A-form route after hands-on comparison with Popov's diagram.
+- Added the remaining Popov seventh-chord rows for dominant 7, minor 7, minor 7 flat 5, and diminished 7 qualities.
+- Preserved each quality as its own curated geometry instead of deriving it by mechanically moving chord tones.
+- Added the four-form diminished row with the shared E/G form exactly as represented by the source system.
+- Generalized the form selector and transposition engine across all five supported chord qualities.
+- Expanded fixed-coordinate and all-root regression coverage to 24 forms and 279 valid realizations inside the 0-15 fret range.
 
 ## 0.7.0-preview — 2026-09-21
 
