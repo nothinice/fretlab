@@ -287,6 +287,8 @@
   <div class="readout" id="readout"></div>
 
   <div class="chip-row" id="viewModeRow" role="group" aria-label="Область грифа" style="margin-bottom:6px;"></div>
+  <div class="chip-row" id="scaleFormRow" role="group" aria-label="Форма гаммы" style="display:none; margin:8px 0 6px;"></div>
+  <div class="route-info" id="scaleRouteInfo" style="display:none;"></div>
   <div class="chip-row" id="arpeggioFormRow" role="group" aria-label="Настройки арпеджио" style="display:none; margin:8px 0 6px;"></div>
   <div class="route-info" id="arpeggioRouteInfo" style="display:none;"></div>
   <div class="range-controls" id="customRangeControls" style="display:none;">
@@ -295,7 +297,7 @@
     <label for="rangeToInput" style="display:inline; margin:0;">До лада</label>
     <input type="number" id="rangeToInput" min="0" max="15" value="4">
   </div>
-  <p class="hint" id="octaveShapeWarning" style="display:none;"></p>
+  <p class="hint" id="formWarning" style="display:none;"></p>
 
   <div class="board-outer">
     <div class="board" id="board"></div>
@@ -476,9 +478,8 @@ let state = {
   selectedChordId: null, selectedChordPcs: null,
   selectedChordLabel: null, selectedChordQuality: null,
   arpeggioForm: 'E',
-  arpeggioStartString: 0, arpeggioVariant: 'position', arpeggioOtherIndex: 0, arpeggioOctaves: 1,
-  arpeggioIntervalMode: 'simple',
-  viewMode: 'whole', // 'whole' | 'range' | 'octaveShape' | 'playableRun' | 'arpeggioShape'
+  scaleForm: 'E',
+  viewMode: 'whole', // 'whole' | 'range' | 'scaleShape' | 'arpeggioShape'
   rangePreset: null, // '0-4' | '5-9' | '10-15' | 'custom' | null
   rangeFrom: 0, rangeTo: 4,
   overlayEnabled: false,
@@ -548,6 +549,154 @@ function lowestFretboardMidiForPc(pc){
     if(midi < best) best = midi;
   });
   return best;
+}
+
+// ---------- Curated positional scale forms ----------
+// These are literal transcriptions of the supplied E/D/C/A/G diagrams.
+// Scale geometry is independent from Popov chord geometry. Relationships are
+// recorded separately below and may be verified or mismatching per form.
+function prepareScaleForms(scaleId,formulaKey,forms){
+  return forms.map(form=>({...form,scaleId,formulaKey,positions:form.positions.map(([stringIdx,fretOffset,degree],i)=>({
+    id:`${scaleId}-${form.id}-${i+1}`,stringIdx,fretOffset,degree
+  }))}));
+}
+
+const SCALE_DEGREE_SEMITONES={
+  '1':0,'b2':1,'2':2,'b3':3,'3':4,'4':5,'b5':6,'5':7,'b6':8,'6':9,'b7':10,'7':11
+};
+
+const CURATED_MAJOR_SCALE_FORMS=prepareScaleForms('major','0,2,4,5,7,9,11',[
+  {
+    id:'E',name:'E',anchorStringIdx:5,
+    positions:[
+      [0,-1,'7'],[0,0,'1'],[0,2,'2'],[1,0,'5'],[1,2,'6'],
+      [2,-1,'2'],[2,1,'3'],[2,2,'4'],[3,-1,'6'],[3,1,'7'],[3,2,'1'],
+      [4,-1,'3'],[4,0,'4'],[4,2,'5'],[5,0,'1'],[5,2,'2']
+    ]
+  },
+  {
+    id:'D',name:'D',anchorStringIdx:5,
+    positions:[
+      [0,2,'2'],[0,4,'3'],[0,5,'4'],[1,2,'6'],[1,4,'7'],[1,5,'1'],
+      [2,1,'3'],[2,2,'4'],[2,4,'5'],[3,1,'7'],[3,2,'1'],[3,4,'2'],
+      [4,0,'4'],[4,2,'5'],[4,4,'6'],[5,0,'1'],[5,2,'2'],[5,4,'3']
+    ]
+  },
+  {
+    id:'C',name:'C',anchorStringIdx:4,
+    positions:[
+      [0,-3,'3'],[0,-2,'4'],[0,0,'5'],[1,-3,'7'],[1,-2,'1'],[1,0,'2'],
+      [2,-3,'5'],[2,-1,'6'],[3,-3,'2'],[3,-1,'3'],[3,0,'4'],[4,0,'1']
+    ]
+  },
+  {
+    id:'A',name:'A',anchorStringIdx:4,
+    positions:[
+      [0,0,'5'],[0,2,'6'],[0,4,'7'],[1,0,'2'],[1,2,'3'],[1,3,'4'],
+      [2,-1,'6'],[2,1,'7'],[2,2,'1'],[3,-1,'3'],[3,0,'4'],[3,2,'5'],
+      [4,0,'1'],[4,2,'2']
+    ]
+  },
+  {
+    id:'G',name:'G',anchorStringIdx:5,
+    positions:[
+      [0,-3,'6'],[0,-1,'7'],[0,0,'1'],[1,-3,'3'],[1,-2,'4'],[1,0,'5'],
+      [2,-4,'7'],[2,-3,'1'],[2,-1,'2'],[3,-5,'4'],[3,-3,'5'],[3,-1,'6'],
+      [4,-5,'1'],[4,-3,'2'],[4,-1,'3'],[4,0,'4'],[5,0,'1']
+    ]
+  }
+]);
+
+const CURATED_NATURAL_MINOR_SCALE_FORMS=prepareScaleForms('naturalMinor','0,2,3,5,7,8,10',[
+  {
+    id:'E',name:'E',anchorStringIdx:5,
+    positions:[
+      [0,0,'1'],[0,2,'2'],[0,3,'b3'],[1,0,'5'],[1,1,'b6'],[1,3,'b7'],
+      [2,-1,'2'],[2,0,'b3'],[2,2,'4'],[3,0,'b7'],[3,2,'1'],
+      [4,0,'4'],[4,2,'5'],[4,3,'b6'],[5,0,'1'],[5,2,'2'],[5,3,'b3']
+    ]
+  },
+  {
+    id:'D',name:'D',anchorStringIdx:3,
+    positions:[
+      [0,0,'2'],[0,1,'b3'],[0,3,'4'],[1,1,'b7'],[1,3,'1'],
+      [2,0,'4'],[2,2,'5'],[2,3,'b6'],[3,0,'1'],[3,2,'2'],[3,3,'b3']
+    ]
+  },
+  {
+    id:'C',name:'C',anchorStringIdx:4,
+    positions:[
+      [0,-2,'4'],[0,0,'5'],[0,1,'b6'],[1,-2,'1'],[1,0,'2'],[1,1,'b3'],
+      [2,-3,'5'],[2,-2,'b6'],[2,0,'b7'],[3,-3,'2'],[3,-2,'b3'],[3,0,'4'],
+      [4,0,'1']
+    ]
+  },
+  {
+    id:'A',name:'A',anchorStringIdx:4,
+    positions:[
+      [0,0,'5'],[0,1,'b6'],[0,3,'b7'],[1,0,'2'],[1,1,'b3'],[1,3,'4'],
+      [2,0,'b7'],[2,2,'1'],[3,0,'4'],[3,2,'5'],[3,3,'b6'],
+      [4,0,'1'],[4,2,'2'],[4,3,'b3']
+    ]
+  },
+  {
+    id:'G',name:'G',anchorStringIdx:5,
+    positions:[
+      [0,-2,'b7'],[0,0,'1'],[1,-2,'4'],[1,0,'5'],[1,1,'b6'],
+      [2,-3,'1'],[2,-1,'2'],[2,0,'b3'],[3,-3,'5'],[3,-2,'b6'],[3,0,'b7'],
+      [4,-3,'2'],[4,-2,'b3'],[4,0,'4'],[5,0,'1']
+    ]
+  }
+]);
+
+const SCALE_FORM_LIBRARY={
+  major:CURATED_MAJOR_SCALE_FORMS,
+  naturalMinor:CURATED_NATURAL_MINOR_SCALE_FORMS
+};
+
+const SCALE_FORMULA_LIBRARY={
+  '0,2,4,5,7,9,11':'major',
+  '0,2,3,5,7,8,10':'naturalMinor'
+};
+
+const SCALE_CHORD_FORM_RELATIONSHIPS=[
+  {scaleId:'major',formId:'E',chordQuality:'maj7',status:'verified'},
+  {scaleId:'major',formId:'D',chordQuality:'maj7',status:'verified'},
+  {scaleId:'major',formId:'C',chordQuality:'maj7',status:'verified'},
+  {scaleId:'major',formId:'A',chordQuality:'maj7',status:'verified'},
+  {scaleId:'major',formId:'G',chordQuality:'maj7',status:'mismatch'},
+  {scaleId:'naturalMinor',formId:'E',chordQuality:'m7',status:'verified'},
+  {scaleId:'naturalMinor',formId:'D',chordQuality:'m7',status:'mismatch'},
+  {scaleId:'naturalMinor',formId:'C',chordQuality:'m7',status:'mismatch'},
+  {scaleId:'naturalMinor',formId:'A',chordQuality:'m7',status:'verified'},
+  {scaleId:'naturalMinor',formId:'G',chordQuality:'m7',status:'verified'}
+];
+
+function realizeScaleForm(rootPc,scaleId,formId,maxFret=FRET_COUNT){
+  const forms=SCALE_FORM_LIBRARY[scaleId]||[];
+  const form=forms.find(entry=>entry.id===formId);
+  if(!form||!Number.isFinite(rootPc))return {complete:false,positions:[],form:null,reason:'missing'};
+  const anchorString=OPEN_STRINGS_TOP_TO_BOTTOM[form.anchorStringIdx];
+  const lowestAnchor=((rootPc-anchorString.pc)%12+12)%12;
+  let anchorFret=null;
+  for(let candidate=lowestAnchor;candidate<=maxFret;candidate+=12){
+    const frets=form.positions.map(position=>candidate+position.fretOffset);
+    if(frets.every(fret=>fret>=0&&fret<=maxFret)){anchorFret=candidate;break;}
+  }
+  if(anchorFret===null)return {complete:false,positions:[],form,reason:'outside'};
+  const positions=form.positions.map(position=>{
+    const str=OPEN_STRINGS_TOP_TO_BOTTOM[position.stringIdx];
+    const fret=anchorFret+position.fretOffset;
+    return {...position,str,fret,midi:str.midi+fret};
+  });
+  const invalid=positions.find(position=>{
+    const expected=(rootPc+SCALE_DEGREE_SEMITONES[position.degree])%12;
+    return position.midi%12!==expected;
+  });
+  if(invalid)return {complete:false,positions:[],form,reason:'invalid'};
+  const playbackMidi=[...new Set(positions.map(position=>position.midi))].sort((a,b)=>a-b);
+  const orderedPositions=positions.map(position=>({...position,order:playbackMidi.indexOf(position.midi)+1}));
+  return {complete:true,positions:orderedPositions,playbackMidi,form,anchorFret,reason:null};
 }
 
 // ---------- Playable Shape (arpeggio mode) ----------
@@ -783,9 +932,6 @@ function realizePopovMaj7Form(rootPc,formId,maxFret=FRET_COUNT){
   return realizePopovForm(rootPc,'maj7',formId,maxFret);
 }
 
-// Build one exact ascending octave of chord tones from a root on the chosen
-// string. Unlike the earlier five-fret window, this returns one connected
-// route: every displayed position has a definite order and playback follows it.
 function detectChordQuality(pcs){
   if(!pcs || pcs.length !== 4) return null;
   const root = pcs[0];
@@ -793,371 +939,13 @@ function detectChordQuality(pcs){
   return ({'4,7,11':'maj7','4,7,10':'7','3,7,10':'m7','3,6,10':'m7b5','3,6,9':'dim7'})[key] || null;
 }
 
-function buildArpeggioRoutes(pcs, startStringIdx, maxFret, octaveCount=1){
-  if(!pcs || !pcs.length || startStringIdx < 0 || startStringIdx > 3) return [];
-  if(octaveCount !== 1 && octaveCount !== 2) return [];
-  const strings = [...OPEN_STRINGS_TOP_TO_BOTTOM].slice().reverse();
-  const rootPc = pcs[0];
-  const intervals = [...new Set(pcs.map(pc => ((pc-rootPc)%12+12)%12))].sort((a,b)=>a-b);
-  if(intervals[0] !== 0) intervals.unshift(0);
-  const startString = strings[startStringIdx];
-  const startFret = ((rootPc - startString.pc) % 12 + 12) % 12;
-  if(startFret > maxFret) return [];
-  const startMidi = startString.midi + startFret;
-  const targetMidis = [];
-  for(let octave=0; octave<octaveCount; octave++){
-    intervals.forEach(interval => targetMidis.push(startMidi + interval + octave*12));
-  }
-  targetMidis.push(startMidi + octaveCount*12);
-
-  const positionsForMidi = midi => {
-    const result = [];
-    strings.forEach((str, stringIdx) => {
-      const fret = midi - str.midi;
-      if(stringIdx >= startStringIdx && fret >= 0 && fret <= maxFret) result.push({str,stringIdx,fret,midi});
-    });
-    return result;
-  };
-
-  const routes=[];
-  const first={str:startString,stringIdx:startStringIdx,fret:startFret,midi:startMidi};
-  function buildRoutes(noteIdx,path,minFret,maxSeenFret,notesOnString){
-    if(noteIdx===targetMidis.length){routes.push(path);return;}
-    positionsForMidi(targetMidis[noteIdx]).forEach(pos=>{
-      const previous=path[path.length-1];
-      const stringDelta=pos.stringIdx-previous.stringIdx;
-      if(stringDelta<0||stringDelta>1)return;
-      const nextMin=Math.min(minFret,pos.fret);
-      const nextMax=Math.max(maxSeenFret,pos.fret);
-      // A two-octave route may travel diagonally along the neck. Limit the
-      // one-octave box, but do not reject a valid two-octave route merely
-      // because its first and last notes are far apart.
-      const allowedSpan=octaveCount===1?5:maxFret;
-      if(nextMax-nextMin>allowedSpan)return;
-      const nextCount=stringDelta===0?notesOnString+1:1;
-      if(nextCount>3)return;
-      buildRoutes(noteIdx+1,[...path,pos],nextMin,nextMax,nextCount);
-    });
-  }
-  buildRoutes(1,[first],startFret,startFret,1);
-  return routes;
-}
-
-function arpeggioRouteKey(route){
-  // With fixed ascending target pitches, the string sequence uniquely defines
-  // every fret as well. Keeping the key compact also makes similarity useful.
-  return route.map(p=>p.stringIdx).join('');
-}
-
 function arpeggioRouteFeatures(route){
   const frets=route.map(p=>p.fret);
-  const counts=new Map();
-  route.forEach(p=>counts.set(p.stringIdx,(counts.get(p.stringIdx)||0)+1));
-  const distribution=[...counts.values()];
-  let movement=0,maxJump=0,sameString=0,lowStringRepeatPenalty=0,longestCrossingRun=0,currentCrossingRun=0;
-  let directionChanges=0,largeBacktracks=0,previousDirection=0;
-  const crossingShifts=[];
-  for(let i=1;i<route.length;i++){
-    const fretDelta=route[i].fret-route[i-1].fret;
-    const absDelta=Math.abs(fretDelta);
-    movement+=absDelta;
-    maxJump=Math.max(maxJump,absDelta);
-    if(route[i].stringIdx===route[i-1].stringIdx){
-      sameString++;
-      // In common sweep shapes, repeated/legato notes are more natural on
-      // the upper strings than at the beginning of the low-string rake.
-      lowStringRepeatPenalty+=6-route[i].stringIdx;
-      currentCrossingRun=0;
-    }else{
-      currentCrossingRun++;
-      longestCrossingRun=Math.max(longestCrossingRun,currentCrossingRun);
-      crossingShifts.push(fretDelta);
-      // A small fret-number drop on a higher string is normal guitar geometry.
-      // Only large reversals and repeated changes of travel direction are costly.
-      if(fretDelta < -5) largeBacktracks+=Math.abs(fretDelta+5);
-      const direction=Math.abs(fretDelta)<=1?0:Math.sign(fretDelta);
-      if(direction&&previousDirection&&direction!==previousDirection)directionChanges++;
-      if(direction)previousDirection=direction;
-    }
-  }
-  const averageShift=crossingShifts.length?crossingShifts.reduce((a,b)=>a+b,0)/crossingShifts.length:0;
-  const shiftVariance=crossingShifts.length
-    ? crossingShifts.reduce((sum,value)=>sum+Math.pow(value-averageShift,2),0)/crossingShifts.length
-    : 0;
-  return {
-    fretSpan:Math.max(...frets)-Math.min(...frets), movement, maxJump, sameString,lowStringRepeatPenalty,
-    longestCrossingRun, directionChanges, largeBacktracks, shiftVariance,
-    totalDrift:route[route.length-1].fret-route[0].fret,
-    distribution, usedStrings:distribution.length,
-    maxOnString:Math.max(...distribution), threeNoteStrings:distribution.filter(n=>n===3).length,
-    twoNoteDeviation:distribution.reduce((sum,n)=>sum+Math.abs(n-2),0)
-  };
-}
-
-function compareScore(a,b){
-  for(let i=0;i<Math.max(a.length,b.length);i++){
-    const delta=(a[i]||0)-(b[i]||0);
-    if(delta)return delta;
-  }
-  return 0;
-}
-
-function arpeggioCategoryScores(route){
-  const f=arpeggioRouteFeatures(route);
-  return {
-    position:[f.fretSpan,f.movement,f.maxOnString,f.maxJump],
-    sweep:[f.threeNoteStrings,f.sameString,f.maxJump,f.movement,f.lowStringRepeatPenalty,-f.longestCrossingRun],
-    smooth:[f.movement,f.maxJump,f.fretSpan,f.sameString],
-    diagonal:[f.largeBacktracks,f.directionChanges,f.threeNoteStrings,-f.usedStrings,f.shiftVariance,-f.totalDrift,f.maxJump,f.movement],
-    twoPerString:[f.maxOnString>2?1:0,f.twoNoteDeviation,f.movement,f.fretSpan]
-  };
-}
-
-function arpeggioRouteDistance(a,b){
-  let different=0;
-  for(let i=0;i<Math.max(a.length,b.length);i++)if(!a[i]||!b[i]||a[i].stringIdx!==b[i].stringIdx)different++;
-  return different;
-}
-
-function clusterArpeggioRoutes(routes,octaveCount){
-  if(octaveCount===1)return routes;
-  const sorted=[...routes].sort((a,b)=>compareScore(arpeggioCategoryScores(a).smooth,arpeggioCategoryScores(b).smooth));
-  const representatives=[];
-  sorted.forEach(route=>{
-    // Two routes that differ at only one or two chord tones feel like the same
-    // basic fingering with a small substitution, not two useful alternatives.
-    if(!representatives.some(other=>arpeggioRouteDistance(route,other)<=2))representatives.push(route);
-  });
-  return representatives;
-}
-
-function resolveArpeggioOctaveCount(requestedOctaves,twoOctaveComplete){
-  return requestedOctaves===2&&!twoOctaveComplete?1:requestedOctaves;
-}
-
-const ARPEGGIO_CATEGORY_LABELS={
-  position:'Позиционная', sweep:'Для свипа', smooth:'Плавная',
-  diagonal:'Диагональная', twoPerString:'Две ноты на струне'
-};
-
-function analyzeArpeggioRoutes(pcs,startStringIdx,maxFret,octaveCount=1){
-  const routes=buildArpeggioRoutes(pcs,startStringIdx,maxFret,octaveCount);
-  if(!routes.length)return {routes:[],categories:[],others:[],complete:false,alternatives:0};
-  const categoryOrder=Object.keys(ARPEGGIO_CATEGORY_LABELS);
-  const winners=categoryOrder.map(category=>{
-    const candidates=category==='twoPerString'
-      ? routes.filter(route=>arpeggioRouteFeatures(route).maxOnString<=2)
-      : routes;
-    if(!candidates.length)return null;
-    const path=[...candidates].sort((a,b)=>compareScore(arpeggioCategoryScores(a)[category],arpeggioCategoryScores(b)[category]))[0];
-    return {category,path,key:arpeggioRouteKey(path)};
-  }).filter(Boolean);
-  const merged=[];
-  winners.forEach(winner=>{
-    const existing=merged.find(item=>item.key===winner.key);
-    if(existing)existing.categories.push(winner.category);
-    else merged.push({key:winner.key,path:winner.path,categories:[winner.category]});
-  });
-  const winnerKeys=new Set(merged.map(item=>item.key));
-  // "Other" is a small library of plausible fingerings, not a dump of every
-  // mechanically valid DFS result. Three-note groups can still win a named
-  // category when no better route exists, but are too specialized to present
-  // as an unexplained general alternative.
-  const generalAlternatives=routes.filter(route=>arpeggioRouteFeatures(route).maxOnString<=2);
-  const others=clusterArpeggioRoutes(generalAlternatives,octaveCount)
-    .filter(route=>!winnerKeys.has(arpeggioRouteKey(route)))
-    .map(route=>({key:arpeggioRouteKey(route),path:route}));
-  return {routes,categories:merged,others,complete:true,alternatives:routes.length};
-}
-
-function selectArpeggioRoute(analysis,variant='position',otherIndex=0){
-  if(!analysis.complete)return {path:[],complete:false,alternatives:0,meta:null};
-  let entry=null;
-  if(variant==='other'&&analysis.others.length){
-    const index=Math.max(0,Math.min(otherIndex,analysis.others.length-1));
-    entry={...analysis.others[index],categories:[],otherIndex:index};
-  }else{
-    entry=analysis.categories.find(item=>item.categories.includes(variant))||analysis.categories[0];
-  }
-  return {
-    path:entry.path.map((p,i)=>({...p,order:i+1})), complete:true,
-    alternatives:analysis.alternatives, meta:entry
-  };
-}
-
-// Compatibility wrapper used by older checks and links to the current build.
-function computeArpeggioShape(pcs,startStringIdx,maxFret,variant='position',octaveCount=1){
-  const analysis=analyzeArpeggioRoutes(pcs,startStringIdx,maxFret,octaveCount);
-  const normalizedVariant=variant==='wide'?'sweep':variant==='alternative'?'smooth':variant;
-  return selectArpeggioRoute(analysis,normalizedVariant,0);
+  return {fretSpan:Math.max(...frets)-Math.min(...frets)};
 }
 
 function chordIntervalLabel(pc, rootPc){
   return ['R','b2','2','b3','3','4','b5','5','#5','6','b7','7'][((pc-rootPc)%12+12)%12];
-}
-
-function compoundArpeggioIntervalLabel(position, firstMidi, rootPc){
-  if(!position || !Number.isFinite(firstMidi)) return '';
-  const simple=chordIntervalLabel(position.midi%12,rootPc);
-  const octave=Math.floor((position.midi-firstMidi)/12);
-  const match=simple.match(/^([b#]*)(R|\d+)$/);
-  if(!match)return simple;
-  const accidental=match[1];
-  const degree=match[2]==='R'?1:Number(match[2]);
-  return accidental+String(degree+octave*7);
-}
-
-// ---------- Octave Shape (geometric, "2 frets + 2 strings") ----------
-// One octave cell confined to exactly 2 adjacent strings, then repeated up
-// by exactly 2 strings each time. This is what keeps the fret shift between
-// copies small and always forward: shifting by any other string-count
-// changes how much pitch the string tuning supplies "for free", which can
-// overshoot a full octave and force the fret number backwards.
-function buildOctaveCell(targetPcs, maxFret){
-  const strings = [...OPEN_STRINGS_TOP_TO_BOTTOM].slice().reverse(); // low to high
-  const targetSet = new Set(targetPcs);
-  const rootPc = targetPcs[0];
-  let startFret = 0;
-  while(startFret <= maxFret && (strings[0].pc + startFret) % 12 !== rootPc) startFret++;
-  if(startFret > maxFret) return { cell: [], strings, complete: false };
-  const startMidi = strings[0].midi + startFret;
-  const cell = [];
-  let lastMidi = startMidi - 1;
-  let stringIdx = 0, reachedOctave = false;
-  while(stringIdx < 2 && stringIdx < strings.length && !reachedOctave){
-    let f = (stringIdx === 0) ? startFret : 0;
-    let takenOnThisString = 0;
-    const capThisString = stringIdx === 0 ? 4 : Infinity;
-    while(f <= maxFret && takenOnThisString < capThisString){
-      const midi = strings[stringIdx].midi + f;
-      if(midi > startMidi + 12){ f++; continue; }
-      const pc = (strings[stringIdx].pc + f) % 12;
-      if(targetSet.has(pc) && midi > lastMidi){
-        cell.push({ stringIdx, fret: f, midi });
-        lastMidi = midi;
-        takenOnThisString++;
-        if(midi === startMidi + 12){ reachedOctave = true; break; }
-      }
-      f++;
-    }
-    stringIdx++;
-  }
-  return { cell, strings, complete: reachedOctave };
-}
-function computeOctaveShapePath(targetPcs, maxFret){
-  const { cell, strings, complete } = buildOctaveCell(targetPcs, maxFret);
-  if(cell.length === 0 || !complete) return { path: [], secondStringCount: 0, complete: false };
-  const secondStringCount = cell.filter(n => n.stringIdx === 1).length;
-  const path = [];
-  let k = 0;
-  while(k < 6){
-    let addedAny = false;
-    cell.forEach(note => {
-      const newStringIdx = note.stringIdx + 2 * k;
-      if(newStringIdx >= strings.length) return;
-      const newMidi = note.midi + 12 * k;
-      const newFret = newMidi - strings[newStringIdx].midi;
-      if(newFret < 0 || newFret > maxFret) return;
-      path.push({ str: strings[newStringIdx], fret: newFret });
-      addedAny = true;
-    });
-    if(!addedAny) break;
-    k++;
-  }
-  return { path, secondStringCount, complete: true };
-}
-
-// ---------- Playable Run (ordered scale path) ----------
-// A run is a melody, not a pitch-class checklist. Build the exact ascending
-// degree sequence first, then choose a physical location for every note.
-// The path may remain on the same string or move to the next higher string;
-// it may never return to a lower string, skip a degree, or reorder degrees.
-function computePlayableRunPath(targetPcs, maxFret){
-  if(!targetPcs.length) return [];
-  const strings = [...OPEN_STRINGS_TOP_TO_BOTTOM].slice().reverse(); // low to high
-  const rootPc = targetPcs[0];
-  let startFret = 0;
-  while(startFret <= maxFret && (strings[0].pc + startFret) % 12 !== rootPc) startFret++;
-  if(startFret > maxFret) return [];
-  const startMidi = strings[0].midi + startFret;
-  const highestMidi = Math.max(...strings.map(s => s.midi + maxFret));
-
-  // targetPcs is already ordered from the run root upwards. Generate every
-  // following scale degree at its next exact MIDI height until the physical
-  // fretboard ends.
-  const orderedMidis = [startMidi];
-  let degreeIdx = 0;
-  let previousMidi = startMidi;
-  while(true){
-    degreeIdx = (degreeIdx + 1) % targetPcs.length;
-    const nextPc = targetPcs[degreeIdx];
-    let nextMidi = previousMidi + 1;
-    while(nextMidi % 12 !== nextPc) nextMidi++;
-    if(nextMidi > highestMidi) break;
-    orderedMidis.push(nextMidi);
-    previousMidi = nextMidi;
-  }
-
-  const positionsForMidi = midi => {
-    const result = [];
-    strings.forEach((str, stringIdx) => {
-      const fret = midi - str.midi;
-      if(fret >= 0 && fret <= maxFret) result.push({ str, stringIdx, fret, midi });
-    });
-    return result;
-  };
-
-  const maxNotesOnString = targetPcs.length >= 8 ? 4 : 3;
-  const maxStringSpan = 5;
-  // Each layer represents one required scale degree. A state remembers the
-  // current string's note count and span so the ergonomic rules are real
-  // constraints, not merely comments or per-edge approximations.
-  let layer = [{
-    str: strings[0], stringIdx: 0, fret: startFret, midi: startMidi,
-    countOnString: 1, minFret: startFret, maxFret: startFret,
-    cost: 0, prev: null
-  }];
-  let bestLayer = layer;
-
-  for(let noteIdx = 1; noteIdx < orderedMidis.length; noteIdx++){
-    const nextLayer = [];
-    for(const pos of positionsForMidi(orderedMidis[noteIdx])){
-      let bestState = null;
-      for(const previous of layer){
-        const stringDelta = pos.stringIdx - previous.stringIdx;
-        if(stringDelta < 0 || stringDelta > 1) continue;
-
-        let countOnString, minFret, maxFret, cost = previous.cost;
-        if(stringDelta === 0){
-          countOnString = previous.countOnString + 1;
-          minFret = Math.min(previous.minFret, pos.fret);
-          maxFret = Math.max(previous.maxFret, pos.fret);
-          if(countOnString > maxNotesOnString || maxFret - minFret > maxStringSpan) continue;
-          cost += 1;
-        } else {
-          countOnString = 1; minFret = pos.fret; maxFret = pos.fret;
-          // Prefer changing strings after a useful group of notes, and keep
-          // leftward shifts small. Large backwards jumps are rejected.
-          if(pos.fret < previous.fret - 5) continue;
-          cost += Math.abs(previous.countOnString - Math.min(3, maxNotesOnString)) * 2;
-          if(pos.fret < previous.fret) cost += (previous.fret - pos.fret) * 1.5;
-          else cost += (pos.fret - previous.fret) * 0.15;
-        }
-        const candidate = {...pos, countOnString, minFret, maxFret, cost, prev: previous};
-        if(!bestState || candidate.cost < bestState.cost) bestState = candidate;
-      }
-      if(bestState) nextLayer.push(bestState);
-    }
-    if(!nextLayer.length) break;
-    layer = nextLayer;
-    bestLayer = layer;
-  }
-
-  // Longest valid prefix wins; within it choose the most comfortable path.
-  let end = bestLayer.reduce((best, s) => !best || s.cost < best.cost ? s : best, null);
-  const path = [];
-  while(end){ path.push({ str: end.str, fret: end.fret }); end = end.prev; }
-  return path.reverse();
 }
 
 function parseToken(tok){
@@ -1337,10 +1125,10 @@ function render(){
     renderChordRow('tetradsRow', tetrads);
   }
 
-  // ---- Visible fretboard area: Whole Neck / fret range / Octave Shape / Playable Run ----
+  // ---- Visible fretboard area: whole neck / fret range / curated forms ----
   const viewModeRow = document.getElementById('viewModeRow');
   viewModeRow.innerHTML = '';
-  if(arpeggioMode && (state.viewMode === 'octaveShape' || state.viewMode === 'playableRun')) state.viewMode = 'whole';
+  if(arpeggioMode && state.viewMode === 'scaleShape') state.viewMode = 'whole';
   if(!arpeggioMode && state.viewMode === 'arpeggioShape') state.viewMode = 'whole';
   if(state.overlayEnabled && state.viewMode !== 'whole') state.viewMode = 'whole';
   const commonModeButtons = [
@@ -1354,7 +1142,7 @@ function render(){
     ? [{key:'whole',label:'Сравнение гамм'}]
     : arpeggioMode
       ? [{key:'whole',label:'Все ноты'},{key:'arpeggioShape',label:'Аппликатура арпеджио'}]
-      : [...commonModeButtons, {key:'octaveShape', label:'Октавная аппликатура'}, {key:'playableRun', label:'Игровой маршрут'}];
+      : [...commonModeButtons, {key:'scaleShape', label:'Формы гаммы'}];
   const currentModeKey = state.viewMode === 'range' ? ('range-' + (state.rangePreset || 'custom')) : state.viewMode;
   modeButtons.forEach(m => {
     const btn = document.createElement('button');
@@ -1364,8 +1152,7 @@ function render(){
     btn.textContent = m.label;
     btn.addEventListener('click', ()=>{
       if(m.key === 'whole'){ state.viewMode = 'whole'; state.rangePreset = null; }
-      else if(m.key === 'octaveShape'){ state.viewMode = 'octaveShape'; }
-      else if(m.key === 'playableRun'){ state.viewMode = 'playableRun'; }
+      else if(m.key === 'scaleShape'){ state.viewMode = 'scaleShape'; }
       else if(m.key === 'arpeggioShape'){ state.viewMode = 'arpeggioShape'; }
       else {
         const preset = m.key.replace('range-', '');
@@ -1384,6 +1171,52 @@ function render(){
   rangeFromInput.value = state.rangeFrom;
   rangeToInput.value = state.rangeTo;
   document.getElementById('customRangeControls').style.display = (state.viewMode === 'range' && state.rangePreset === 'custom') ? 'flex' : 'none';
+
+  const scaleFormRow=document.getElementById('scaleFormRow');
+  const scaleRouteInfo=document.getElementById('scaleRouteInfo');
+  const currentScaleId=SCALE_FORMULA_LIBRARY[currentKey]||null;
+  let currentScaleForm=null;
+  scaleFormRow.innerHTML='';
+  scaleFormRow.style.display=state.viewMode==='scaleShape'?'flex':'none';
+  scaleRouteInfo.style.display='none';
+  if(state.viewMode==='scaleShape'){
+    const curatedScaleForms=currentScaleId?(SCALE_FORM_LIBRARY[currentScaleId]||[]):[];
+    if(curatedScaleForms.length){
+      if(!curatedScaleForms.some(form=>form.id===state.scaleForm))state.scaleForm=curatedScaleForms[0].id;
+      const label=document.createElement('span');
+      label.className='hint'; label.style.margin='6px 4px 0 0';
+      label.textContent='Форма гаммы:';
+      scaleFormRow.appendChild(label);
+      curatedScaleForms.forEach(form=>{
+        const btn=document.createElement('button');
+        btn.type='button';
+        btn.className='chip clickable'+(state.scaleForm===form.id?' active':'');
+        btn.setAttribute('aria-pressed',state.scaleForm===form.id?'true':'false');
+        btn.textContent=form.name;
+        btn.addEventListener('click',()=>{state.scaleForm=form.id;render();});
+        scaleFormRow.appendChild(btn);
+      });
+      const note=document.createElement('span');
+      note.className='hint'; note.style.margin='6px 0 0 10px';
+      note.textContent=currentScaleId==='major'
+        ? 'Проверяемые формы мажорной гаммы.'
+        : 'Проверяемые формы натурального минора.';
+      scaleFormRow.appendChild(note);
+      currentScaleForm=realizeScaleForm(rootObj.pc,currentScaleId,state.scaleForm,FRET_COUNT);
+      if(currentScaleForm.complete){
+        const frets=currentScaleForm.positions.map(position=>position.fret);
+        const strings=[...new Set(currentScaleForm.positions.map(position=>position.stringIdx+1))];
+        const fretSpan=Math.max(...frets)-Math.min(...frets);
+        scaleRouteInfo.style.display='block';
+        scaleRouteInfo.innerHTML=`<strong>Форма ${currentScaleForm.form.name}</strong> · ${currentScaleForm.positions.length} позиций · ${currentScaleForm.playbackMidi.length} высот · диапазон: ${fretSpan} ладов · струны: ${strings.join(', ')}`;
+      }
+    }else{
+      const message=document.createElement('span');
+      message.className='hint'; message.style.margin='6px 0 0';
+      message.textContent='Для этой формулы проверенные формы гаммы пока не добавлены.';
+      scaleFormRow.appendChild(message);
+    }
+  }
 
   const arpeggioFormRow = document.getElementById('arpeggioFormRow');
   const arpeggioRouteInfo = document.getElementById('arpeggioRouteInfo');
@@ -1431,11 +1264,21 @@ function render(){
     }
   }
 
-  // ---- Octave Shape / Playable Run path (only relevant in those modes) ----
+  // ---- Curated scale/arpeggio path ----
   let activePath = [];
-  const octaveWarning = document.getElementById('octaveShapeWarning');
-  octaveWarning.style.display = 'none';
-  if(state.viewMode === 'arpeggioShape' && arpeggioMode){
+  const formWarning = document.getElementById('formWarning');
+  formWarning.style.display = 'none';
+  if(state.viewMode === 'scaleShape'){
+    const shapeResult=currentScaleForm||{complete:false,positions:[],playbackMidi:[],reason:'missing'};
+    activePath=shapeResult.positions;
+    currentPlayableMidi=shapeResult.playbackMidi;
+    if(!shapeResult.complete){
+      formWarning.style.display='block';
+      formWarning.textContent=shapeResult.reason==='outside'
+        ? 'Эта форма гаммы выходит за пределы отображаемого грифа.'
+        : 'Для этой гаммы проверенная форма пока не добавлена.';
+    }
+  } else if(state.viewMode === 'arpeggioShape' && arpeggioMode){
     const shapeResult=currentCuratedForm||{complete:false,path:[],reason:'missing'};
     activePath=shapeResult.path;
     currentPlayableMidi = activePath.map(p => p.midi);
@@ -1446,25 +1289,11 @@ function render(){
       arpeggioRouteInfo.innerHTML=`<strong>Форма ${shapeResult.form.name}</strong> · ${activePath.length} нот · диапазон: ${features.fretSpan} ладов · струны: ${strings.join(', ')}`;
     }
     if(!shapeResult.complete){
-      octaveWarning.style.display='block';
-      octaveWarning.textContent=shapeResult.reason==='outside'
+      formWarning.style.display='block';
+      formWarning.textContent=shapeResult.reason==='outside'
         ? 'Эта аккордовая форма выходит за пределы отображаемого грифа.'
         : 'Для этого аккорда проверенная аппликатура пока не добавлена.';
     }
-  } else if(state.viewMode === 'octaveShape'){
-    const { path, secondStringCount, complete } = computeOctaveShapePath(pcsForPlayback, FRET_COUNT);
-    activePath = path;
-    currentPlayableMidi = path.map(p => p.str.midi + p.fret).sort((a,b)=>a-b);
-    if(!complete && (!state.overlayEnabled || state.overlayPathMode === 'main' || state.overlayPathMode === 'compare')){
-      octaveWarning.style.display = 'block';
-      octaveWarning.textContent = 'Полная двухструнная октавная форма не помещается от этой тоники в пределах 15 ладов.';
-    } else if(complete && secondStringCount > 5 && (!state.overlayEnabled || state.overlayPathMode === 'main' || state.overlayPathMode === 'compare')){
-      octaveWarning.style.display = 'block';
-      octaveWarning.textContent = `Эта гамма (${pcsForPlayback.length} нот) плохо помещается в двухструнную октавную форму: на второй струне требуется ${secondStringCount} нот.`;
-    }
-  } else if(state.viewMode === 'playableRun'){
-    activePath = computePlayableRunPath(pcsForPlayback, FRET_COUNT);
-    currentPlayableMidi = activePath.map(p => p.str.midi + p.fret).sort((a,b)=>a-b);
   }
 
   // ---- Inside/Outside overlay data ----
@@ -1487,26 +1316,6 @@ function render(){
     const outsideOrderedPcs = [...outsidePcMap.values()].sort((a,b)=>a.semitone-b.semitone).map(n=>n.pc);
     outsidePlayableMidi = outsideOrderedPcs.length ? ascendingMidiFromPcs(outsideOrderedPcs, lowestFretboardMidiForPc(outsideOrderedPcs[0])) : [];
     playOutsideBtn.disabled = Boolean(outsideError) || outsidePlayableMidi.length === 0;
-
-    if(!outsideError && state.viewMode === 'octaveShape'){
-      const outsideShape = computeOctaveShapePath(outsideOrderedPcs, FRET_COUNT);
-      outsideActivePath = outsideShape.path;
-      outsidePlayableMidi = outsideActivePath.map(p => p.str.midi + p.fret).sort((a,b)=>a-b);
-      if(!outsideShape.complete && (state.overlayPathMode === 'tension' || state.overlayPathMode === 'compare')){
-        const existing = octaveWarning.style.display !== 'none' ? octaveWarning.textContent + ' ' : '';
-        octaveWarning.style.display = 'block';
-        octaveWarning.textContent = existing + 'Аутсайд-лад не образует полную двухструнную октавную аппликатуру в пределах 15 ладов.';
-      } else if(outsideShape.complete && outsideShape.secondStringCount > 5 && (state.overlayPathMode === 'tension' || state.overlayPathMode === 'compare')){
-        const existing = octaveWarning.style.display !== 'none' ? octaveWarning.textContent + ' ' : '';
-        octaveWarning.style.display = 'block';
-        octaveWarning.textContent = existing + `Для аутсайд-лада требуется ${outsideShape.secondStringCount} нот на второй струне октавной аппликатуры.`;
-      }
-      if(activePath.length) insidePlayableMidi = activePath.map(p => p.str.midi + p.fret).sort((a,b)=>a-b);
-    } else if(!outsideError && state.viewMode === 'playableRun'){
-      outsideActivePath = computePlayableRunPath(outsideOrderedPcs, FRET_COUNT);
-      outsidePlayableMidi = outsideActivePath.map(p => p.str.midi + p.fret).sort((a,b)=>a-b);
-      if(activePath.length) insidePlayableMidi = activePath.map(p => p.str.midi + p.fret).sort((a,b)=>a-b);
-    }
 
     const listsEl = document.getElementById('overlayLists');
     const nameFor = (pc, map) => map.has(pc) ? map.get(pc).noteName : '';
@@ -1532,7 +1341,7 @@ function render(){
   }
 
   const rangeActive = state.viewMode === 'range';
-  const pathActive = state.viewMode === 'octaveShape' || state.viewMode === 'playableRun' || state.viewMode === 'arpeggioShape';
+  const pathActive = state.viewMode === 'scaleShape' || state.viewMode === 'arpeggioShape';
 
   OPEN_STRINGS_TOP_TO_BOTTOM.forEach(str => {
     const openLbl = document.createElement('div');
@@ -1599,7 +1408,7 @@ function render(){
       } else if(pcMap.has(pc) && areaOk && (!state.selectedChordPcs || state.selectedChordPcs.includes(pc))){
         const info = pcMap.get(pc);
         const isChordRoot = state.selectedChordPcs ? pc === state.selectedChordPcs[0] : info.isRoot;
-        const routePosition = state.viewMode === 'arpeggioShape'
+        const routePosition = state.viewMode === 'arpeggioShape' || state.viewMode === 'scaleShape'
           ? activePath.find(p => p.str === str && p.fret === f)
           : null;
         const noteEl = document.createElement('button');
@@ -1609,9 +1418,7 @@ function render(){
         const label = state.mode === 'notes'
           ? info.noteName
           : (state.selectedChordPcs
-            ? (routePosition && state.arpeggioOctaves===2 && state.arpeggioIntervalMode==='compound'
-              ? compoundArpeggioIntervalLabel(routePosition,activePath[0].midi,state.selectedChordPcs[0])
-              : chordIntervalLabel(pc,state.selectedChordPcs[0]))
+            ? chordIntervalLabel(pc,state.selectedChordPcs[0])
             : info.degreeLabel);
         noteEl.textContent = label;
         const midiHere = str.midi + f;

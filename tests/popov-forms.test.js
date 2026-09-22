@@ -4,7 +4,7 @@ const path=require('node:path');
 
 const html=fs.readFileSync(path.join(__dirname,'..','index.html'),'utf8');
 const start=html.indexOf('function preparePopovForms');
-const end=html.indexOf('// Build one exact ascending octave');
+const end=html.indexOf('function detectChordQuality');
 assert.ok(start>=0&&end>start,'Curated Popov form source must be present');
 
 const OPEN_STRINGS_TOP_TO_BOTTOM=[
