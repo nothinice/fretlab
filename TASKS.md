@@ -31,62 +31,68 @@ This file is the shared handoff between Danila, Claude, and Codex.
    chord are verified subsets with the same tonic anchor and position. Store the scale,
    triad, and seventh-chord geometries independently from their own source coordinates;
    the subset relationship is a cross-check and navigation model, not a generator.
-4. Start the cross-check with the relationships directly supported by the supplied
+4. Verify scale/chord relationships independently for every scale formula, E/D/C/A/G
+   form, and chord quality; never use one all-or-nothing flag for the complete five-form
+   system. Store relationship metadata separately from form geometry with an explicit
+   `verified`, `pending`, or `mismatch` status. Partial confirmation enables only the
+   confirmed navigation and subset tests, while pending or mismatching forms remain
+   independently available and must never be silently repaired or treated as linked.
+5. Start the cross-check with the relationships directly supported by the supplied
    diagrams: Major contains maj and maj7; Natural Minor contains min and m7. Later apply
    the same method to verified Mixolydian/7, Locrian/m7b5, and diminished-scale/dim7
    forms rather than assuming those geometries from interval formulas alone.
-5. Decide the data model for a curated `SCALE_FORM_LIBRARY`: fixed relative coordinates,
+6. Decide the data model for a curated `SCALE_FORM_LIBRARY`: fixed relative coordinates,
    degree labels, tonic anchor, form id, source scale quality/formula, and explicit
    ascending playback order. Preserve the formula-driven scale engine as the source of
    pitch spelling and theory; curated forms are verified fretboard geometry.
-6. Define how the five source forms extend beyond major and natural minor. Compare at
+7. Define how the five source forms extend beyond major and natural minor. Compare at
    least two approaches: a separate verified library per scale formula, or controlled
    degree mutations of an approved parent form followed by manual guitar validation.
    Never publish an automatically mutated form as verified before it is checked.
-7. Design the scale-form UI that will replace `Octave Shape` and `Playable Run`.
+8. Design the scale-form UI that will replace `Octave Shape` and `Playable Run`.
    The likely model is a single Scale Forms mode with E/D/C/A/G selectors, whole-form
    playback, and honest unavailable states. Decide how it behaves for manual formulas,
    non-seven-note scales, and forms that do not fit between frets 0 and 15.
-8. After the curated scale-form model is approved, remove the student-facing
+9. After the curated scale-form model is approved, remove the student-facing
    `Octave Shape` and `Playable Run` controls and retire their generated-route logic only
    when equivalent useful behavior is covered by the new forms.
-9. Add fixed-coordinate fixtures plus all-root transposition, boundary, note-count, and
+10. Add fixed-coordinate fixtures plus all-root transposition, boundary, note-count, and
    strictly ascending-playback tests for every approved scale form. Degree-content tests
    must prove both sides: every expected degree is present in the intended repetitions,
    and no foreign degree or accidental variant is present (for example, Natural Minor
    must not contain a natural 3, 6, or 7).
-10. Add explicit subset tests for every approved scale/chord relationship. With matching
+11. Add explicit subset tests for every approved scale/chord relationship. With matching
     root and form id, every stored triad or seventh-chord point must exist in the parent
     scale form at the same string and fret offset; a failed subset check must be reviewed
     against both sources rather than repaired automatically.
-11. User-test every scale form and its playback on a real guitar, then record corrections
-   as fixed source coordinates.
+12. User-test every scale form and its playback on a real guitar, then record corrections
+    as fixed source coordinates.
 
 ### Triad arpeggio forms
 
-12. Obtain a clear source page for Popov's triad arpeggio forms; do not derive them by
+13. Obtain a clear source page for Popov's triad arpeggio forms; do not derive them by
     merely deleting the seventh from the current shapes.
-13. Transcribe every triad quality shown by Popov as fixed relative geometry and connect
+14. Transcribe every triad quality shown by Popov as fixed relative geometry and connect
     supported triad chips to the same curated E/D/C/A/G form-selection model used by the
     seventh chords where the source supports those labels.
-14. Compare each triad form with both its corresponding seventh-chord form and scale form.
+15. Compare each triad form with both its corresponding seventh-chord form and scale form.
     Record which notes and anchors are shared, but keep independent source geometry when
     the diagrams differ.
-15. Add fixed-coordinate tests plus all-root transposition, boundary, degree, note-count,
+16. Add fixed-coordinate tests plus all-root transposition, boundary, degree, note-count,
     and ascending-playback checks for the triad library.
-16. User-test the curated Popov-based triad and seventh-chord forms on a real guitar.
-17. Verify every transcribed point and the ascending playback order against the source
+17. User-test the curated Popov-based triad and seventh-chord forms on a real guitar.
+18. Verify every transcribed point and the ascending playback order against the source
     diagrams. Record hands-on corrections before adding derived exotic qualities.
 
 ### Existing interface and theory review
 
-18. User-test the explicit Scale / Compare / Arpeggio states and Back to Scale action.
-19. User-test the side-by-side Main Mode and Outside Mode selectors.
-20. User-test whether Main Mode, Shared Notes, and Outside Mode Notes are immediately
+19. User-test the explicit Scale / Compare / Arpeggio states and Back to Scale action.
+20. User-test the side-by-side Main Mode and Outside Mode selectors.
+21. User-test whether Main Mode, Shared Notes, and Outside Mode Notes are immediately
     understandable.
-21. Review chord labels and distinguish traditional tertian harmony from generalized
+22. Review chord labels and distinguish traditional tertian harmony from generalized
     scale-step stacks.
-22. Expand permanent regression tests before splitting the single-file prototype into
+23. Expand permanent regression tests before splitting the single-file prototype into
     modules.
 
 ## Implemented safeguards
