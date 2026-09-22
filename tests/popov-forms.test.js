@@ -51,9 +51,9 @@ const expectedC={
     G:['5:8:1','4:6:b3','3:5:5','2:5:1','2:8:b3','1:8:5','0:8:1']
   },
   dim:{
-    E:['5:8:1','5:11:b3','4:9:b5','3:10:1','2:8:b3','2:11:b5','0:8:1','0:11:b3'],
+    E:['5:8:1','5:11:b3','4:9:b5','3:10:1','2:8:b3','1:7:b5','0:8:1','0:11:b3'],
     D:['3:10:1','3:13:b3','2:11:b5','1:13:1','0:11:b3','0:14:b5'],
-    C:['4:3:1','3:1:b3','3:4:b5','1:1:1','1:4:b3','0:2:b5'],
+    C:['4:3:1','3:1:b3','3:4:b5','2:5:1','1:4:b3','0:2:b5'],
     A:['4:3:1','4:6:b3','3:4:b5','2:5:1','1:4:b3','1:7:b5'],
     G:['5:8:1','4:6:b3','3:4:b5','2:5:1','2:8:b3','1:7:b5','0:8:1']
   },
@@ -131,12 +131,27 @@ for(const [triadQuality,[sourceQuality,removedDegree]] of Object.entries(triadSo
     const sourceForm=api.POPOV_FORM_LIBRARY[sourceQuality].find(form=>form.id===triad.id);
     assert.ok(sourceForm,`${triadQuality} ${triad.id} must have a source form`);
     assert.equal(triad.anchorStringIdx,sourceForm.anchorStringIdx);
-    const expected=sourceForm.positions.filter(position=>position.degree!==removedDegree)
-      .map(position=>`${position.stringIdx}:${position.fretOffset}:${position.degree}`);
+    const expectedPositions=sourceForm.positions.filter(position=>position.degree!==removedDegree)
+      .map(position=>[position.stringIdx,position.fretOffset,position.degree]);
+    if(triad.derivation==='unison-relocation'){
+      const {from,to}=triad.relocation;
+      assert.equal(OPEN_STRINGS_TOP_TO_BOTTOM[from[0]].midi+from[1],OPEN_STRINGS_TOP_TO_BOTTOM[to[0]].midi+to[1],
+        `${triadQuality} ${triad.id} relocation must preserve the source pitch`);
+      assert.equal(from[2],to[2],`${triadQuality} ${triad.id} relocation must preserve the degree`);
+      const relocationIndex=expectedPositions.findIndex(position=>position.join(':')===from.join(':'));
+      assert.ok(relocationIndex>=0,`${triadQuality} ${triad.id} relocation source must exist`);
+      expectedPositions[relocationIndex]=to;
+      expectedPositions.sort((a,b)=>a[0]-b[0]||a[1]-b[1]);
+    }
+    const expected=expectedPositions.map(position=>position.join(':'));
     assert.deepEqual(triad.positions.map(position=>`${position.stringIdx}:${position.fretOffset}:${position.degree}`),expected,
-      `${triadQuality} ${triad.id} must be the exact triad subset of ${sourceQuality}`);
+      `${triadQuality} ${triad.id} must match its declared ${sourceQuality} derivation`);
   }
 }
+
+assert.deepEqual(api.POPOV_FORM_LIBRARY.dim
+  .filter(form=>form.derivation==='unison-relocation'&&form.reviewStatus==='pending')
+  .map(form=>form.id),['E','C']);
 
 assert.equal(totalComplete,468);
 console.log(`OK: ${totalComplete} curated Popov form/root realizations validated across eight chord qualities`);
