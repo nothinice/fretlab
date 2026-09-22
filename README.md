@@ -44,7 +44,9 @@ free to open one.
 
 ## Checks
 
-Run `node tests/scale-forms.test.js` and `node tests/popov-forms.test.js` to verify curated scale and chord forms across all roots that fit the 0–15 fretboard range.
+Run `node tests/scale-forms.test.js`, `node tests/popov-forms.test.js`, and
+`node tests/triad-forms.test.js` to verify curated scale/chord coordinates,
+transposition, source subsets, and the no-internal-string-gap publication rule.
 
 ## Roadmap
 

@@ -82,6 +82,8 @@ This file is the shared handoff between Danila, Claude, and Codex.
     than assuming that a shared E/D/C/A/G label guarantees identical geometry.
 16. Keep fixed-coordinate tests plus all-root transposition, boundary, degree, note-count,
     ascending-playback, and exact seventh-chord-subset checks for the triad library.
+    Do not publish a derived form with an empty string inside its displayed string range;
+    the provisional diminished E and C subsets are currently blocked for this reason.
 17. User-test the curated Popov-based triad and seventh-chord forms on a real guitar.
 18. Verify every transcribed point and the ascending playback order against the source
     diagrams. Record hands-on corrections before adding derived exotic qualities.

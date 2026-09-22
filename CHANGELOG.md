@@ -8,6 +8,8 @@
 - Replaced the mixed view-control row with three primary study modes: Whole Scale, Scale Forms, and Arpeggios.
 - Moved fret-range controls into a secondary row and brought the chord chooser above the fretboard in Arpeggio mode.
 - Added a visible two-step arpeggio workflow: choose a chord, then choose its E/D/C/A/G form.
+- Blocked the derived diminished E and C triad forms from the selector because deleting
+  the seventh leaves an internal empty string; their coordinates remain recorded for review.
 
 ## 0.8.0-preview — 2026-09-21
 
