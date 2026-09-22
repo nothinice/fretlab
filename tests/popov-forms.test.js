@@ -11,7 +11,7 @@ const OPEN_STRINGS_TOP_TO_BOTTOM=[
   {label:'e',pc:4,midi:64},{label:'B',pc:11,midi:59},{label:'G',pc:7,midi:55},
   {label:'D',pc:2,midi:50},{label:'A',pc:9,midi:45},{label:'E',pc:4,midi:40}
 ];
-const FRET_COUNT=15;
+const FRET_COUNT=16;
 const source=html.slice(start,end);
 const api=new Function('OPEN_STRINGS_TOP_TO_BOTTOM','FRET_COUNT',
   `${source}\nreturn {POPOV_FORM_LIBRARY,realizePopovForm,CHORD_DEGREE_SEMITONES,detectChordQuality};`
@@ -101,7 +101,7 @@ for(const [quality,forms] of Object.entries(api.POPOV_FORM_LIBRARY)){
   }
 }
 
-const expectedComplete={maj:59,min:59,dim:60,maj7:57,'7':58,m7:59,m7b5:59,dim7:46};
+const expectedComplete={maj:60,min:60,dim:60,maj7:60,'7':60,m7:60,m7b5:60,dim7:48};
 let totalComplete=0;
 for(const [quality,forms] of Object.entries(api.POPOV_FORM_LIBRARY)){
   let qualityComplete=0;
@@ -138,5 +138,5 @@ for(const [triadQuality,[sourceQuality,removedDegree]] of Object.entries(triadSo
   }
 }
 
-assert.equal(totalComplete,457);
+assert.equal(totalComplete,468);
 console.log(`OK: ${totalComplete} curated Popov form/root realizations validated across eight chord qualities`);

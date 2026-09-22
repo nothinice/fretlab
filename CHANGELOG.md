@@ -10,6 +10,10 @@
 - Added a visible two-step arpeggio workflow: choose a chord, then choose its E/D/C/A/G form.
 - Blocked the derived diminished E and C triad forms from the selector because deleting
   the seventh leaves an internal empty string; their coordinates remain recorded for review.
+- Extended the fretboard and range controls through fret 16, allowing all 120 current
+  scale-form/root combinations and all 468 chord-form/root combinations to fit completely.
+- Added pre-selection availability checks so any future form that exceeds the displayed
+  fretboard is disabled instead of opening an empty board.
 
 ## 0.8.0-preview — 2026-09-21
 

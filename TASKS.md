@@ -52,7 +52,7 @@ This file is the shared handoff between Danila, Claude, and Codex.
 8. Design the scale-form UI that will replace `Octave Shape` and `Playable Run`.
    The likely model is a single Scale Forms mode with E/D/C/A/G selectors, whole-form
    playback, and honest unavailable states. Decide how it behaves for manual formulas,
-   non-seven-note scales, and forms that do not fit between frets 0 and 15.
+   non-seven-note scales, and forms that do not fit between frets 0 and 16.
 9. After the curated scale-form model is approved, remove the student-facing
    `Octave Shape` and `Playable Run` controls and retire their generated-route logic only
    when equivalent useful behavior is covered by the new forms.
@@ -115,7 +115,9 @@ This file is the shared handoff between Danila, Claude, and Codex.
   presenting an algorithmic score winner as a traditional fingering.
 - Curated forms are rigidly transposed from one root anchor and independently checked
   against their stored chord degrees.
-- Forms that do not fit between frets 0 and 15 are rejected instead of clipped.
+- The displayed board extends through fret 16 so every current scale and chord form can
+  be realized in every root; future unavailable forms must be disabled before selection
+  and rejected instead of clipped if they exceed that range.
 - Chords without a curated fingering remain visible in harmonization but are not presented as actionable arpeggio buttons.
 
 ## Later roadmap

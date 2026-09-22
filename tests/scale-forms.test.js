@@ -14,7 +14,7 @@ const OPEN_STRINGS_TOP_TO_BOTTOM=[
   {label:'e',pc:4,midi:64},{label:'B',pc:11,midi:59},{label:'G',pc:7,midi:55},
   {label:'D',pc:2,midi:50},{label:'A',pc:9,midi:45},{label:'E',pc:4,midi:40}
 ];
-const FRET_COUNT=15;
+const FRET_COUNT=16;
 const source=html.slice(scaleStart,scaleEnd)+'\n'+html.slice(popovStart,popovEnd);
 const api=new Function('OPEN_STRINGS_TOP_TO_BOTTOM','FRET_COUNT',
   `${source}\nreturn {SCALE_FORM_LIBRARY,SCALE_FORMULA_LIBRARY,SCALE_CHORD_FORM_RELATIONSHIPS,`+
@@ -104,15 +104,18 @@ for(const relationship of api.SCALE_CHORD_FORM_RELATIONSHIPS){
   assert.equal(subset,relationship.status==='verified',`${relationship.scaleId} ${relationship.formId} ${relationship.chordQuality} status must match geometry`);
 }
 
-assert.deepEqual(completeByScale,{major:57,naturalMinor:60});
-assert.equal(totalComplete,117);
+assert.deepEqual(completeByScale,{major:60,naturalMinor:60});
+assert.equal(totalComplete,120);
 const majorG=api.realizeScaleForm(0,'major','G',FRET_COUNT);
 assert.ok(majorG.positions.length>majorG.playbackMidi.length,'Major G must preserve both source positions that share one pitch');
+assert.equal(api.realizeScaleForm(9,'major','A',15).complete,false,'A-major A form must expose the old 15-fret boundary failure');
+assert.equal(api.realizeScaleForm(9,'major','A',16).complete,true,'A-major A form must fit on the 16-fret board');
 assert.ok(/key:'scaleShape',\s*label:'Формы гаммы'/.test(html),'Curated scale-form mode must be visible in the UI');
 assert.ok(/key:'arpeggioShape',\s*label:'Арпеджио'/.test(html),'Arpeggio mode must be directly visible in the primary navigation');
 assert.ok(html.includes('1. Выберите трезвучие'),'Arpeggio mode must explain its first step');
 assert.ok(html.includes('2. Выберите форму:'),'Arpeggio mode must explain its second step');
 assert.ok(html.includes('Открыть натуральный минор'),'Unsupported scales must offer a direct path to a curated scale');
+assert.ok(html.includes('btn.disabled=!realization.complete'),'Unavailable form buttons must be disabled before selection');
 assert.ok(!html.includes("{key:'octaveShape', label:'Октавная аппликатура'}"),'Legacy octave-shape option must be removed from the UI');
 assert.ok(!html.includes("{key:'playableRun', label:'Игровой маршрут'}"),'Legacy playable-run option must be removed from the UI');
 assert.equal(api.SCALE_CHORD_FORM_RELATIONSHIPS.length,20);

@@ -318,9 +318,9 @@
   <div class="route-info" id="arpeggioRouteInfo" style="display:none;"></div>
   <div class="range-controls" id="customRangeControls" style="display:none;">
     <label for="rangeFromInput" style="display:inline; margin:0;">От лада</label>
-    <input type="number" id="rangeFromInput" min="0" max="15" value="0">
+    <input type="number" id="rangeFromInput" min="0" max="16" value="0">
     <label for="rangeToInput" style="display:inline; margin:0;">До лада</label>
-    <input type="number" id="rangeToInput" min="0" max="15" value="4">
+    <input type="number" id="rangeToInput" min="0" max="16" value="4">
   </div>
   <p class="hint" id="formWarning" style="display:none;"></p>
 
@@ -401,7 +401,7 @@ const OPEN_STRINGS_TOP_TO_BOTTOM = [
   {label:'e', pc:4, midi:64}, {label:'B', pc:11, midi:59}, {label:'G', pc:7, midi:55},
   {label:'D', pc:2, midi:50}, {label:'A', pc:9, midi:45}, {label:'E', pc:4, midi:40}
 ];
-const FRET_COUNT = 15;
+const FRET_COUNT = 16;
 const MARKER_FRETS = new Set([3,5,7,9,12,15]);
 const DOUBLE_MARKER_FRETS = new Set([12]);
 
@@ -497,7 +497,7 @@ let state = {
   arpeggioForm: 'E',
   scaleForm: 'E',
   viewMode: 'whole', // 'whole' | 'range' | 'scaleShape' | 'arpeggioShape'
-  rangePreset: null, // '0-4' | '5-9' | '10-15' | 'custom' | null
+  rangePreset: null, // '0-4' | '5-9' | '10-16' | 'custom' | null
   rangeFrom: 0, rangeTo: 4,
   overlayEnabled: false,
   overlayPathMode: 'compare', // 'main' | 'tension' | 'compare'
@@ -1227,7 +1227,7 @@ function render(){
     {key:'whole',label:'Все лады'},
     {key:'0-4',label:'Лады 0–4'},
     {key:'5-9',label:'Лады 5–9'},
-    {key:'10-15',label:'Лады 10–15'},
+    {key:'10-16',label:'Лады 10–16'},
     {key:'custom',label:'Свой диапазон'}
   ];
   const activeRangeKey=state.viewMode==='range'?(state.rangePreset||'custom'):'whole';
@@ -1244,7 +1244,7 @@ function render(){
         state.viewMode='range'; state.rangePreset=range.key;
         if(range.key==='0-4'){state.rangeFrom=0;state.rangeTo=4;}
         else if(range.key==='5-9'){state.rangeFrom=5;state.rangeTo=9;}
-        else if(range.key==='10-15'){state.rangeFrom=10;state.rangeTo=15;}
+        else if(range.key==='10-16'){state.rangeFrom=10;state.rangeTo=16;}
       }
       render();
     });
@@ -1266,17 +1266,24 @@ function render(){
   if(state.viewMode==='scaleShape'){
     const curatedScaleForms=currentScaleId?(SCALE_FORM_LIBRARY[currentScaleId]||[]):[];
     if(curatedScaleForms.length){
-      if(!curatedScaleForms.some(form=>form.id===state.scaleForm))state.scaleForm=curatedScaleForms[0].id;
+      const scaleRealizations=curatedScaleForms.map(form=>({form,result:realizeScaleForm(rootObj.pc,currentScaleId,form.id,FRET_COUNT)}));
+      const availableScaleForms=scaleRealizations.filter(entry=>entry.result.complete);
+      if(!availableScaleForms.some(entry=>entry.form.id===state.scaleForm)){
+        state.scaleForm=availableScaleForms[0]?.form.id||curatedScaleForms[0].id;
+      }
       const label=document.createElement('span');
       label.className='hint'; label.style.margin='6px 4px 0 0';
       label.textContent='Форма гаммы:';
       scaleFormRow.appendChild(label);
       curatedScaleForms.forEach(form=>{
+        const realization=scaleRealizations.find(entry=>entry.form.id===form.id).result;
         const btn=document.createElement('button');
         btn.type='button';
-        btn.className='chip clickable'+(state.scaleForm===form.id?' active':'');
+        btn.disabled=!realization.complete;
+        btn.className='chip'+(realization.complete?' clickable':' disabled')+(state.scaleForm===form.id?' active':'');
         btn.setAttribute('aria-pressed',state.scaleForm===form.id?'true':'false');
         btn.textContent=form.name;
+        btn.title=realization.complete?'Показать эту форму.':'Форма не помещается на отображаемом грифе.';
         btn.addEventListener('click',()=>{state.scaleForm=form.id;render();});
         scaleFormRow.appendChild(btn);
       });
@@ -1286,7 +1293,7 @@ function render(){
         ? 'Проверяемые формы мажорной гаммы.'
         : 'Проверяемые формы натурального минора.';
       scaleFormRow.appendChild(note);
-      currentScaleForm=realizeScaleForm(rootObj.pc,currentScaleId,state.scaleForm,FRET_COUNT);
+      currentScaleForm=scaleRealizations.find(entry=>entry.form.id===state.scaleForm)?.result||null;
       if(currentScaleForm.complete){
         const frets=currentScaleForm.positions.map(position=>position.fret);
         const strings=[...new Set(currentScaleForm.positions.map(position=>position.stringIdx+1))];
@@ -1334,19 +1341,24 @@ function render(){
       const curatedForms=allCuratedForms.filter(form=>form.availability!=='blocked-gap');
       const blockedForms=allCuratedForms.filter(form=>form.availability==='blocked-gap');
       if(curatedForms.length){
-        if(!curatedForms.some(form=>form.id===state.arpeggioForm)){
-          state.arpeggioForm=curatedForms[0].id;
+        const arpeggioRealizations=curatedForms.map(form=>({form,result:realizePopovForm(state.selectedChordPcs[0],quality,form.id,FRET_COUNT)}));
+        const availableArpeggioForms=arpeggioRealizations.filter(entry=>entry.result.complete);
+        if(!availableArpeggioForms.some(entry=>entry.form.id===state.arpeggioForm)){
+          state.arpeggioForm=availableArpeggioForms[0]?.form.id||curatedForms[0].id;
         }
         const label = document.createElement('span');
         label.className = 'hint'; label.style.margin = '6px 4px 0 0';
         label.textContent = '2. Выберите форму:';
         arpeggioFormRow.appendChild(label);
         curatedForms.forEach(form => {
+          const realization=arpeggioRealizations.find(entry=>entry.form.id===form.id).result;
           const btn = document.createElement('button');
           btn.type = 'button';
-          btn.className = 'chip clickable' + (state.arpeggioForm === form.id ? ' active' : '');
+          btn.disabled=!realization.complete;
+          btn.className='chip'+(realization.complete?' clickable':' disabled')+(state.arpeggioForm===form.id?' active':'');
           btn.setAttribute('aria-pressed', state.arpeggioForm === form.id ? 'true' : 'false');
           btn.textContent = form.name;
+          btn.title=realization.complete?'Показать эту форму.':'Форма не помещается на отображаемом грифе.';
           btn.addEventListener('click', ()=>{ state.arpeggioForm=form.id; render(); });
           arpeggioFormRow.appendChild(btn);
         });
@@ -1356,7 +1368,7 @@ function render(){
           ? `Формы ${blockedForms.map(form=>form.name).join(' и ')} скрыты: после удаления септимы в них остаётся разрыв между струнами.`
           : 'Формы E/D/C/A/G на основе системы Попова; проверьте их на гитаре.';
         arpeggioFormRow.appendChild(note);
-        currentCuratedForm=realizePopovForm(state.selectedChordPcs[0],quality,state.arpeggioForm,FRET_COUNT);
+        currentCuratedForm=arpeggioRealizations.find(entry=>entry.form.id===state.arpeggioForm)?.result||null;
       }else{
         const message=document.createElement('span');
         message.className='hint'; message.style.margin='6px 0 0';
