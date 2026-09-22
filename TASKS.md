@@ -70,16 +70,18 @@ This file is the shared handoff between Danila, Claude, and Codex.
 
 ### Triad arpeggio forms
 
-13. Obtain a clear source page for Popov's triad arpeggio forms; do not derive them by
-    merely deleting the seventh from the current shapes.
-14. Transcribe every triad quality shown by Popov as fixed relative geometry and connect
-    supported triad chips to the same curated E/D/C/A/G form-selection model used by the
-    seventh chords where the source supports those labels.
-15. Compare each triad form with both its corresponding seventh-chord form and scale form.
-    Record which notes and anchors are shared, but keep independent source geometry when
-    the diagrams differ.
-16. Add fixed-coordinate tests plus all-root transposition, boundary, degree, note-count,
-    and ascending-playback checks for the triad library.
+13. The user approved an interim derived model for core triads: maj is the exact 1/3/5
+    subset of maj7, min is the exact 1/b3/5 subset of m7, and dim is the exact 1/b3/b5
+    subset of m7b5. Store those coordinates independently so later seventh-chord edits
+    cannot silently mutate the triad library. Do not extend this shortcut to aug, sus2,
+    sus4, or exotic qualities without a verified source or hands-on approval.
+14. Connect the supported maj, min, and dim triad chips to the same curated E/D/C/A/G
+    form-selection model used by the seventh chords.
+15. Compare each derived triad form with both its corresponding seventh-chord form and
+    scale form. Record the scale relationship per form as `verified` or `mismatch` rather
+    than assuming that a shared E/D/C/A/G label guarantees identical geometry.
+16. Keep fixed-coordinate tests plus all-root transposition, boundary, degree, note-count,
+    ascending-playback, and exact seventh-chord-subset checks for the triad library.
 17. User-test the curated Popov-based triad and seventh-chord forms on a real guitar.
 18. Verify every transcribed point and the ascending playback order against the source
     diagrams. Record hands-on corrections before adding derived exotic qualities.

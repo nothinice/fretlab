@@ -4,7 +4,7 @@ const path=require('node:path');
 
 const html=fs.readFileSync(path.join(__dirname,'..','index.html'),'utf8');
 const start=html.indexOf('function preparePopovForms');
-const end=html.indexOf('function detectChordQuality');
+const end=html.indexOf('function arpeggioRouteFeatures');
 assert.ok(start>=0&&end>start,'Curated Popov form source must be present');
 
 const OPEN_STRINGS_TOP_TO_BOTTOM=[
@@ -14,10 +14,19 @@ const OPEN_STRINGS_TOP_TO_BOTTOM=[
 const FRET_COUNT=15;
 const source=html.slice(start,end);
 const api=new Function('OPEN_STRINGS_TOP_TO_BOTTOM','FRET_COUNT',
-  `${source}\nreturn {POPOV_FORM_LIBRARY,realizePopovForm,CHORD_DEGREE_SEMITONES};`
+  `${source}\nreturn {POPOV_FORM_LIBRARY,realizePopovForm,CHORD_DEGREE_SEMITONES,detectChordQuality};`
 )(OPEN_STRINGS_TOP_TO_BOTTOM,FRET_COUNT);
 
-assert.deepEqual(Object.keys(api.POPOV_FORM_LIBRARY).sort(),['7','dim7','m7','m7b5','maj7']);
+assert.equal(api.detectChordQuality([0,4,7]),'maj');
+assert.equal(api.detectChordQuality([0,3,7]),'min');
+assert.equal(api.detectChordQuality([0,3,6]),'dim');
+assert.equal(api.detectChordQuality([0,4,8]),null);
+assert.equal(api.detectChordQuality([0,4,7,11]),'maj7');
+
+assert.deepEqual(Object.keys(api.POPOV_FORM_LIBRARY).sort(),['7','dim','dim7','m7','m7b5','maj','maj7','min']);
+assert.deepEqual(api.POPOV_FORM_LIBRARY.maj.map(form=>form.id),['E','D','C','A','G']);
+assert.deepEqual(api.POPOV_FORM_LIBRARY.min.map(form=>form.id),['E','D','C','A','G']);
+assert.deepEqual(api.POPOV_FORM_LIBRARY.dim.map(form=>form.id),['E','D','C','A','G']);
 assert.deepEqual(api.POPOV_FORM_LIBRARY.maj7.map(form=>form.id),['E','D','C','A','G']);
 assert.deepEqual(api.POPOV_FORM_LIBRARY['7'].map(form=>form.id),['E','D','C','A','G']);
 assert.deepEqual(api.POPOV_FORM_LIBRARY.m7.map(form=>form.id),['E','D','C','A','G']);
@@ -27,6 +36,27 @@ assert.deepEqual(api.POPOV_FORM_LIBRARY.dim7.map(form=>form.id),['E/G','D','C','
 // Fixed C-root transcriptions protect every stored point and degree without
 // recomputing the expected geometry through the realization algorithm.
 const expectedC={
+  maj:{
+    E:['5:8:1','4:7:3','4:10:5','3:10:1','2:9:3','1:8:5','0:8:1'],
+    D:['5:8:1','5:12:3','4:10:5','3:10:1','2:9:3','2:12:5','1:13:1'],
+    C:['4:3:1','3:2:3','2:0:5','1:1:1','0:0:3','0:3:5'],
+    A:['4:3:1','3:2:3','3:5:5','2:5:1','1:5:3','0:3:5'],
+    G:['5:8:1','4:7:3','3:5:5','2:5:1','2:9:3','1:8:5','0:8:1']
+  },
+  min:{
+    E:['5:8:1','5:11:b3','4:10:5','3:10:1','2:8:b3','1:8:5','0:8:1','0:11:b3'],
+    D:['3:10:1','3:13:b3','2:12:5','1:13:1','0:11:b3','0:15:5'],
+    C:['4:15:1','3:13:b3','2:12:5','1:13:1','0:11:b3','0:15:5'],
+    A:['4:3:1','4:6:b3','3:5:5','2:5:1','1:4:b3','0:3:5'],
+    G:['5:8:1','4:6:b3','3:5:5','2:5:1','2:8:b3','1:8:5','0:8:1']
+  },
+  dim:{
+    E:['5:8:1','5:11:b3','4:9:b5','3:10:1','2:8:b3','2:11:b5','0:8:1','0:11:b3'],
+    D:['3:10:1','3:13:b3','2:11:b5','1:13:1','0:11:b3','0:14:b5'],
+    C:['4:3:1','3:1:b3','3:4:b5','1:1:1','1:4:b3','0:2:b5'],
+    A:['4:3:1','4:6:b3','3:4:b5','2:5:1','1:4:b3','1:7:b5'],
+    G:['5:8:1','4:6:b3','3:4:b5','2:5:1','2:8:b3','1:7:b5','0:8:1']
+  },
   maj7:{
     E:['5:8:1','4:7:3','4:10:5','3:9:7','3:10:1','2:9:3','1:8:5','0:7:7','0:8:1'],
     D:['5:8:1','5:12:3','4:10:5','3:9:7','3:10:1','2:9:3','2:12:5','1:12:7','1:13:1'],
@@ -71,7 +101,7 @@ for(const [quality,forms] of Object.entries(api.POPOV_FORM_LIBRARY)){
   }
 }
 
-const expectedComplete={maj7:57,'7':58,m7:59,m7b5:59,dim7:46};
+const expectedComplete={maj:59,min:59,dim:60,maj7:57,'7':58,m7:59,m7b5:59,dim7:46};
 let totalComplete=0;
 for(const [quality,forms] of Object.entries(api.POPOV_FORM_LIBRARY)){
   let qualityComplete=0;
@@ -95,5 +125,18 @@ for(const [quality,forms] of Object.entries(api.POPOV_FORM_LIBRARY)){
   assert.equal(qualityComplete,expectedComplete[quality],`${quality} boundary count changed`);
 }
 
-assert.equal(totalComplete,279);
-console.log(`OK: ${totalComplete} curated Popov form/root realizations validated across five chord qualities`);
+const triadSources={maj:['maj7','7'],min:['m7','b7'],dim:['m7b5','b7']};
+for(const [triadQuality,[sourceQuality,removedDegree]] of Object.entries(triadSources)){
+  for(const triad of api.POPOV_FORM_LIBRARY[triadQuality]){
+    const sourceForm=api.POPOV_FORM_LIBRARY[sourceQuality].find(form=>form.id===triad.id);
+    assert.ok(sourceForm,`${triadQuality} ${triad.id} must have a source form`);
+    assert.equal(triad.anchorStringIdx,sourceForm.anchorStringIdx);
+    const expected=sourceForm.positions.filter(position=>position.degree!==removedDegree)
+      .map(position=>`${position.stringIdx}:${position.fretOffset}:${position.degree}`);
+    assert.deepEqual(triad.positions.map(position=>`${position.stringIdx}:${position.fretOffset}:${position.degree}`),expected,
+      `${triadQuality} ${triad.id} must be the exact triad subset of ${sourceQuality}`);
+  }
+}
+
+assert.equal(totalComplete,457);
+console.log(`OK: ${totalComplete} curated Popov form/root realizations validated across eight chord qualities`);

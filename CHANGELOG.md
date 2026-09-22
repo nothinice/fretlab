@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.9.0-preview — 2026-09-22
+
+- Added five independently stored E/D/C/A/G forms for major, minor, and diminished triad arpeggios.
+- Verified each triad form as the exact 1/3/5 subset of its maj7, m7, or m7b5 Popov source form.
+- Made supported triads directly selectable from scale harmonization.
+- Replaced the mixed view-control row with three primary study modes: Whole Scale, Scale Forms, and Arpeggios.
+- Moved fret-range controls into a secondary row and brought the chord chooser above the fretboard in Arpeggio mode.
+- Added a visible two-step arpeggio workflow: choose a chord, then choose its E/D/C/A/G form.
+
 ## 0.8.0-preview — 2026-09-21
 
 - Replaced generated Position/Sweep/Smooth/Diagonal choices in the student-facing arpeggio view with five curated maj7 chord forms: E, D, C, A, and G.

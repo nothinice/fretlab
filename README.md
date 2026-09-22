@@ -32,19 +32,19 @@ free to open one.
 - Interactive fretboard, Notes/Degrees toggle, click-to-play audio
 - Presets: diatonic modes, common scales, all 15 of Allan Holdsworth's
   "usable scales"
-- Chord harmonization (triads/7th chords) with a separate arpeggio mode
-- Arpeggio Shape builds one- or two-octave routes from a chord root on string 6, 5, 4, or 3 when the available fretboard range allows it
-- Named route families cover Position, Sweep, Smooth, Diagonal, and Two notes per string approaches; duplicate winners merge and additional grouped routes remain browsable
-- Two-octave arpeggios can display repeated simple degrees or compound intervals (8, 10, 12, 14, 15)
-- Fretboard area selection (whole neck / fret ranges), Octave Shape and
-  Playable Run diagonal patterns across the whole neck
+- Three clear study modes: Whole Scale, Scale Forms, and Arpeggios
+- Five curated E/D/C/A/G forms for major and natural-minor scales
+- Chord harmonization with selectable triads and seventh chords
+- Curated E/D/C/A/G arpeggio forms for major, minor, and diminished triads
+- Curated Popov arpeggio forms for maj7, 7, m7, m7b5, and dim7 chords
+- Fretboard area selection kept as a secondary control inside Whole Scale mode
 - Two-scale comparison with Main Mode, Shared Notes, and Outside Mode Notes
 - Focused two-scale comparison without unrelated chord or fingering controls
 - Side-by-side Main Mode and Outside Mode selectors with named presets and custom formulas
 
 ## Checks
 
-Run `node tests/arpeggio-routes.test.js` to verify route mechanics and category selection across the regression matrix.
+Run `node tests/scale-forms.test.js` and `node tests/popov-forms.test.js` to verify curated scale and chord forms across all roots that fit the 0–15 fretboard range.
 
 ## Roadmap
 

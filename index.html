@@ -207,6 +207,17 @@
   .route-info strong{color:var(--ink);}
   .route-tag{display:inline-block; margin-left:6px; color:var(--teal); font-size:11px;}
   .chip.active .route-tag{color:#fff; opacity:.8;}
+  .study-picker{
+    margin:0 0 14px; padding:14px; border:1px solid var(--border); border-radius:10px; background:var(--panel);
+  }
+  .study-picker-title{font:600 16px 'Fraunces',serif; margin-bottom:4px;}
+  .study-picker .hint{margin:0 0 10px;}
+  .study-picker .chip{background:var(--bg);}
+  .study-picker .chip.active{background:var(--teal);}
+  #rangePresetRow{margin-top:10px; padding-top:10px; border-top:1px solid var(--border);}
+  #chordsSection{
+    margin:0 0 14px; padding:14px; border:1px solid var(--border); border-radius:10px; background:var(--panel);
+  }
 
 </style>
 </head>
@@ -286,7 +297,21 @@
 
   <div class="readout" id="readout"></div>
 
-  <div class="chip-row" id="viewModeRow" role="group" aria-label="Область грифа" style="margin-bottom:6px;"></div>
+  <div class="study-picker" id="studyPicker">
+    <div class="study-picker-title">Что хотите изучить?</div>
+    <p class="hint" id="modeGuideText">Выберите отображение: вся гамма, готовая позиционная форма или арпеджио аккорда.</p>
+    <div class="chip-row" id="viewModeRow" role="group" aria-label="Режим изучения"></div>
+    <div class="chip-row" id="rangePresetRow" role="group" aria-label="Диапазон ладов" style="display:none;"></div>
+  </div>
+
+  <div class="chords-section" id="chordsSection" style="display:none;">
+    <h2 id="triadsHeading">1. Выберите трезвучие</h2>
+    <div class="chip-row" id="triadsRow"></div>
+    <h2 style="margin-top:16px;" id="tetradsHeading">Или выберите септаккорд</h2>
+    <div class="chip-row" id="tetradsRow"></div>
+    <p class="hint" style="margin-top:8px;" id="harmonizationHint"></p>
+  </div>
+
   <div class="chip-row" id="scaleFormRow" role="group" aria-label="Форма гаммы" style="display:none; margin:8px 0 6px;"></div>
   <div class="route-info" id="scaleRouteInfo" style="display:none;"></div>
   <div class="chip-row" id="arpeggioFormRow" role="group" aria-label="Настройки арпеджио" style="display:none; margin:8px 0 6px;"></div>
@@ -301,14 +326,6 @@
 
   <div class="board-outer">
     <div class="board" id="board"></div>
-  </div>
-
-  <div class="chords-section" id="chordsSection">
-    <h2 id="triadsHeading">Трезвучия</h2>
-    <div class="chip-row" id="triadsRow"></div>
-    <h2 style="margin-top:16px;" id="tetradsHeading">Септаккорды</h2>
-    <div class="chip-row" id="tetradsRow"></div>
-    <p class="hint" style="margin-top:8px;" id="harmonizationHint"></p>
   </div>
 
 </div>
@@ -492,7 +509,6 @@ function clearSelectedChord(){
   state.selectedChordPcs = null;
   state.selectedChordLabel = null;
   state.selectedChordQuality = null;
-  if(state.viewMode === 'arpeggioShape') state.viewMode = 'whole';
 }
 let currentPlayableMidi = [];
 let insidePlayableMidi = [];
@@ -660,11 +676,21 @@ const SCALE_FORMULA_LIBRARY={
 };
 
 const SCALE_CHORD_FORM_RELATIONSHIPS=[
+  {scaleId:'major',formId:'E',chordQuality:'maj',status:'verified'},
+  {scaleId:'major',formId:'D',chordQuality:'maj',status:'verified'},
+  {scaleId:'major',formId:'C',chordQuality:'maj',status:'verified'},
+  {scaleId:'major',formId:'A',chordQuality:'maj',status:'verified'},
+  {scaleId:'major',formId:'G',chordQuality:'maj',status:'mismatch'},
   {scaleId:'major',formId:'E',chordQuality:'maj7',status:'verified'},
   {scaleId:'major',formId:'D',chordQuality:'maj7',status:'verified'},
   {scaleId:'major',formId:'C',chordQuality:'maj7',status:'verified'},
   {scaleId:'major',formId:'A',chordQuality:'maj7',status:'verified'},
   {scaleId:'major',formId:'G',chordQuality:'maj7',status:'mismatch'},
+  {scaleId:'naturalMinor',formId:'E',chordQuality:'min',status:'verified'},
+  {scaleId:'naturalMinor',formId:'D',chordQuality:'min',status:'mismatch'},
+  {scaleId:'naturalMinor',formId:'C',chordQuality:'min',status:'mismatch'},
+  {scaleId:'naturalMinor',formId:'A',chordQuality:'min',status:'verified'},
+  {scaleId:'naturalMinor',formId:'G',chordQuality:'min',status:'verified'},
   {scaleId:'naturalMinor',formId:'E',chordQuality:'m7',status:'verified'},
   {scaleId:'naturalMinor',formId:'D',chordQuality:'m7',status:'mismatch'},
   {scaleId:'naturalMinor',formId:'C',chordQuality:'m7',status:'mismatch'},
@@ -892,7 +918,37 @@ const POPOV_DIM7_FORMS = preparePopovForms('dim7',[
   }
 ]);
 
+// Curated triads are stored independently from their seventh-chord sources.
+// Their geometry is the literal 1/3/5 subset of the corresponding Popov form:
+// maj <- maj7, min <- m7, dim <- m7b5.
+const POPOV_MAJOR_TRIAD_FORMS=preparePopovForms('maj',[
+  {id:'E',name:'E',anchorStringIdx:5,positions:[[0,0,'1'],[1,0,'5'],[2,1,'3'],[3,2,'1'],[4,-1,'3'],[4,2,'5'],[5,0,'1']]},
+  {id:'D',name:'D',anchorStringIdx:5,positions:[[1,5,'1'],[2,1,'3'],[2,4,'5'],[3,2,'1'],[4,2,'5'],[5,0,'1'],[5,4,'3']]},
+  {id:'C',name:'C',anchorStringIdx:4,positions:[[0,-3,'3'],[0,0,'5'],[1,-2,'1'],[2,-3,'5'],[3,-1,'3'],[4,0,'1']]},
+  {id:'A',name:'A',anchorStringIdx:4,positions:[[0,0,'5'],[1,2,'3'],[2,2,'1'],[3,-1,'3'],[3,2,'5'],[4,0,'1']]},
+  {id:'G',name:'G',anchorStringIdx:5,positions:[[0,0,'1'],[1,0,'5'],[2,-3,'1'],[2,1,'3'],[3,-3,'5'],[4,-1,'3'],[5,0,'1']]}
+]);
+
+const POPOV_MINOR_TRIAD_FORMS=preparePopovForms('min',[
+  {id:'E',name:'E',anchorStringIdx:5,positions:[[0,0,'1'],[0,3,'b3'],[1,0,'5'],[2,0,'b3'],[3,2,'1'],[4,2,'5'],[5,0,'1'],[5,3,'b3']]},
+  {id:'D',name:'D',anchorStringIdx:3,positions:[[0,1,'b3'],[0,5,'5'],[1,3,'1'],[2,2,'5'],[3,0,'1'],[3,3,'b3']]},
+  {id:'C',name:'C',anchorStringIdx:4,positions:[[0,-4,'b3'],[0,0,'5'],[1,-2,'1'],[2,-3,'5'],[3,-2,'b3'],[4,0,'1']]},
+  {id:'A',name:'A',anchorStringIdx:4,positions:[[0,0,'5'],[1,1,'b3'],[2,2,'1'],[3,2,'5'],[4,0,'1'],[4,3,'b3']]},
+  {id:'G',name:'G',anchorStringIdx:5,positions:[[0,0,'1'],[1,0,'5'],[2,-3,'1'],[2,0,'b3'],[3,-3,'5'],[4,-2,'b3'],[5,0,'1']]}
+]);
+
+const POPOV_DIM_TRIAD_FORMS=preparePopovForms('dim',[
+  {id:'E',name:'E',anchorStringIdx:5,positions:[[0,0,'1'],[0,3,'b3'],[2,0,'b3'],[2,3,'b5'],[3,2,'1'],[4,1,'b5'],[5,0,'1'],[5,3,'b3']]},
+  {id:'D',name:'D',anchorStringIdx:3,positions:[[0,1,'b3'],[0,4,'b5'],[1,3,'1'],[2,1,'b5'],[3,0,'1'],[3,3,'b3']]},
+  {id:'C',name:'C',anchorStringIdx:4,positions:[[0,-1,'b5'],[1,-2,'1'],[1,1,'b3'],[3,-2,'b3'],[3,1,'b5'],[4,0,'1']]},
+  {id:'A',name:'A',anchorStringIdx:4,positions:[[1,1,'b3'],[1,4,'b5'],[2,2,'1'],[3,1,'b5'],[4,0,'1'],[4,3,'b3']]},
+  {id:'G',name:'G',anchorStringIdx:5,positions:[[0,0,'1'],[1,-1,'b5'],[2,-3,'1'],[2,0,'b3'],[3,-4,'b5'],[4,-2,'b3'],[5,0,'1']]}
+]);
+
 const POPOV_FORM_LIBRARY={
+  maj:POPOV_MAJOR_TRIAD_FORMS,
+  min:POPOV_MINOR_TRIAD_FORMS,
+  dim:POPOV_DIM_TRIAD_FORMS,
   maj7:POPOV_MAJ7_FORMS,
   '7':POPOV_DOM7_FORMS,
   m7:POPOV_M7_FORMS,
@@ -933,10 +989,13 @@ function realizePopovMaj7Form(rootPc,formId,maxFret=FRET_COUNT){
 }
 
 function detectChordQuality(pcs){
-  if(!pcs || pcs.length !== 4) return null;
+  if(!pcs || (pcs.length!==3&&pcs.length!==4)) return null;
   const root = pcs[0];
   const key = pcs.slice(1).map(pc => ((pc-root)%12+12)%12).sort((a,b)=>a-b).join(',');
-  return ({'4,7,11':'maj7','4,7,10':'7','3,7,10':'m7','3,6,10':'m7b5','3,6,9':'dim7'})[key] || null;
+  const qualities=pcs.length===3
+    ? {'4,7':'maj','3,7':'min','3,6':'dim'}
+    : {'4,7,11':'maj7','4,7,10':'7','3,7,10':'m7','3,6,10':'m7b5','3,6,9':'dim7'};
+  return qualities[key]||null;
 }
 
 function arpeggioRouteFeatures(route){
@@ -1059,7 +1118,9 @@ function render(){
     <div>Ступени: <strong>${sortedBySemitone.map(n=>n.degreeLabel).join('-')}</strong></div>
     <div>Полутоновая структура: <strong>${pattern.join('-')}</strong></div>
   `;
-  if(arpeggioMode) document.getElementById('backToScaleBtn').addEventListener('click',()=>{clearSelectedChord();render();});
+  if(arpeggioMode) document.getElementById('backToScaleBtn').addEventListener('click',()=>{
+    clearSelectedChord(); state.viewMode='whole'; render();
+  });
 
   const uniqueNotes = [...pcMap.values()].sort((a,b)=>a.semitone-b.semitone);
   const pcsForPlayback = state.selectedChordPcs ? state.selectedChordPcs : uniqueNotes.map(n => n.pc);
@@ -1070,7 +1131,7 @@ function render(){
   // ---- Harmonization: only when there are no pitch-class conflicts ----
   const chordsSection = document.getElementById('chordsSection');
   const harmonizationHint = document.getElementById('harmonizationHint');
-  chordsSection.style.display = state.overlayEnabled ? 'none' : 'block';
+  chordsSection.style.display = !state.overlayEnabled&&state.viewMode==='arpeggioShape' ? 'block' : 'none';
   if(conflicts){
     chordsSection.style.opacity = '.5';
     document.getElementById('triadsRow').innerHTML = '<div class="chip">—</div>';
@@ -1081,8 +1142,8 @@ function render(){
     const triads = harmonizeScale(uniqueNotes, 3);
     const tetrads = harmonizeScale(uniqueNotes, 4);
     const isSevenNote = uniqueNotes.length === 7;
-    document.getElementById('triadsHeading').textContent = isSevenNote ? 'Трезвучия (диатоническая гармония)' : 'Трезвучия по ступеням гаммы';
-    document.getElementById('tetradsHeading').textContent = isSevenNote ? 'Септаккорды (диатоническая гармония)' : 'Четырёхзвучные аккорды по ступеням';
+    document.getElementById('triadsHeading').textContent = isSevenNote ? '1. Выберите трезвучие' : '1. Выберите трезвучие по ступени';
+    document.getElementById('tetradsHeading').textContent = isSevenNote ? 'Или выберите септаккорд' : 'Или выберите четырёхзвучный аккорд';
     harmonizationHint.textContent = isSevenNote
       ? 'Стандартная терцовая гармония: трезвучия и септаккорды строятся по ступеням семинотной гаммы.'
       : `В этой гамме ${uniqueNotes.length} нот. Аккорды строятся через одну ступень и не всегда имеют стандартное название.`;
@@ -1128,22 +1189,18 @@ function render(){
   // ---- Visible fretboard area: whole neck / fret range / curated forms ----
   const viewModeRow = document.getElementById('viewModeRow');
   viewModeRow.innerHTML = '';
-  if(arpeggioMode && state.viewMode === 'scaleShape') state.viewMode = 'whole';
-  if(!arpeggioMode && state.viewMode === 'arpeggioShape') state.viewMode = 'whole';
   if(state.overlayEnabled && state.viewMode !== 'whole') state.viewMode = 'whole';
-  const commonModeButtons = [
-    {key:'whole', label:'Все ноты'},
-    {key:'range-0-4', label:'Лады 0–4'},
-    {key:'range-5-9', label:'Лады 5–9'},
-    {key:'range-10-15', label:'Лады 10–15'},
-    {key:'range-custom', label:'Свой диапазон'}
-  ];
   const modeButtons = state.overlayEnabled
     ? [{key:'whole',label:'Сравнение гамм'}]
-    : arpeggioMode
-      ? [{key:'whole',label:'Все ноты'},{key:'arpeggioShape',label:'Аппликатура арпеджио'}]
-      : [...commonModeButtons, {key:'scaleShape', label:'Формы гаммы'}];
-  const currentModeKey = state.viewMode === 'range' ? ('range-' + (state.rangePreset || 'custom')) : state.viewMode;
+    : [
+        {key:'whole',label:'Вся гамма'},
+        {key:'scaleShape',label:'Формы гаммы'},
+        {key:'arpeggioShape',label:'Арпеджио'}
+      ];
+  const currentModeKey=state.viewMode==='range'?'whole':state.viewMode;
+  document.getElementById('modeGuideText').textContent=state.overlayEnabled
+    ? 'Сейчас показано сравнение основного и аутсайд-лада.'
+    : 'Выберите отображение: вся гамма, готовая позиционная форма или арпеджио аккорда.';
   modeButtons.forEach(m => {
     const btn = document.createElement('button');
     btn.type = 'button';
@@ -1151,20 +1208,47 @@ function render(){
     btn.setAttribute('aria-pressed', currentModeKey === m.key ? 'true' : 'false');
     btn.textContent = m.label;
     btn.addEventListener('click', ()=>{
-      if(m.key === 'whole'){ state.viewMode = 'whole'; state.rangePreset = null; }
-      else if(m.key === 'scaleShape'){ state.viewMode = 'scaleShape'; }
-      else if(m.key === 'arpeggioShape'){ state.viewMode = 'arpeggioShape'; }
-      else {
-        const preset = m.key.replace('range-', '');
-        state.viewMode = 'range'; state.rangePreset = preset;
-        if(preset === '0-4'){ state.rangeFrom=0; state.rangeTo=4; }
-        else if(preset === '5-9'){ state.rangeFrom=5; state.rangeTo=9; }
-        else if(preset === '10-15'){ state.rangeFrom=10; state.rangeTo=15; }
-        // 'custom' leaves rangeFrom/rangeTo as whatever the number inputs hold
+      if(m.key === 'whole'){
+        clearSelectedChord(); state.viewMode='whole'; state.rangePreset=null;
       }
+      else if(m.key === 'scaleShape'){
+        clearSelectedChord(); state.viewMode='scaleShape';
+      }
+      else if(m.key === 'arpeggioShape'){ state.viewMode = 'arpeggioShape'; }
       render();
     });
     viewModeRow.appendChild(btn);
+  });
+
+  const rangePresetRow=document.getElementById('rangePresetRow');
+  rangePresetRow.innerHTML='';
+  rangePresetRow.style.display=!state.overlayEnabled&&(state.viewMode==='whole'||state.viewMode==='range')?'flex':'none';
+  const rangeButtons=[
+    {key:'whole',label:'Все лады'},
+    {key:'0-4',label:'Лады 0–4'},
+    {key:'5-9',label:'Лады 5–9'},
+    {key:'10-15',label:'Лады 10–15'},
+    {key:'custom',label:'Свой диапазон'}
+  ];
+  const activeRangeKey=state.viewMode==='range'?(state.rangePreset||'custom'):'whole';
+  rangeButtons.forEach(range=>{
+    const btn=document.createElement('button');
+    btn.type='button';
+    btn.className='chip clickable'+(activeRangeKey===range.key?' active':'');
+    btn.setAttribute('aria-pressed',activeRangeKey===range.key?'true':'false');
+    btn.textContent=range.label;
+    btn.addEventListener('click',()=>{
+      if(range.key==='whole'){
+        state.viewMode='whole'; state.rangePreset=null;
+      }else{
+        state.viewMode='range'; state.rangePreset=range.key;
+        if(range.key==='0-4'){state.rangeFrom=0;state.rangeTo=4;}
+        else if(range.key==='5-9'){state.rangeFrom=5;state.rangeTo=9;}
+        else if(range.key==='10-15'){state.rangeFrom=10;state.rangeTo=15;}
+      }
+      render();
+    });
+    rangePresetRow.appendChild(btn);
   });
   const rangeFromInput = document.getElementById('rangeFromInput');
   const rangeToInput = document.getElementById('rangeToInput');
@@ -1213,8 +1297,22 @@ function render(){
     }else{
       const message=document.createElement('span');
       message.className='hint'; message.style.margin='6px 0 0';
-      message.textContent='Для этой формулы проверенные формы гаммы пока не добавлены.';
+      message.textContent='Готовые формы сейчас доступны для мажора и натурального минора:';
       scaleFormRow.appendChild(message);
+      [
+        {label:'Открыть мажор',formula:'1 2 3 4 5 6 7'},
+        {label:'Открыть натуральный минор',formula:'1 2 b3 4 5 b6 b7'}
+      ].forEach(option=>{
+        const btn=document.createElement('button');
+        btn.type='button'; btn.className='chip clickable'; btn.textContent=option.label;
+        btn.addEventListener('click',()=>{
+          state.formula=option.formula;
+          document.getElementById('formula').value=option.formula;
+          syncScaleSelect(document.getElementById('mainScalePreset'),option.formula);
+          render();
+        });
+        scaleFormRow.appendChild(btn);
+      });
     }
   }
 
@@ -1228,7 +1326,7 @@ function render(){
     if(!arpeggioMode){
       const message = document.createElement('span');
       message.className = 'hint'; message.style.margin = '6px 0 0';
-      message.textContent = 'Выберите аккорд ниже, чтобы построить аппликатуру арпеджио.';
+      message.textContent = 'Сначала выберите трезвучие или септаккорд в списке выше.';
       arpeggioFormRow.appendChild(message);
     } else {
       const quality=detectChordQuality(state.selectedChordPcs);
@@ -1239,26 +1337,26 @@ function render(){
         }
         const label = document.createElement('span');
         label.className = 'hint'; label.style.margin = '6px 4px 0 0';
-        label.textContent = 'Аккордовая форма:';
+        label.textContent = '2. Выберите форму:';
         arpeggioFormRow.appendChild(label);
         curatedForms.forEach(form => {
-        const btn = document.createElement('button');
-        btn.type = 'button';
+          const btn = document.createElement('button');
+          btn.type = 'button';
           btn.className = 'chip clickable' + (state.arpeggioForm === form.id ? ' active' : '');
           btn.setAttribute('aria-pressed', state.arpeggioForm === form.id ? 'true' : 'false');
           btn.textContent = form.name;
           btn.addEventListener('click', ()=>{ state.arpeggioForm=form.id; render(); });
-        arpeggioFormRow.appendChild(btn);
+          arpeggioFormRow.appendChild(btn);
         });
         const note=document.createElement('span');
         note.className='hint'; note.style.margin='6px 0 0 10px';
-        note.textContent='Проверенные аккордовые формы на основе системы Попова.';
+        note.textContent='Проверенные формы E/D/C/A/G на основе системы Попова.';
         arpeggioFormRow.appendChild(note);
         currentCuratedForm=realizePopovForm(state.selectedChordPcs[0],quality,state.arpeggioForm,FRET_COUNT);
       }else{
         const message=document.createElement('span');
         message.className='hint'; message.style.margin='6px 0 0';
-        message.textContent='Для этого типа септаккорда проверенные аккордовые формы пока не добавлены.';
+        message.textContent='Для этого типа аккорда проверенные формы пока не добавлены.';
         arpeggioFormRow.appendChild(message);
       }
     }
