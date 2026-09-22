@@ -13,19 +13,66 @@ This file is the shared handoff between Danila, Claude, and Codex.
 
 ## Current review priorities
 
-1. Obtain a clear source page for Popov's triad arpeggio forms; do not derive them by merely deleting the seventh from the current shapes.
-2. Transcribe every triad quality shown by Popov as fixed relative geometry and connect supported triad chips to the curated form selector.
-3. Add fixed-coordinate tests plus all-root transposition, boundary, degree, and ascending-playback checks for the triad library.
-4. User-test the curated Popov-based triad and seventh-chord forms on a real guitar.
-5. Verify every transcribed point and the ascending playback order against the source diagrams.
-6. Record any hands-on corrections as fixed coordinates before adding derived exotic qualities.
-7. User-test the explicit Scale / Compare / Arpeggio states and Back to Scale action.
-8. User-test the side-by-side Main Mode and Outside Mode selectors.
-9. User-test whether Main Mode, Shared Notes, and Outside Mode Notes are immediately understandable.
-10. Review chord labels and distinguish traditional tertian harmony from generalized
-   scale-step stacks.
-11. Expand permanent regression tests before splitting
-   the single-file prototype into modules.
+### Scale forms: replace the generated fingering modes
+
+1. Treat the supplied major and natural-minor diagrams as source candidates for five
+   positional scale forms labelled E, D, C, A, and G. Obtain clear complete scans and
+   identify the source, scale formula, tonic markers, fret/string orientation, and
+   intended fingering before transcribing coordinates.
+2. Compare each scale form with the curated Popov seventh-chord form carrying the same
+   E/D/C/A/G label. Check whether they share the same tonic anchor and position, and
+   whether the chord tones form a literal subset of the scale diagram. Do not infer
+   equivalence from the shared label alone.
+3. Decide the data model for a curated `SCALE_FORM_LIBRARY`: fixed relative coordinates,
+   degree labels, tonic anchor, form id, source scale quality/formula, and explicit
+   ascending playback order. Preserve the formula-driven scale engine as the source of
+   pitch spelling and theory; curated forms are verified fretboard geometry.
+4. Define how the five source forms extend beyond major and natural minor. Compare at
+   least two approaches: a separate verified library per scale formula, or controlled
+   degree mutations of an approved parent form followed by manual guitar validation.
+   Never publish an automatically mutated form as verified before it is checked.
+5. Design the scale-form UI that will replace `Octave Shape` and `Playable Run`.
+   The likely model is a single Scale Forms mode with E/D/C/A/G selectors, whole-form
+   playback, and honest unavailable states. Decide how it behaves for manual formulas,
+   non-seven-note scales, and forms that do not fit between frets 0 and 15.
+6. Decide how curated scale forms behave in Compare mode: whether Main and Outside modes
+   can select forms independently, whether matching positions should be linked, and how
+   Main / Shared / Outside notes remain visually understandable without duplicating an
+   overloaded set of controls.
+7. After the curated scale-form model is approved, remove the student-facing
+   `Octave Shape` and `Playable Run` controls and retire their generated-route logic only
+   when equivalent useful behavior is covered by the new forms.
+8. Add fixed-coordinate fixtures plus all-root transposition, boundary, degree-content,
+   note-count, and strictly ascending-playback tests for every approved scale form.
+9. User-test every scale form and its playback on a real guitar, then record corrections
+   as fixed source coordinates.
+
+### Triad arpeggio forms
+
+10. Obtain a clear source page for Popov's triad arpeggio forms; do not derive them by
+    merely deleting the seventh from the current shapes.
+11. Transcribe every triad quality shown by Popov as fixed relative geometry and connect
+    supported triad chips to the same curated E/D/C/A/G form-selection model used by the
+    seventh chords where the source supports those labels.
+12. Compare each triad form with both its corresponding seventh-chord form and scale form.
+    Record which notes and anchors are shared, but keep independent source geometry when
+    the diagrams differ.
+13. Add fixed-coordinate tests plus all-root transposition, boundary, degree, note-count,
+    and ascending-playback checks for the triad library.
+14. User-test the curated Popov-based triad and seventh-chord forms on a real guitar.
+15. Verify every transcribed point and the ascending playback order against the source
+    diagrams. Record hands-on corrections before adding derived exotic qualities.
+
+### Existing interface and theory review
+
+16. User-test the explicit Scale / Compare / Arpeggio states and Back to Scale action.
+17. User-test the side-by-side Main Mode and Outside Mode selectors.
+18. User-test whether Main Mode, Shared Notes, and Outside Mode Notes are immediately
+    understandable.
+19. Review chord labels and distinguish traditional tertian harmony from generalized
+    scale-step stacks.
+20. Expand permanent regression tests before splitting the single-file prototype into
+    modules.
 
 ## Implemented safeguards
 
@@ -48,14 +95,12 @@ This file is the shared handoff between Danila, Claude, and Codex.
 
 ## Later roadmap
 
-- Re-evaluate Octave Shape and Playable Run separately after the Popov triad library is complete: clarify their teaching purpose, inspect generated routes on a real guitar, simplify their controls, and keep only musically useful behavior.
 - Derived exotic qualities based on approved Popov forms, with each result checked on a real guitar before publication.
 - String-set and technique-specific libraries only after the Popov system is validated.
 - String-set arpeggios on 6–5–4, 5–4–3, 4–3–2, and 3–2–1.
 - Alternative starting chord tones (third, fifth, or seventh) and descending routes.
 - Arpeggio + Tensions: show Main/Shared/Tension notes around a selected chord.
-- Scale-path comparison for Main/Tension Octave Shape and Playable Run.
-- Guided Transition Run between Main and Tension scales.
+- Scale-form comparison and guided transitions between approved Main and Tension forms.
 - Shareable state in the URL.
 - Chord progression input and analysis.
 - Alternate guitar tunings.
