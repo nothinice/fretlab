@@ -129,9 +129,9 @@ mechanically derived geometry as source-verified material.
    (all five forms guitar-verified on 2026-09-23), Mixolydian second as the major-parent
    pilot (all five forms guitar-verified on 2026-09-23), then Lydian (all five forms
    guitar-verified on 2026-09-23), Phrygian (five literal candidates added as `pending`
-   on 2026-09-23), and Locrian last.
-   Locrian remains last because it changes two degrees and adds the diminished/m7b5
-   relationship, making it the highest-risk diatonic conversion.
+   on 2026-09-23), and Locrian last (five literal candidates added as `pending` on
+   2026-09-23). Locrian changes two degrees and adds the diminished/m7b5 relationship,
+   making it the highest-risk diatonic conversion and requiring separate hands-on review.
 7. Before exposing a raw derived candidate, test all five forms in all twelve roots for
    exact degree content, preserved parent point count and root positions, correct pitch classes, collisions,
    fretboard boundaries, and strictly ascending unique playback. Playback must begin on

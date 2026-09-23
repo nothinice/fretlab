@@ -28,6 +28,11 @@
   only the declared `2 → b2` one-fret downward mutation; all 60 roots/forms fit.
 - Applied explicit hands-on corrections to Phrygian E and A: moved each b2 to an exact
   unison so D-E-F and G-A-Bb stay continuous; tests prove pitch and degree preservation.
+- Completed the seven-mode diatonic form library with five independently stored Locrian
+  candidates derived from Natural Minor by only `2 → b2` and `5 → b5`; all 60 roots/forms
+  fit the 16-fret board and remain `pending` for hands-on review.
+- Added per-form Locrian cross-checks against diminished and m7b5 Popov arpeggios; only
+  the G relationships are literal subsets, while the other eight remain mismatches.
 - Recorded a later UI pass for duplicated unisons in broad G-forms: retain the source
   points but separate optional alternatives from the primary numbered playback route.
 - Pinned the source-transcribed major G scale form to 17 positions / 15 pitches and

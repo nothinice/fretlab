@@ -27,19 +27,21 @@ const buildScale=new Function('LETTERS','NATURAL_PC','DEGREE_NATURAL','ACC_SYMBO
   `${html.slice(theoryStart,theoryEnd)}\nreturn buildScale;`
 )(['C','D','E','F','G','A','B'],{C:0,D:2,E:4,F:5,G:7,A:9,B:11},{1:0,2:2,3:4,4:5,5:7,6:9,7:11},{'-2':'bb','-1':'b','0':'','1':'#','2':'##'});
 
-assert.deepEqual(Object.keys(api.SCALE_FORM_LIBRARY).sort(),['dorian','lydian','major','mixolydian','naturalMinor','phrygian']);
+assert.deepEqual(Object.keys(api.SCALE_FORM_LIBRARY).sort(),['dorian','locrian','lydian','major','mixolydian','naturalMinor','phrygian']);
 assert.deepEqual(api.SCALE_FORM_LIBRARY.major.map(form=>form.id),['E','D','C','A','G']);
 assert.deepEqual(api.SCALE_FORM_LIBRARY.naturalMinor.map(form=>form.id),['E','D','C','A','G']);
 assert.deepEqual(api.SCALE_FORM_LIBRARY.dorian.map(form=>form.id),['E','D','C','A','G']);
 assert.deepEqual(api.SCALE_FORM_LIBRARY.mixolydian.map(form=>form.id),['E','D','C','A','G']);
 assert.deepEqual(api.SCALE_FORM_LIBRARY.lydian.map(form=>form.id),['E','D','C','A','G']);
 assert.deepEqual(api.SCALE_FORM_LIBRARY.phrygian.map(form=>form.id),['E','D','C','A','G']);
+assert.deepEqual(api.SCALE_FORM_LIBRARY.locrian.map(form=>form.id),['E','D','C','A','G']);
 assert.equal(api.SCALE_FORMULA_LIBRARY['0,2,4,5,7,9,11'],'major');
 assert.equal(api.SCALE_FORMULA_LIBRARY['0,2,3,5,7,8,10'],'naturalMinor');
 assert.equal(api.SCALE_FORMULA_LIBRARY['0,2,3,5,7,9,10'],'dorian');
 assert.equal(api.SCALE_FORMULA_LIBRARY['0,2,4,5,7,9,10'],'mixolydian');
 assert.equal(api.SCALE_FORMULA_LIBRARY['0,2,4,6,7,9,11'],'lydian');
 assert.equal(api.SCALE_FORMULA_LIBRARY['0,1,3,5,7,8,10'],'phrygian');
+assert.equal(api.SCALE_FORMULA_LIBRARY['0,1,3,5,6,8,10'],'locrian');
 assert.equal(api.SCALE_DEGREE_SEMITONES['#4'],6);
 
 // Fixed C-root fixtures are independent of the realization algorithm and
@@ -88,7 +90,8 @@ const expectedDegrees={
   dorian:new Set(['1','2','b3','4','5','6','b7']),
   mixolydian:new Set(['1','2','3','4','5','6','b7']),
   lydian:new Set(['1','2','3','#4','5','6','7']),
-  phrygian:new Set(['1','b2','b3','4','5','b6','b7'])
+  phrygian:new Set(['1','b2','b3','4','5','b6','b7']),
+  locrian:new Set(['1','b2','b3','4','b5','b6','b7'])
 };
 
 // Source-transcribed and guitar-reviewed parent forms retain exact C-root fixtures.
@@ -110,26 +113,27 @@ for(const [scaleId,forms] of Object.entries(api.SCALE_FORM_LIBRARY)){
   }
 }
 
-function assertSingleDegreeMutation({scaleId,parentScaleId,fromDegree,toDegree,fretDelta,reviewStatus}){
+function assertDegreeMutations({scaleId,parentScaleId,mutationMap,reviewStatus}){
  for(const candidateForm of api.SCALE_FORM_LIBRARY[scaleId]){
   const parent=api.SCALE_FORM_LIBRARY[parentScaleId].find(form=>form.id===candidateForm.id);
   assert.ok(parent,`${scaleId} ${candidateForm.id} parent must exist`);
   assert.equal(candidateForm.parentScaleId,parentScaleId);
   assert.equal(candidateForm.provenance,'derived-candidate');
   assert.equal(candidateForm.reviewStatus,reviewStatus);
-  assert.deepEqual(candidateForm.mutationMap,[{fromDegree,toDegree,fretDelta}]);
+  assert.deepEqual(candidateForm.mutationMap,mutationMap);
   assert.equal(candidateForm.anchorStringIdx,parent.anchorStringIdx,`${scaleId} ${candidateForm.id} must preserve its anchor`);
   assert.equal(candidateForm.positions.length,parent.positions.length,`${scaleId} ${candidateForm.id} must preserve point count`);
   parent.positions.forEach((sourcePoint,index)=>{
     const candidate=candidateForm.positions[index];
     const correction=(candidateForm.corrections||[]).find(entry=>entry.sourceIndex===index);
-    if(sourcePoint.degree===fromDegree){
-      assert.equal(candidate.degree,toDegree,`${scaleId} ${candidateForm.id} point ${index} must change ${fromDegree} to ${toDegree}`);
+    const mutation=mutationMap.find(entry=>entry.fromDegree===sourcePoint.degree);
+    if(mutation){
+      assert.equal(candidate.degree,mutation.toDegree,`${scaleId} ${candidateForm.id} point ${index} must change ${mutation.fromDegree} to ${mutation.toDegree}`);
       if(correction){
         assert.equal(correction.kind,'unison-relocation');
-        assert.equal(correction.degree,toDegree);
+        assert.equal(correction.degree,mutation.toDegree);
         assert.equal(correction.fromStringIdx,sourcePoint.stringIdx);
-        assert.equal(correction.fromFretOffset,sourcePoint.fretOffset+fretDelta);
+        assert.equal(correction.fromFretOffset,sourcePoint.fretOffset+mutation.fretDelta);
         assert.equal(candidate.stringIdx,correction.toStringIdx);
         assert.equal(candidate.fretOffset,correction.toFretOffset);
         const fromMidi=OPEN_STRINGS_TOP_TO_BOTTOM[correction.fromStringIdx].midi+correction.fromFretOffset;
@@ -137,7 +141,7 @@ function assertSingleDegreeMutation({scaleId,parentScaleId,fromDegree,toDegree,f
         assert.equal(toMidi,fromMidi,`${scaleId} ${candidateForm.id} correction ${index} must preserve exact pitch`);
       }else{
         assert.equal(candidate.stringIdx,sourcePoint.stringIdx,`${scaleId} ${candidateForm.id} point ${index} must stay on its string`);
-        assert.equal(candidate.fretOffset,sourcePoint.fretOffset+fretDelta,`${scaleId} ${candidateForm.id} point ${index} must move exactly ${fretDelta} fret`);
+        assert.equal(candidate.fretOffset,sourcePoint.fretOffset+mutation.fretDelta,`${scaleId} ${candidateForm.id} point ${index} must move exactly ${mutation.fretDelta} fret`);
       }
     }else{
       assert.equal(correction,undefined,`${scaleId} ${candidateForm.id} point ${index} must not correct an unaffected degree`);
@@ -151,10 +155,11 @@ function assertSingleDegreeMutation({scaleId,parentScaleId,fromDegree,toDegree,f
  }
 }
 
-assertSingleDegreeMutation({scaleId:'dorian',parentScaleId:'naturalMinor',fromDegree:'b6',toDegree:'6',fretDelta:1,reviewStatus:'verified'});
-assertSingleDegreeMutation({scaleId:'mixolydian',parentScaleId:'major',fromDegree:'7',toDegree:'b7',fretDelta:-1,reviewStatus:'verified'});
-assertSingleDegreeMutation({scaleId:'lydian',parentScaleId:'major',fromDegree:'4',toDegree:'#4',fretDelta:1,reviewStatus:'verified'});
-assertSingleDegreeMutation({scaleId:'phrygian',parentScaleId:'naturalMinor',fromDegree:'2',toDegree:'b2',fretDelta:-1,reviewStatus:'pending'});
+assertDegreeMutations({scaleId:'dorian',parentScaleId:'naturalMinor',mutationMap:[{fromDegree:'b6',toDegree:'6',fretDelta:1}],reviewStatus:'verified'});
+assertDegreeMutations({scaleId:'mixolydian',parentScaleId:'major',mutationMap:[{fromDegree:'7',toDegree:'b7',fretDelta:-1}],reviewStatus:'verified'});
+assertDegreeMutations({scaleId:'lydian',parentScaleId:'major',mutationMap:[{fromDegree:'4',toDegree:'#4',fretDelta:1}],reviewStatus:'verified'});
+assertDegreeMutations({scaleId:'phrygian',parentScaleId:'naturalMinor',mutationMap:[{fromDegree:'2',toDegree:'b2',fretDelta:-1}],reviewStatus:'pending'});
+assertDegreeMutations({scaleId:'locrian',parentScaleId:'naturalMinor',mutationMap:[{fromDegree:'2',toDegree:'b2',fretDelta:-1},{fromDegree:'5',toDegree:'b5',fretDelta:-1}],reviewStatus:'pending'});
 const phrygianECorrections=api.SCALE_FORM_LIBRARY.phrygian.find(form=>form.id==='E').corrections;
 assert.equal(phrygianECorrections.length,1,'Phrygian E must declare exactly one hands-on relocation');
 assert.equal(phrygianECorrections[0].reason,'hands-on-continuity');
@@ -179,6 +184,9 @@ for(const [pc,letter] of [[0,'C'],[1,'C'],[1,'D'],[2,'D'],[3,'D'],[3,'E'],[4,'E'
   assert.equal((flatSecond.pc-pc+12)%12,1,`${letter} Phrygian b2 must be one semitone above its tonic`);
   assert.equal(flatSecond.noteName[0],['C','D','E','F','G','A','B'][(['C','D','E','F','G','A','B'].indexOf(letter)+1)%7],`${letter} Phrygian b2 must retain second-degree letter spelling`);
 }
+const cLocrian=buildScale(0,'C','1 b2 b3 4 b5 b6 b7');
+assert.equal(cLocrian.find(note=>note.degreeLabel==='b2').noteName,'Db','C Locrian must spell b2 as Db, not C#');
+assert.equal(cLocrian.find(note=>note.degreeLabel==='b5').noteName,'Gb','C Locrian must spell b5 as Gb, not F#');
 
 let totalComplete=0;
 const completeByScale={};
@@ -229,8 +237,8 @@ for(const relationship of api.SCALE_CHORD_FORM_RELATIONSHIPS){
   }
 }
 
-assert.deepEqual(completeByScale,{major:60,naturalMinor:60,dorian:60,mixolydian:60,lydian:58,phrygian:60});
-assert.equal(totalComplete,358);
+assert.deepEqual(completeByScale,{major:60,naturalMinor:60,dorian:60,mixolydian:60,lydian:58,phrygian:60,locrian:60});
+assert.equal(totalComplete,418);
 const majorG=api.realizeScaleForm(0,'major','G',FRET_COUNT);
 assert.equal(majorG.positions.length,17,'Major G must preserve all 17 source positions');
 assert.equal(majorG.playbackMidi.length,15,'Major G must provide the 15 distinct ascending source pitches');
@@ -246,12 +254,14 @@ assert.ok(html.includes('Открыть дорийский'),'Unsupported scales
 assert.ok(html.includes('Открыть миксолидийский'),'Unsupported scales must offer a direct path to the Mixolydian pilot');
 assert.ok(html.includes('Открыть лидийский'),'Unsupported scales must offer a direct path to the Lydian pilot');
 assert.ok(html.includes('Открыть фригийский'),'Unsupported scales must offer a direct path to the Phrygian pilot');
+assert.ok(html.includes('Открыть локрийский'),'Unsupported scales must offer a direct path to the Locrian candidates');
 assert.ok(html.includes('Производные формы фригийского лада; ожидают проверки на гитаре.'),'Phrygian candidates must not be presented as verified');
+assert.ok(html.includes('Производные формы локрийского лада; ожидают проверки на гитаре.'),'Locrian candidates must not be presented as verified');
 assert.equal(api.realizeScaleForm(3,'lydian','D',FRET_COUNT).reason,'outside','D Lydian D form must expose its reviewed 16-fret boundary');
 assert.equal(api.realizeScaleForm(8,'lydian','G',FRET_COUNT).reason,'outside','G# Lydian G form must expose its reviewed 16-fret boundary');
 assert.ok(html.includes('p.dataset.preferredToken=activeToken'),'Degree pills must preserve #4 spelling from the active formula');
 assert.ok(html.includes('btn.disabled=!realization.complete'),'Unavailable form buttons must be disabled before selection');
 assert.ok(!html.includes("{key:'octaveShape', label:'Октавная аппликатура'}"),'Legacy octave-shape option must be removed from the UI');
 assert.ok(!html.includes("{key:'playableRun', label:'Игровой маршрут'}"),'Legacy playable-run option must be removed from the UI');
-assert.equal(api.SCALE_CHORD_FORM_RELATIONSHIPS.length,60);
-console.log(`OK: ${totalComplete} curated scale form/root realizations and 60 scale/chord relationships validated`);
+assert.equal(api.SCALE_CHORD_FORM_RELATIONSHIPS.length,70);
+console.log(`OK: ${totalComplete} curated scale form/root realizations and 70 scale/chord relationships validated`);
