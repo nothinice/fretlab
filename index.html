@@ -578,7 +578,7 @@ function prepareScaleForms(scaleId,formulaKey,forms){
 }
 
 const SCALE_DEGREE_SEMITONES={
-  '1':0,'b2':1,'2':2,'b3':3,'3':4,'4':5,'b5':6,'5':7,'b6':8,'6':9,'b7':10,'7':11
+  '1':0,'b2':1,'2':2,'b3':3,'3':4,'4':5,'b5':6,'#4':6,'5':7,'b6':8,'6':9,'b7':10,'7':11
 };
 
 const CURATED_MAJOR_SCALE_FORMS=prepareScaleForms('major','0,2,4,5,7,9,11',[
@@ -721,7 +721,7 @@ const MIXOLYDIAN_MUTATION=[{fromDegree:'7',toDegree:'b7',fretDelta:-1}];
 const CURATED_MIXOLYDIAN_SCALE_FORMS=prepareScaleForms('mixolydian','0,2,4,5,7,9,10',[
   {
     id:'E',name:'E',anchorStringIdx:5,parentScaleId:'major',
-    provenance:'derived-candidate',reviewStatus:'pending',mutationMap:MIXOLYDIAN_MUTATION,
+    provenance:'derived-candidate',reviewStatus:'verified',mutationMap:MIXOLYDIAN_MUTATION,
     positions:[
       [0,-2,'b7'],[0,0,'1'],[0,2,'2'],[1,0,'5'],[1,2,'6'],
       [2,-1,'2'],[2,1,'3'],[2,2,'4'],[3,-1,'6'],[3,0,'b7'],[3,2,'1'],
@@ -730,7 +730,7 @@ const CURATED_MIXOLYDIAN_SCALE_FORMS=prepareScaleForms('mixolydian','0,2,4,5,7,9
   },
   {
     id:'D',name:'D',anchorStringIdx:5,parentScaleId:'major',
-    provenance:'derived-candidate',reviewStatus:'pending',mutationMap:MIXOLYDIAN_MUTATION,
+    provenance:'derived-candidate',reviewStatus:'verified',mutationMap:MIXOLYDIAN_MUTATION,
     positions:[
       [0,2,'2'],[0,4,'3'],[0,5,'4'],[1,2,'6'],[1,3,'b7'],[1,5,'1'],
       [2,1,'3'],[2,2,'4'],[2,4,'5'],[3,0,'b7'],[3,2,'1'],[3,4,'2'],
@@ -739,7 +739,7 @@ const CURATED_MIXOLYDIAN_SCALE_FORMS=prepareScaleForms('mixolydian','0,2,4,5,7,9
   },
   {
     id:'C',name:'C',anchorStringIdx:4,parentScaleId:'major',
-    provenance:'derived-candidate',reviewStatus:'pending',mutationMap:MIXOLYDIAN_MUTATION,
+    provenance:'derived-candidate',reviewStatus:'verified',mutationMap:MIXOLYDIAN_MUTATION,
     positions:[
       [0,-3,'3'],[0,-2,'4'],[0,0,'5'],[1,-4,'b7'],[1,-2,'1'],[1,0,'2'],
       [2,-3,'5'],[2,-1,'6'],[3,-3,'2'],[3,-1,'3'],[3,0,'4'],[4,0,'1']
@@ -747,7 +747,7 @@ const CURATED_MIXOLYDIAN_SCALE_FORMS=prepareScaleForms('mixolydian','0,2,4,5,7,9
   },
   {
     id:'A',name:'A',anchorStringIdx:4,parentScaleId:'major',
-    provenance:'derived-candidate',reviewStatus:'pending',mutationMap:MIXOLYDIAN_MUTATION,
+    provenance:'derived-candidate',reviewStatus:'verified',mutationMap:MIXOLYDIAN_MUTATION,
     positions:[
       [0,0,'5'],[0,2,'6'],[0,3,'b7'],[1,0,'2'],[1,2,'3'],[1,3,'4'],
       [2,-1,'6'],[2,0,'b7'],[2,2,'1'],[3,-1,'3'],[3,0,'4'],[3,2,'5'],
@@ -756,7 +756,7 @@ const CURATED_MIXOLYDIAN_SCALE_FORMS=prepareScaleForms('mixolydian','0,2,4,5,7,9
   },
   {
     id:'G',name:'G',anchorStringIdx:5,parentScaleId:'major',
-    provenance:'derived-candidate',reviewStatus:'pending',mutationMap:MIXOLYDIAN_MUTATION,
+    provenance:'derived-candidate',reviewStatus:'verified',mutationMap:MIXOLYDIAN_MUTATION,
     positions:[
       [0,-3,'6'],[0,-2,'b7'],[0,0,'1'],[1,-3,'3'],[1,-2,'4'],[1,0,'5'],
       [2,-5,'b7'],[2,-3,'1'],[2,-1,'2'],[3,-5,'4'],[3,-3,'5'],[3,-1,'6'],
@@ -765,18 +765,70 @@ const CURATED_MIXOLYDIAN_SCALE_FORMS=prepareScaleForms('mixolydian','0,2,4,5,7,9
   }
 ]);
 
+// Lydian candidates are independently stored Major forms with the sole declared
+// mutation 4 -> #4, one fret upward on the original string.
+const LYDIAN_MUTATION=[{fromDegree:'4',toDegree:'#4',fretDelta:1}];
+const CURATED_LYDIAN_SCALE_FORMS=prepareScaleForms('lydian','0,2,4,6,7,9,11',[
+  {
+    id:'E',name:'E',anchorStringIdx:5,parentScaleId:'major',
+    provenance:'derived-candidate',reviewStatus:'pending',mutationMap:LYDIAN_MUTATION,
+    positions:[
+      [0,-1,'7'],[0,0,'1'],[0,2,'2'],[1,0,'5'],[1,2,'6'],
+      [2,-1,'2'],[2,1,'3'],[2,3,'#4'],[3,-1,'6'],[3,1,'7'],[3,2,'1'],
+      [4,-1,'3'],[4,1,'#4'],[4,2,'5'],[5,0,'1'],[5,2,'2']
+    ]
+  },
+  {
+    id:'D',name:'D',anchorStringIdx:5,parentScaleId:'major',
+    provenance:'derived-candidate',reviewStatus:'pending',mutationMap:LYDIAN_MUTATION,
+    positions:[
+      [0,2,'2'],[0,4,'3'],[0,6,'#4'],[1,2,'6'],[1,4,'7'],[1,5,'1'],
+      [2,1,'3'],[2,3,'#4'],[2,4,'5'],[3,1,'7'],[3,2,'1'],[3,4,'2'],
+      [4,1,'#4'],[4,2,'5'],[4,4,'6'],[5,0,'1'],[5,2,'2'],[5,4,'3']
+    ]
+  },
+  {
+    id:'C',name:'C',anchorStringIdx:4,parentScaleId:'major',
+    provenance:'derived-candidate',reviewStatus:'pending',mutationMap:LYDIAN_MUTATION,
+    positions:[
+      [0,-3,'3'],[0,-1,'#4'],[0,0,'5'],[1,-3,'7'],[1,-2,'1'],[1,0,'2'],
+      [2,-3,'5'],[2,-1,'6'],[3,-3,'2'],[3,-1,'3'],[3,1,'#4'],[4,0,'1']
+    ]
+  },
+  {
+    id:'A',name:'A',anchorStringIdx:4,parentScaleId:'major',
+    provenance:'derived-candidate',reviewStatus:'pending',mutationMap:LYDIAN_MUTATION,
+    positions:[
+      [0,0,'5'],[0,2,'6'],[0,4,'7'],[1,0,'2'],[1,2,'3'],[1,4,'#4'],
+      [2,-1,'6'],[2,1,'7'],[2,2,'1'],[3,-1,'3'],[3,1,'#4'],[3,2,'5'],
+      [4,0,'1'],[4,2,'2']
+    ]
+  },
+  {
+    id:'G',name:'G',anchorStringIdx:5,parentScaleId:'major',
+    provenance:'derived-candidate',reviewStatus:'pending',mutationMap:LYDIAN_MUTATION,
+    positions:[
+      [0,-3,'6'],[0,-1,'7'],[0,0,'1'],[1,-3,'3'],[1,-1,'#4'],[1,0,'5'],
+      [2,-4,'7'],[2,-3,'1'],[2,-1,'2'],[3,-4,'#4'],[3,-3,'5'],[3,-1,'6'],
+      [4,-5,'1'],[4,-3,'2'],[4,-1,'3'],[4,1,'#4'],[5,0,'1']
+    ]
+  }
+]);
+
 const SCALE_FORM_LIBRARY={
   major:CURATED_MAJOR_SCALE_FORMS,
   naturalMinor:CURATED_NATURAL_MINOR_SCALE_FORMS,
   dorian:CURATED_DORIAN_SCALE_FORMS,
-  mixolydian:CURATED_MIXOLYDIAN_SCALE_FORMS
+  mixolydian:CURATED_MIXOLYDIAN_SCALE_FORMS,
+  lydian:CURATED_LYDIAN_SCALE_FORMS
 };
 
 const SCALE_FORMULA_LIBRARY={
   '0,2,4,5,7,9,11':'major',
   '0,2,3,5,7,8,10':'naturalMinor',
   '0,2,3,5,7,9,10':'dorian',
-  '0,2,4,5,7,9,10':'mixolydian'
+  '0,2,4,5,7,9,10':'mixolydian',
+  '0,2,4,6,7,9,11':'lydian'
 };
 
 const SCALE_CHORD_FORM_RELATIONSHIPS=[
@@ -810,16 +862,26 @@ const SCALE_CHORD_FORM_RELATIONSHIPS=[
   {scaleId:'dorian',formId:'C',chordQuality:'m7',status:'mismatch'},
   {scaleId:'dorian',formId:'A',chordQuality:'m7',status:'verified'},
   {scaleId:'dorian',formId:'G',chordQuality:'m7',status:'verified'},
-  {scaleId:'mixolydian',formId:'E',chordQuality:'maj',status:'pending'},
-  {scaleId:'mixolydian',formId:'D',chordQuality:'maj',status:'pending'},
-  {scaleId:'mixolydian',formId:'C',chordQuality:'maj',status:'pending'},
-  {scaleId:'mixolydian',formId:'A',chordQuality:'maj',status:'pending'},
+  {scaleId:'mixolydian',formId:'E',chordQuality:'maj',status:'verified'},
+  {scaleId:'mixolydian',formId:'D',chordQuality:'maj',status:'verified'},
+  {scaleId:'mixolydian',formId:'C',chordQuality:'maj',status:'verified'},
+  {scaleId:'mixolydian',formId:'A',chordQuality:'maj',status:'verified'},
   {scaleId:'mixolydian',formId:'G',chordQuality:'maj',status:'mismatch'},
   {scaleId:'mixolydian',formId:'E',chordQuality:'7',status:'mismatch'},
-  {scaleId:'mixolydian',formId:'D',chordQuality:'7',status:'pending'},
+  {scaleId:'mixolydian',formId:'D',chordQuality:'7',status:'verified'},
   {scaleId:'mixolydian',formId:'C',chordQuality:'7',status:'mismatch'},
-  {scaleId:'mixolydian',formId:'A',chordQuality:'7',status:'pending'},
-  {scaleId:'mixolydian',formId:'G',chordQuality:'7',status:'mismatch'}
+  {scaleId:'mixolydian',formId:'A',chordQuality:'7',status:'verified'},
+  {scaleId:'mixolydian',formId:'G',chordQuality:'7',status:'mismatch'},
+  {scaleId:'lydian',formId:'E',chordQuality:'maj',status:'pending'},
+  {scaleId:'lydian',formId:'D',chordQuality:'maj',status:'pending'},
+  {scaleId:'lydian',formId:'C',chordQuality:'maj',status:'pending'},
+  {scaleId:'lydian',formId:'A',chordQuality:'maj',status:'pending'},
+  {scaleId:'lydian',formId:'G',chordQuality:'maj',status:'mismatch'},
+  {scaleId:'lydian',formId:'E',chordQuality:'maj7',status:'pending'},
+  {scaleId:'lydian',formId:'D',chordQuality:'maj7',status:'pending'},
+  {scaleId:'lydian',formId:'C',chordQuality:'maj7',status:'pending'},
+  {scaleId:'lydian',formId:'A',chordQuality:'maj7',status:'pending'},
+  {scaleId:'lydian',formId:'G',chordQuality:'maj7',status:'mismatch'}
 ];
 
 function realizeScaleForm(rootPc,scaleId,formId,maxFret=FRET_COUNT){
@@ -1420,7 +1482,8 @@ function render(){
         major:'Проверенные на гитаре формы мажорной гаммы.',
         naturalMinor:'Проверенные на гитаре формы натурального минора.',
         dorian:'Проверенные на гитаре формы дорийского лада.',
-        mixolydian:'Производные формы миксолидийского лада; ожидают проверки на гитаре.'
+        mixolydian:'Проверенные на гитаре формы миксолидийского лада.',
+        lydian:'Производные формы лидийского лада; ожидают проверки на гитаре.'
       };
       note.textContent=scaleFormMessages[currentScaleId]||'';
       scaleFormRow.appendChild(note);
@@ -1436,13 +1499,14 @@ function render(){
     }else{
       const message=document.createElement('span');
       message.className='hint'; message.style.margin='6px 0 0';
-      message.textContent='Формы сейчас доступны для мажора, натурального минора, дорийского и миксолидийского ладов:';
+      message.textContent='Формы сейчас доступны для мажора, натурального минора, дорийского, миксолидийского и лидийского ладов:';
       scaleFormRow.appendChild(message);
       [
         {label:'Открыть мажор',formula:'1 2 3 4 5 6 7'},
         {label:'Открыть натуральный минор',formula:'1 2 b3 4 5 b6 b7'},
         {label:'Открыть дорийский',formula:'1 2 b3 4 5 6 b7'},
-        {label:'Открыть миксолидийский',formula:'1 2 3 4 5 6 b7'}
+        {label:'Открыть миксолидийский',formula:'1 2 3 4 5 6 b7'},
+        {label:'Открыть лидийский',formula:'1 2 3 #4 5 6 7'}
       ].forEach(option=>{
         const btn=document.createElement('button');
         btn.type='button'; btn.className='chip clickable'; btn.textContent=option.label;
@@ -1685,13 +1749,20 @@ function render(){
 }
 
 function updatePillHighlights(){
-  const activeSemitones = new Set(
-    state.formula.split(/[\s,\-]+/).filter(Boolean).map(tokenSemitoneMod12).filter(s => s !== null)
-  );
+  const activeTokensBySemitone = new Map();
+  state.formula.split(/[\s,\-]+/).filter(Boolean).forEach(token=>{
+    const semitone=tokenSemitoneMod12(token);
+    if(semitone!==null&&!activeTokensBySemitone.has(semitone))activeTokensBySemitone.set(semitone,token);
+  });
   document.querySelectorAll('#pillRow .pill').forEach(p=>{
     const s = parseInt(p.dataset.semitone, 10);
-    p.classList.toggle('active', activeSemitones.has(s));
-    p.setAttribute('aria-pressed', activeSemitones.has(s) ? 'true' : 'false');
+    const activeToken=activeTokensBySemitone.get(s);
+    if(activeToken)p.dataset.preferredToken=activeToken;
+    const shownToken=activeToken||p.dataset.preferredToken||p.dataset.defaultToken;
+    p.textContent=shownToken;
+    p.setAttribute('aria-label', `Toggle degree ${shownToken}`);
+    p.classList.toggle('active', activeToken!==undefined);
+    p.setAttribute('aria-pressed', activeToken!==undefined?'true':'false');
   });
 }
 
@@ -1799,6 +1870,8 @@ function init(){
     p.type = 'button';
     p.className = 'pill' + (BLACK_SEMITONES.has(semitone) ? ' black' : '') + (semitone === 0 ? ' root-pill' : '');
     p.dataset.semitone = semitone;
+    p.dataset.defaultToken = token;
+    p.dataset.preferredToken = token;
     p.textContent = token;
     p.setAttribute('aria-label', `Toggle degree ${token}`);
     p.setAttribute('aria-pressed', 'false');
@@ -1806,7 +1879,7 @@ function init(){
       const tokens = state.formula.split(/[\s,\-]+/).filter(Boolean);
       const existingIdx = tokens.findIndex(t => tokenSemitoneMod12(t) === semitone);
       if(existingIdx >= 0){ tokens.splice(existingIdx, 1); }
-      else { tokens.push(token); }
+      else { tokens.push(p.dataset.preferredToken||token); }
       tokens.sort((a,b) => tokenSemitoneMod12(a) - tokenSemitoneMod12(b));
       state.formula = tokens.join(' ');
       formulaInput.value = state.formula;

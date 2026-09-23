@@ -14,6 +14,14 @@
   Major parents using only the declared `7 → b7` one-fret downward mutation.
 - Kept Mixolydian explicitly `pending` while testing all roots, exact lineage, collisions,
   playback, boundaries, and maj/dominant-7 subset relationships.
+- Promoted all five Mixolydian forms to `verified` after hands-on guitar review and pinned
+  their approved C-root coordinates as fixed regression fixtures.
+- Added five independently stored Lydian E/D/C/A/G candidates from Major using only the
+  declared `4 → #4` one-fret upward mutation; all remain `pending` for guitar review.
+- Added `#4` to curated scale realization and made the chromatic degree controls preserve
+  the active formula's enharmonic label instead of displaying Lydian's `#4` as `b5`.
+- Kept the two honest 16-fret boundary exclusions: D-form at D#/Eb and G-form at G#/Ab;
+  the interface disables those combinations rather than expanding or truncating them.
 - Pinned the source-transcribed major G scale form to 17 positions / 15 pitches and
   required its playback to begin on the low-E-string tonic rather than below the root.
 - Restored the diminished E and C triads as literal subsets of their Popov m7b5 forms.

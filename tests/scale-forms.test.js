@@ -7,8 +7,11 @@ const scaleStart=html.indexOf('function prepareScaleForms');
 const scaleEnd=html.indexOf('// ---------- Playable Shape (arpeggio mode) ----------');
 const popovStart=html.indexOf('function preparePopovForms');
 const popovEnd=html.indexOf('function detectChordQuality');
+const theoryStart=html.indexOf('function parseToken');
+const theoryEnd=html.indexOf('// Detects degrees that collapse');
 assert.ok(scaleStart>=0&&scaleEnd>scaleStart,'Curated scale-form source must be present');
 assert.ok(popovStart>=0&&popovEnd>popovStart,'Curated Popov source must be present');
+assert.ok(theoryStart>=0&&theoryEnd>theoryStart,'Formula spelling source must be present');
 
 const OPEN_STRINGS_TOP_TO_BOTTOM=[
   {label:'e',pc:4,midi:64},{label:'B',pc:11,midi:59},{label:'G',pc:7,midi:55},
@@ -20,16 +23,22 @@ const api=new Function('OPEN_STRINGS_TOP_TO_BOTTOM','FRET_COUNT',
   `${source}\nreturn {SCALE_FORM_LIBRARY,SCALE_FORMULA_LIBRARY,SCALE_CHORD_FORM_RELATIONSHIPS,`+
   `SCALE_DEGREE_SEMITONES,realizeScaleForm,POPOV_FORM_LIBRARY};`
 )(OPEN_STRINGS_TOP_TO_BOTTOM,FRET_COUNT);
+const buildScale=new Function('LETTERS','NATURAL_PC','DEGREE_NATURAL','ACC_SYMBOL',
+  `${html.slice(theoryStart,theoryEnd)}\nreturn buildScale;`
+)(['C','D','E','F','G','A','B'],{C:0,D:2,E:4,F:5,G:7,A:9,B:11},{1:0,2:2,3:4,4:5,5:7,6:9,7:11},{'-2':'bb','-1':'b','0':'','1':'#','2':'##'});
 
-assert.deepEqual(Object.keys(api.SCALE_FORM_LIBRARY).sort(),['dorian','major','mixolydian','naturalMinor']);
+assert.deepEqual(Object.keys(api.SCALE_FORM_LIBRARY).sort(),['dorian','lydian','major','mixolydian','naturalMinor']);
 assert.deepEqual(api.SCALE_FORM_LIBRARY.major.map(form=>form.id),['E','D','C','A','G']);
 assert.deepEqual(api.SCALE_FORM_LIBRARY.naturalMinor.map(form=>form.id),['E','D','C','A','G']);
 assert.deepEqual(api.SCALE_FORM_LIBRARY.dorian.map(form=>form.id),['E','D','C','A','G']);
 assert.deepEqual(api.SCALE_FORM_LIBRARY.mixolydian.map(form=>form.id),['E','D','C','A','G']);
+assert.deepEqual(api.SCALE_FORM_LIBRARY.lydian.map(form=>form.id),['E','D','C','A','G']);
 assert.equal(api.SCALE_FORMULA_LIBRARY['0,2,4,5,7,9,11'],'major');
 assert.equal(api.SCALE_FORMULA_LIBRARY['0,2,3,5,7,8,10'],'naturalMinor');
 assert.equal(api.SCALE_FORMULA_LIBRARY['0,2,3,5,7,9,10'],'dorian');
 assert.equal(api.SCALE_FORMULA_LIBRARY['0,2,4,5,7,9,10'],'mixolydian');
+assert.equal(api.SCALE_FORMULA_LIBRARY['0,2,4,6,7,9,11'],'lydian');
+assert.equal(api.SCALE_DEGREE_SEMITONES['#4'],6);
 
 // Fixed C-root fixtures are independent of the realization algorithm and
 // protect every transcribed source point, repetition, and degree label.
@@ -54,6 +63,13 @@ const expectedC={
     C:['0:1:4','0:3:5','0:5:6','1:1:1','1:3:2','1:4:b3','2:0:5','2:2:6','2:3:b7','3:0:2','3:1:b3','3:3:4','4:3:1'],
     A:['0:3:5','0:5:6','0:6:b7','1:3:2','1:4:b3','1:6:4','2:3:b7','2:5:1','3:3:4','3:5:5','3:7:6','4:3:1','4:5:2','4:6:b3'],
     G:['0:6:b7','0:8:1','1:6:4','1:8:5','1:10:6','2:5:1','2:7:2','2:8:b3','3:5:5','3:7:6','3:8:b7','4:5:2','4:6:b3','4:8:4','5:8:1']
+  },
+  mixolydian:{
+    E:['0:6:b7','0:8:1','0:10:2','1:8:5','1:10:6','2:7:2','2:9:3','2:10:4','3:7:6','3:8:b7','3:10:1','4:7:3','4:8:4','4:10:5','5:8:1','5:10:2'],
+    D:['0:10:2','0:12:3','0:13:4','1:10:6','1:11:b7','1:13:1','2:9:3','2:10:4','2:12:5','3:8:b7','3:10:1','3:12:2','4:8:4','4:10:5','4:12:6','5:8:1','5:10:2','5:12:3'],
+    C:['0:12:3','0:13:4','0:15:5','1:11:b7','1:13:1','1:15:2','2:12:5','2:14:6','3:12:2','3:14:3','3:15:4','4:15:1'],
+    A:['0:3:5','0:5:6','0:6:b7','1:3:2','1:5:3','1:6:4','2:2:6','2:3:b7','2:5:1','3:2:3','3:3:4','3:5:5','4:3:1','4:5:2'],
+    G:['0:5:6','0:6:b7','0:8:1','1:5:3','1:6:4','1:8:5','2:3:b7','2:5:1','2:7:2','3:3:4','3:5:5','3:7:6','4:3:1','4:5:2','4:7:3','4:8:4','5:8:1']
   }
 };
 
@@ -61,7 +77,8 @@ const expectedDegrees={
   major:new Set(['1','2','3','4','5','6','7']),
   naturalMinor:new Set(['1','2','b3','4','5','b6','b7']),
   dorian:new Set(['1','2','b3','4','5','6','b7']),
-  mixolydian:new Set(['1','2','3','4','5','6','b7'])
+  mixolydian:new Set(['1','2','3','4','5','6','b7']),
+  lydian:new Set(['1','2','3','#4','5','6','7'])
 };
 
 // Source-transcribed and guitar-reviewed parent forms retain exact C-root fixtures.
@@ -72,7 +89,7 @@ for(const [scaleId,fixtures] of Object.entries(expectedC)){
     assert.equal(c.complete,true,`C ${scaleId} ${form.id} should fit`);
     assert.deepEqual(c.positions.map(p=>`${p.stringIdx}:${p.fret}:${p.degree}`),fixtures[form.id]);
     assert.equal(form.reviewStatus,'verified');
-    assert.equal(form.provenance,scaleId==='dorian'?'derived-candidate':'source-transcription');
+    assert.equal(form.provenance,['dorian','mixolydian'].includes(scaleId)?'derived-candidate':'source-transcription');
   }
 }
 
@@ -110,7 +127,17 @@ function assertSingleDegreeMutation({scaleId,parentScaleId,fromDegree,toDegree,f
 }
 
 assertSingleDegreeMutation({scaleId:'dorian',parentScaleId:'naturalMinor',fromDegree:'b6',toDegree:'6',fretDelta:1,reviewStatus:'verified'});
-assertSingleDegreeMutation({scaleId:'mixolydian',parentScaleId:'major',fromDegree:'7',toDegree:'b7',fretDelta:-1,reviewStatus:'pending'});
+assertSingleDegreeMutation({scaleId:'mixolydian',parentScaleId:'major',fromDegree:'7',toDegree:'b7',fretDelta:-1,reviewStatus:'verified'});
+assertSingleDegreeMutation({scaleId:'lydian',parentScaleId:'major',fromDegree:'4',toDegree:'#4',fretDelta:1,reviewStatus:'pending'});
+
+const cLydian=buildScale(0,'C','1 2 3 #4 5 6 7');
+assert.equal(cLydian.find(note=>note.degreeLabel==='#4').noteName,'F#','C Lydian must spell its characteristic tone as F#, not Gb');
+for(const [pc,letter] of [[0,'C'],[1,'C'],[1,'D'],[2,'D'],[3,'D'],[3,'E'],[4,'E'],[5,'F'],[6,'F'],[6,'G'],[7,'G'],[8,'G'],[8,'A'],[9,'A'],[10,'A'],[10,'B'],[11,'B']]){
+  const scale=buildScale(pc,letter,'1 2 3 #4 5 6 7');
+  const raisedFourth=scale.find(note=>note.degreeLabel==='#4');
+  assert.equal((raisedFourth.pc-pc+12)%12,6,`${letter} Lydian #4 must be six semitones above its tonic`);
+  assert.equal(raisedFourth.noteName[0],['C','D','E','F','G','A','B'][(['C','D','E','F','G','A','B'].indexOf(letter)+3)%7],`${letter} Lydian #4 must retain fourth-degree letter spelling`);
+}
 
 let totalComplete=0;
 const completeByScale={};
@@ -161,8 +188,8 @@ for(const relationship of api.SCALE_CHORD_FORM_RELATIONSHIPS){
   }
 }
 
-assert.deepEqual(completeByScale,{major:60,naturalMinor:60,dorian:60,mixolydian:60});
-assert.equal(totalComplete,240);
+assert.deepEqual(completeByScale,{major:60,naturalMinor:60,dorian:60,mixolydian:60,lydian:58});
+assert.equal(totalComplete,298);
 const majorG=api.realizeScaleForm(0,'major','G',FRET_COUNT);
 assert.equal(majorG.positions.length,17,'Major G must preserve all 17 source positions');
 assert.equal(majorG.playbackMidi.length,15,'Major G must provide the 15 distinct ascending source pitches');
@@ -176,9 +203,13 @@ assert.ok(html.includes('2. Выберите форму:'),'Arpeggio mode must e
 assert.ok(html.includes('Открыть натуральный минор'),'Unsupported scales must offer a direct path to a curated scale');
 assert.ok(html.includes('Открыть дорийский'),'Unsupported scales must offer a direct path to the Dorian pilot');
 assert.ok(html.includes('Открыть миксолидийский'),'Unsupported scales must offer a direct path to the Mixolydian pilot');
-assert.ok(html.includes('Производные формы миксолидийского лада; ожидают проверки на гитаре.'),'Mixolydian candidates must not be presented as verified');
+assert.ok(html.includes('Открыть лидийский'),'Unsupported scales must offer a direct path to the Lydian pilot');
+assert.ok(html.includes('Производные формы лидийского лада; ожидают проверки на гитаре.'),'Lydian candidates must not be presented as verified');
+assert.equal(api.realizeScaleForm(3,'lydian','D',FRET_COUNT).reason,'outside','D Lydian D form must expose its reviewed 16-fret boundary');
+assert.equal(api.realizeScaleForm(8,'lydian','G',FRET_COUNT).reason,'outside','G# Lydian G form must expose its reviewed 16-fret boundary');
+assert.ok(html.includes('p.dataset.preferredToken=activeToken'),'Degree pills must preserve #4 spelling from the active formula');
 assert.ok(html.includes('btn.disabled=!realization.complete'),'Unavailable form buttons must be disabled before selection');
 assert.ok(!html.includes("{key:'octaveShape', label:'Октавная аппликатура'}"),'Legacy octave-shape option must be removed from the UI');
 assert.ok(!html.includes("{key:'playableRun', label:'Игровой маршрут'}"),'Legacy playable-run option must be removed from the UI');
-assert.equal(api.SCALE_CHORD_FORM_RELATIONSHIPS.length,40);
-console.log(`OK: ${totalComplete} curated scale form/root realizations and 40 scale/chord relationships validated`);
+assert.equal(api.SCALE_CHORD_FORM_RELATIONSHIPS.length,50);
+console.log(`OK: ${totalComplete} curated scale form/root realizations and 50 scale/chord relationships validated`);
