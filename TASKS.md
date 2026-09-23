@@ -153,15 +153,19 @@ mechanically derived geometry as source-verified material.
    library to manufacture a match.
 11. Danila reviews each E/D/C/A/G candidate on guitar for fingering, continuity, range,
     tonic placement, and playback order. All five Dorian, Mixolydian, and Lydian
-    candidates passed this review on 2026-09-23 without coordinate corrections. Promote
-    only the approved individual form from `pending` to `verified`. Store any correction
-    as explicit coordinates with a written reason instead of changing the mutation rule
-    globally.
+    candidates passed this review on 2026-09-23. Subsequent hands-on continuity review
+    relocated exact unisons in Dorian E/G and Lydian E without changing pitch or degree.
+    Promote only the approved individual form from `pending` to `verified`. Store any
+    correction as explicit coordinates with a written reason instead of changing the
+    mutation rule globally.
     The pending Phrygian E and A candidates have explicit hands-on corrections. E's
     `b2` at G-string offset `-2` is relocated to the pitch-identical D-string offset
     `+3`, producing a continuous D-E-F group. A's `b2` at B-string offset `-1` is
     relocated to the pitch-identical G-string offset `+3`, producing a continuous
     G-A-Bb group. Neither relocation changes degree content or pitch.
+    The pending Locrian E candidate relocates its `b5` from B-string offset `-1` to
+    G-string offset `+3` and its `b2` from G-string offset `-2` to D-string offset `+3`.
+    These exact unisons remove the isolated left-edge F and C while retaining every pitch.
 12. After hands-on approval, replace derivation-only assertions with fixed-coordinate
     regression fixtures so later parent edits cannot silently alter an approved modal
     form. Maintain a per-form comparison record against the independent published modal

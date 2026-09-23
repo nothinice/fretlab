@@ -31,8 +31,13 @@
 - Completed the seven-mode diatonic form library with five independently stored Locrian
   candidates derived from Natural Minor by only `2 → b2` and `5 → b5`; all 60 roots/forms
   fit the 16-fret board and remain `pending` for hands-on review.
-- Added per-form Locrian cross-checks against diminished and m7b5 Popov arpeggios; only
-  the G relationships are literal subsets, while the other eight remain mismatches.
+- Added per-form Locrian cross-checks against diminished and m7b5 Popov arpeggios. The
+  hands-on E-form relocation makes E and G literal subsets for both qualities; the other
+  six relationships remain mismatches.
+- Applied five hands-on exact-unison refinements: A in Dorian G, D in Dorian E, F# in
+  Lydian E, and F/C in Locrian E now sit on the adjacent string for clearer continuity.
+  The generalized correction test independently proves pitch and degree preservation,
+  including relocations of degrees that were not changed by the modal mutation itself.
 - Recorded a later UI pass for duplicated unisons in broad G-forms: retain the source
   points but separate optional alternatives from the primary numbered playback route.
 - Pinned the source-transcribed major G scale form to 17 positions / 15 pitches and

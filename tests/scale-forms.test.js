@@ -62,11 +62,11 @@ const expectedC={
     G:['0:6:b7','0:8:1','1:6:4','1:8:5','1:9:b6','2:5:1','2:7:2','2:8:b3','3:5:5','3:6:b6','3:8:b7','4:5:2','4:6:b3','4:8:4','5:8:1']
   },
   dorian:{
-    E:['0:8:1','0:10:2','0:11:b3','1:8:5','1:10:6','1:11:b7','2:7:2','2:8:b3','2:10:4','3:8:b7','3:10:1','4:8:4','4:10:5','4:12:6','5:8:1','5:10:2','5:11:b3'],
+    E:['0:8:1','0:10:2','0:11:b3','1:8:5','1:10:6','1:11:b7','3:12:2','2:8:b3','2:10:4','3:8:b7','3:10:1','4:8:4','4:10:5','4:12:6','5:8:1','5:10:2','5:11:b3'],
     D:['0:10:2','0:11:b3','0:13:4','1:11:b7','1:13:1','2:10:4','2:12:5','2:14:6','3:10:1','3:12:2','3:13:b3'],
     C:['0:1:4','0:3:5','0:5:6','1:1:1','1:3:2','1:4:b3','2:0:5','2:2:6','2:3:b7','3:0:2','3:1:b3','3:3:4','4:3:1'],
     A:['0:3:5','0:5:6','0:6:b7','1:3:2','1:4:b3','1:6:4','2:3:b7','2:5:1','3:3:4','3:5:5','3:7:6','4:3:1','4:5:2','4:6:b3'],
-    G:['0:6:b7','0:8:1','1:6:4','1:8:5','1:10:6','2:5:1','2:7:2','2:8:b3','3:5:5','3:7:6','3:8:b7','4:5:2','4:6:b3','4:8:4','5:8:1']
+    G:['0:6:b7','0:8:1','1:6:4','1:8:5','0:5:6','2:5:1','2:7:2','2:8:b3','3:5:5','3:7:6','3:8:b7','4:5:2','4:6:b3','4:8:4','5:8:1']
   },
   mixolydian:{
     E:['0:6:b7','0:8:1','0:10:2','1:8:5','1:10:6','2:7:2','2:9:3','2:10:4','3:7:6','3:8:b7','3:10:1','4:7:3','4:8:4','4:10:5','5:8:1','5:10:2'],
@@ -76,7 +76,7 @@ const expectedC={
     G:['0:5:6','0:6:b7','0:8:1','1:5:3','1:6:4','1:8:5','2:3:b7','2:5:1','2:7:2','3:3:4','3:5:5','3:7:6','4:3:1','4:5:2','4:7:3','4:8:4','5:8:1']
   },
   lydian:{
-    E:['0:7:7','0:8:1','0:10:2','1:8:5','1:10:6','2:7:2','2:9:3','2:11:#4','3:7:6','3:9:7','3:10:1','4:7:3','4:9:#4','4:10:5','5:8:1','5:10:2'],
+    E:['0:7:7','0:8:1','0:10:2','1:8:5','1:10:6','2:7:2','2:9:3','1:7:#4','3:7:6','3:9:7','3:10:1','4:7:3','4:9:#4','4:10:5','5:8:1','5:10:2'],
     D:['0:10:2','0:12:3','0:14:#4','1:10:6','1:12:7','1:13:1','2:9:3','2:11:#4','2:12:5','3:9:7','3:10:1','3:12:2','4:9:#4','4:10:5','4:12:6','5:8:1','5:10:2','5:12:3'],
     C:['0:0:3','0:2:#4','0:3:5','1:0:7','1:1:1','1:3:2','2:0:5','2:2:6','3:0:2','3:2:3','3:4:#4','4:3:1'],
     A:['0:3:5','0:5:6','0:7:7','1:3:2','1:5:3','1:7:#4','2:2:6','2:4:7','2:5:1','3:2:3','3:4:#4','3:5:5','4:3:1','4:5:2'],
@@ -127,27 +127,23 @@ function assertDegreeMutations({scaleId,parentScaleId,mutationMap,reviewStatus})
     const candidate=candidateForm.positions[index];
     const correction=(candidateForm.corrections||[]).find(entry=>entry.sourceIndex===index);
     const mutation=mutationMap.find(entry=>entry.fromDegree===sourcePoint.degree);
-    if(mutation){
-      assert.equal(candidate.degree,mutation.toDegree,`${scaleId} ${candidateForm.id} point ${index} must change ${mutation.fromDegree} to ${mutation.toDegree}`);
-      if(correction){
-        assert.equal(correction.kind,'unison-relocation');
-        assert.equal(correction.degree,mutation.toDegree);
-        assert.equal(correction.fromStringIdx,sourcePoint.stringIdx);
-        assert.equal(correction.fromFretOffset,sourcePoint.fretOffset+mutation.fretDelta);
-        assert.equal(candidate.stringIdx,correction.toStringIdx);
-        assert.equal(candidate.fretOffset,correction.toFretOffset);
-        const fromMidi=OPEN_STRINGS_TOP_TO_BOTTOM[correction.fromStringIdx].midi+correction.fromFretOffset;
-        const toMidi=OPEN_STRINGS_TOP_TO_BOTTOM[correction.toStringIdx].midi+correction.toFretOffset;
-        assert.equal(toMidi,fromMidi,`${scaleId} ${candidateForm.id} correction ${index} must preserve exact pitch`);
-      }else{
-        assert.equal(candidate.stringIdx,sourcePoint.stringIdx,`${scaleId} ${candidateForm.id} point ${index} must stay on its string`);
-        assert.equal(candidate.fretOffset,sourcePoint.fretOffset+mutation.fretDelta,`${scaleId} ${candidateForm.id} point ${index} must move exactly ${mutation.fretDelta} fret`);
-      }
+    const expectedDegree=mutation?mutation.toDegree:sourcePoint.degree;
+    const expectedStringIdx=sourcePoint.stringIdx;
+    const expectedFretOffset=sourcePoint.fretOffset+(mutation?mutation.fretDelta:0);
+    assert.equal(candidate.degree,expectedDegree,`${scaleId} ${candidateForm.id} point ${index} must preserve the expected degree`);
+    if(correction){
+      assert.equal(correction.kind,'unison-relocation');
+      assert.equal(correction.degree,expectedDegree);
+      assert.equal(correction.fromStringIdx,expectedStringIdx);
+      assert.equal(correction.fromFretOffset,expectedFretOffset);
+      assert.equal(candidate.stringIdx,correction.toStringIdx);
+      assert.equal(candidate.fretOffset,correction.toFretOffset);
+      const fromMidi=OPEN_STRINGS_TOP_TO_BOTTOM[correction.fromStringIdx].midi+correction.fromFretOffset;
+      const toMidi=OPEN_STRINGS_TOP_TO_BOTTOM[correction.toStringIdx].midi+correction.toFretOffset;
+      assert.equal(toMidi,fromMidi,`${scaleId} ${candidateForm.id} correction ${index} must preserve exact pitch`);
     }else{
-      assert.equal(correction,undefined,`${scaleId} ${candidateForm.id} point ${index} must not correct an unaffected degree`);
-      assert.equal(candidate.stringIdx,sourcePoint.stringIdx,`${scaleId} ${candidateForm.id} point ${index} must stay on its string`);
-      assert.equal(candidate.degree,sourcePoint.degree,`${scaleId} ${candidateForm.id} point ${index} degree must stay unchanged`);
-      assert.equal(candidate.fretOffset,sourcePoint.fretOffset,`${scaleId} ${candidateForm.id} point ${index} fret must stay unchanged`);
+      assert.equal(candidate.stringIdx,expectedStringIdx,`${scaleId} ${candidateForm.id} point ${index} must stay on its expected string`);
+      assert.equal(candidate.fretOffset,expectedFretOffset,`${scaleId} ${candidateForm.id} point ${index} must stay at its expected fret`);
     }
   });
   const coordinates=candidateForm.positions.map(point=>`${point.stringIdx}:${point.fretOffset}`);
@@ -167,6 +163,14 @@ const phrygianACorrections=api.SCALE_FORM_LIBRARY.phrygian.find(form=>form.id===
 assert.equal(phrygianACorrections.length,1,'Phrygian A must declare exactly one hands-on relocation');
 assert.equal(phrygianACorrections[0].reason,'hands-on-continuity');
 assert.ok(api.SCALE_FORM_LIBRARY.phrygian.filter(form=>!['E','A'].includes(form.id)).every(form=>!form.corrections),'No other Phrygian form may inherit the E/A-form corrections');
+const expectedCorrectionCounts={dorian:{E:1,G:1},lydian:{E:1},phrygian:{E:1,A:1},locrian:{E:2}};
+for(const [scaleId,forms] of Object.entries(api.SCALE_FORM_LIBRARY)){
+  for(const form of forms){
+    const expected=expectedCorrectionCounts[scaleId]?.[form.id]||0;
+    assert.equal((form.corrections||[]).length,expected,`${scaleId} ${form.id} must retain its exact declared correction count`);
+    assert.ok((form.corrections||[]).every(correction=>correction.reason==='hands-on-continuity'),`${scaleId} ${form.id} corrections must retain their hands-on reason`);
+  }
+}
 
 const cLydian=buildScale(0,'C','1 2 3 #4 5 6 7');
 assert.equal(cLydian.find(note=>note.degreeLabel==='#4').noteName,'F#','C Lydian must spell its characteristic tone as F#, not Gb');
