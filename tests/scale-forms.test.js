@@ -122,11 +122,26 @@ function assertSingleDegreeMutation({scaleId,parentScaleId,fromDegree,toDegree,f
   assert.equal(candidateForm.positions.length,parent.positions.length,`${scaleId} ${candidateForm.id} must preserve point count`);
   parent.positions.forEach((sourcePoint,index)=>{
     const candidate=candidateForm.positions[index];
-    assert.equal(candidate.stringIdx,sourcePoint.stringIdx,`${scaleId} ${candidateForm.id} point ${index} must stay on its string`);
+    const correction=(candidateForm.corrections||[]).find(entry=>entry.sourceIndex===index);
     if(sourcePoint.degree===fromDegree){
       assert.equal(candidate.degree,toDegree,`${scaleId} ${candidateForm.id} point ${index} must change ${fromDegree} to ${toDegree}`);
-      assert.equal(candidate.fretOffset,sourcePoint.fretOffset+fretDelta,`${scaleId} ${candidateForm.id} point ${index} must move exactly ${fretDelta} fret`);
+      if(correction){
+        assert.equal(correction.kind,'unison-relocation');
+        assert.equal(correction.degree,toDegree);
+        assert.equal(correction.fromStringIdx,sourcePoint.stringIdx);
+        assert.equal(correction.fromFretOffset,sourcePoint.fretOffset+fretDelta);
+        assert.equal(candidate.stringIdx,correction.toStringIdx);
+        assert.equal(candidate.fretOffset,correction.toFretOffset);
+        const fromMidi=OPEN_STRINGS_TOP_TO_BOTTOM[correction.fromStringIdx].midi+correction.fromFretOffset;
+        const toMidi=OPEN_STRINGS_TOP_TO_BOTTOM[correction.toStringIdx].midi+correction.toFretOffset;
+        assert.equal(toMidi,fromMidi,`${scaleId} ${candidateForm.id} correction ${index} must preserve exact pitch`);
+      }else{
+        assert.equal(candidate.stringIdx,sourcePoint.stringIdx,`${scaleId} ${candidateForm.id} point ${index} must stay on its string`);
+        assert.equal(candidate.fretOffset,sourcePoint.fretOffset+fretDelta,`${scaleId} ${candidateForm.id} point ${index} must move exactly ${fretDelta} fret`);
+      }
     }else{
+      assert.equal(correction,undefined,`${scaleId} ${candidateForm.id} point ${index} must not correct an unaffected degree`);
+      assert.equal(candidate.stringIdx,sourcePoint.stringIdx,`${scaleId} ${candidateForm.id} point ${index} must stay on its string`);
       assert.equal(candidate.degree,sourcePoint.degree,`${scaleId} ${candidateForm.id} point ${index} degree must stay unchanged`);
       assert.equal(candidate.fretOffset,sourcePoint.fretOffset,`${scaleId} ${candidateForm.id} point ${index} fret must stay unchanged`);
     }
@@ -140,6 +155,10 @@ assertSingleDegreeMutation({scaleId:'dorian',parentScaleId:'naturalMinor',fromDe
 assertSingleDegreeMutation({scaleId:'mixolydian',parentScaleId:'major',fromDegree:'7',toDegree:'b7',fretDelta:-1,reviewStatus:'verified'});
 assertSingleDegreeMutation({scaleId:'lydian',parentScaleId:'major',fromDegree:'4',toDegree:'#4',fretDelta:1,reviewStatus:'verified'});
 assertSingleDegreeMutation({scaleId:'phrygian',parentScaleId:'naturalMinor',fromDegree:'2',toDegree:'b2',fretDelta:-1,reviewStatus:'pending'});
+const phrygianECorrections=api.SCALE_FORM_LIBRARY.phrygian.find(form=>form.id==='E').corrections;
+assert.equal(phrygianECorrections.length,1,'Phrygian E must declare exactly one hands-on relocation');
+assert.equal(phrygianECorrections[0].reason,'hands-on-continuity');
+assert.ok(api.SCALE_FORM_LIBRARY.phrygian.filter(form=>form.id!=='E').every(form=>!form.corrections),'No other Phrygian form may inherit the E-form correction');
 
 const cLydian=buildScale(0,'C','1 2 3 #4 5 6 7');
 assert.equal(cLydian.find(note=>note.degreeLabel==='#4').noteName,'F#','C Lydian must spell its characteristic tone as F#, not Gb');

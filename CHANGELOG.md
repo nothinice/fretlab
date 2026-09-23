@@ -26,6 +26,8 @@
   their approved C-root coordinates as fixed regression fixtures.
 - Added five independently stored Phrygian E/D/C/A/G candidates from Natural Minor using
   only the declared `2 → b2` one-fret downward mutation; all 60 roots/forms fit.
+- Applied one explicit hands-on correction to Phrygian E: moved its b2 to the exact unison
+  on the D string so D-E-F stays continuous; tests prove pitch and degree preservation.
 - Recorded a later UI pass for duplicated unisons in broad G-forms: retain the source
   points but separate optional alternatives from the primary numbered playback route.
 - Pinned the source-transcribed major G scale form to 17 positions / 15 pitches and

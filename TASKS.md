@@ -157,6 +157,9 @@ mechanically derived geometry as source-verified material.
     only the approved individual form from `pending` to `verified`. Store any correction
     as explicit coordinates with a written reason instead of changing the mutation rule
     globally.
+    The pending Phrygian E candidate has one explicit hands-on correction: its `b2` at
+    G-string offset `-2` is relocated to the pitch-identical D-string offset `+3`,
+    producing a continuous D-E-F group without changing degree content or pitch.
 12. After hands-on approval, replace derivation-only assertions with fixed-coordinate
     regression fixtures so later parent edits cannot silently alter an approved modal
     form. Maintain a per-form comparison record against the independent published modal
