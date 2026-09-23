@@ -22,6 +22,12 @@
   the active formula's enharmonic label instead of displaying Lydian's `#4` as `b5`.
 - Kept the two honest 16-fret boundary exclusions: D-form at D#/Eb and G-form at G#/Ab;
   the interface disables those combinations rather than expanding or truncating them.
+- Promoted all five Lydian forms to `verified` after hands-on guitar review and pinned
+  their approved C-root coordinates as fixed regression fixtures.
+- Added five independently stored Phrygian E/D/C/A/G candidates from Natural Minor using
+  only the declared `2 → b2` one-fret downward mutation; all 60 roots/forms fit.
+- Recorded a later UI pass for duplicated unisons in broad G-forms: retain the source
+  points but separate optional alternatives from the primary numbered playback route.
 - Pinned the source-transcribed major G scale form to 17 positions / 15 pitches and
   required its playback to begin on the low-E-string tonic rather than below the root.
 - Restored the diminished E and C triads as literal subsets of their Popov m7b5 forms.
