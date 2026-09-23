@@ -68,6 +68,91 @@ This file is the shared handoff between Danila, Claude, and Codex.
 12. User-test every scale form and its playback on a real guitar, then record corrections
     as fixed source coordinates.
 
+### Proposed rollout for the remaining diatonic modes
+
+Review this plan with Claude before implementation. The goal is to add Dorian, Phrygian,
+Lydian, Mixolydian, and Locrian as 25 explicit E/D/C/A/G candidates without presenting
+mechanically derived geometry as source-verified material.
+
+1. Freeze the current Major and Natural Minor coordinates as parent references. Their ten
+   diagrams have been re-audited point by point against the supplied scans; Danila is now
+   completing the separate hands-on guitar review. Any correction from that review must
+   land in the parent library before generating modal candidates.
+2. Produce each new mode from the parent requiring the fewest altered degrees:
+
+   | New mode | Parent | Coordinate mutation | Formula |
+   | --- | --- | --- | --- |
+   | Dorian | Natural Minor | every `b6` moves `+1` fret and becomes `6` | `1 2 b3 4 5 6 b7` |
+   | Phrygian | Natural Minor | every `2` moves `-1` fret and becomes `b2` | `1 b2 b3 4 5 b6 b7` |
+   | Lydian | Major | every `4` moves `+1` fret and becomes `#4` | `1 2 3 #4 5 6 7` |
+   | Mixolydian | Major | every `7` moves `-1` fret and becomes `b7` | `1 2 3 4 5 6 b7` |
+   | Locrian | Natural Minor | every `2` and `5` moves `-1` fret and becomes `b2` and `b5` | `1 b2 b3 4 b5 b6 b7` |
+
+   Open-source preflight confirms both the formulas and the existence of five CAGED
+   positions for all five modes, but not one universal literal geometry. FretShuffle
+   publishes interval-labelled five-position libraries for
+   [Dorian](https://fretshuffle.com/scales/dorian),
+   [Phrygian](https://fretshuffle.com/scales/phrygian),
+   [Lydian](https://fretshuffle.com/scales/lydian),
+   [Mixolydian](https://fretshuffle.com/scales/mixolydian), and
+   [Locrian](https://fretshuffle.com/scales/locrian). Online Guitar Books independently
+   shows both parallel and derivative construction plus five CAGED positions for
+   [Dorian](https://onlineguitarbooks.com/c-dorian-mode/) and
+   [Mixolydian](https://onlineguitarbooks.com/c-mixolydian-mode/). Applied Guitar Theory
+   documents five CAGED positions and root anchors for
+   [Natural Minor](https://appliedguitartheory.com/lessons/natural-minor-scale/).
+3. Treat those sources as a geometry cross-check, not automatic coordinate donors.
+   Their boxes use different edge-note policies from the supplied Major/Natural Minor
+   scans. For example, the published C Dorian E-position above includes A on the D string
+   but omits the edge E-flat on the A string, while a literal mutation of our Natural
+   Minor E-form does the reverse. Before implementation, compare two explicit options:
+   (a) preserve our parent boundaries and mutate only existing points, or (b) adopt a
+   separate independently sourced modal CAGED library. Do not silently combine the two.
+4. Use mutation only as an offline initial-candidate method, never as runtime generation.
+   Expand every result into independently stored literal coordinates in
+   `SCALE_FORM_LIBRARY`. Record `parentScaleId`, the exact mutation map, provenance such
+   as `derived-candidate`, and a per-form `reviewStatus`. The five forms of one mode must
+   never share one all-or-nothing approval flag. Any later source-backed edge-note change
+   must be explicit and must replace the `derived-candidate` provenance for that point.
+5. Keep the tonic anchor, form id, string assignment, and every unaffected parent point
+   unchanged. A changed degree stays on its original string and may move only by the
+   declared one-fret delta. Reject collisions, duplicate string/fret points with different
+   degrees, missing degrees, foreign degrees, or any undeclared coordinate change.
+6. Implement in small reviewable stages: Dorian first as the minor-parent pilot,
+   Mixolydian second as the major-parent pilot, then Lydian, Phrygian, and Locrian last.
+   Locrian remains last because it changes two degrees and adds the diminished/m7b5
+   relationship, making it the highest-risk diatonic conversion.
+7. Before exposing a raw derived candidate, test all five forms in all twelve roots for
+   exact degree content, preserved parent point count and root positions, correct pitch classes, collisions,
+   fretboard boundaries, and strictly ascending unique playback. Playback must begin on
+   the tonic. Do not enlarge the fretboard merely to make a candidate pass: retain the
+   existing unavailable-button behavior and review every boundary failure first.
+   After an explicit source-backed or hands-on edge-note correction, replace the parent
+   point-count assertion with a fixed literal fixture for that reviewed form.
+8. Add `#4` to the degree-semitone model before Lydian, while preserving enharmonic
+   spelling and Notes/Degrees display. Extend formula detection only for the five exact
+   modal formulas; arbitrary manual formulas must continue to show no curated form rather
+   than borrowing the nearest mode.
+9. Show derived forms in the existing Scale Forms UI with an explicit message that they
+   are candidates awaiting guitar review. Never label them verified merely because their
+   interval formulas and automated tests are correct.
+10. Check tonic-chord relationships separately for every mode, form, and chord quality:
+   Dorian and Phrygian against min/m7, Lydian against maj/maj7, Mixolydian against maj/7,
+   and Locrian against dim/m7b5. Recompute literal subsets and record `verified`,
+   `pending`, or `mismatch`; never force a chord form into a scale form or repair either
+   library to manufacture a match.
+11. Danila reviews each E/D/C/A/G candidate on guitar for fingering, continuity, range,
+    tonic placement, and playback order. Promote only the approved individual form from
+    `pending` to `verified`. Store any correction as explicit coordinates with a written
+    reason instead of changing the mutation rule globally.
+12. After hands-on approval, replace derivation-only assertions with fixed-coordinate
+    regression fixtures so later parent edits cannot silently alter an approved modal
+    form. Maintain a per-form comparison record against the independent published modal
+    positions, including matches, intentional boundary differences, and adopted points.
+13. Keep curated modal forms out of Compare mode until all five standalone libraries and
+    their review statuses are stable; the deferred Compare-mode design must not reshape
+    the core data model during this rollout.
+
 ### Triad arpeggio forms
 
 13. The user approved an interim derived model for core triads: maj is the exact 1/3/5
