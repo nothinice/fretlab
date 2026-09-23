@@ -853,8 +853,13 @@ const CURATED_PHRYGIAN_SCALE_FORMS=prepareScaleForms('phrygian','0,1,3,5,7,8,10'
   {
     id:'A',name:'A',anchorStringIdx:4,parentScaleId:'naturalMinor',
     provenance:'derived-candidate',reviewStatus:'pending',mutationMap:PHRYGIAN_MUTATION,
+    corrections:[{
+      kind:'unison-relocation',sourceIndex:3,degree:'b2',
+      fromStringIdx:1,fromFretOffset:-1,toStringIdx:2,toFretOffset:3,
+      reason:'hands-on-continuity'
+    }],
     positions:[
-      [0,0,'5'],[0,1,'b6'],[0,3,'b7'],[1,-1,'b2'],[1,1,'b3'],[1,3,'4'],
+      [0,0,'5'],[0,1,'b6'],[0,3,'b7'],[2,3,'b2'],[1,1,'b3'],[1,3,'4'],
       [2,0,'b7'],[2,2,'1'],[3,0,'4'],[3,2,'5'],[3,3,'b6'],
       [4,0,'1'],[4,1,'b2'],[4,3,'b3']
     ]

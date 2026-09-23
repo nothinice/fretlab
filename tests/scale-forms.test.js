@@ -158,7 +158,10 @@ assertSingleDegreeMutation({scaleId:'phrygian',parentScaleId:'naturalMinor',from
 const phrygianECorrections=api.SCALE_FORM_LIBRARY.phrygian.find(form=>form.id==='E').corrections;
 assert.equal(phrygianECorrections.length,1,'Phrygian E must declare exactly one hands-on relocation');
 assert.equal(phrygianECorrections[0].reason,'hands-on-continuity');
-assert.ok(api.SCALE_FORM_LIBRARY.phrygian.filter(form=>form.id!=='E').every(form=>!form.corrections),'No other Phrygian form may inherit the E-form correction');
+const phrygianACorrections=api.SCALE_FORM_LIBRARY.phrygian.find(form=>form.id==='A').corrections;
+assert.equal(phrygianACorrections.length,1,'Phrygian A must declare exactly one hands-on relocation');
+assert.equal(phrygianACorrections[0].reason,'hands-on-continuity');
+assert.ok(api.SCALE_FORM_LIBRARY.phrygian.filter(form=>!['E','A'].includes(form.id)).every(form=>!form.corrections),'No other Phrygian form may inherit the E/A-form corrections');
 
 const cLydian=buildScale(0,'C','1 2 3 #4 5 6 7');
 assert.equal(cLydian.find(note=>note.degreeLabel==='#4').noteName,'F#','C Lydian must spell its characteristic tone as F#, not Gb');
