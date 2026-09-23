@@ -8,6 +8,12 @@
   Natural Minor parents by the sole declared mutation `b6 → 6` one fret higher.
 - Kept every Dorian form explicitly `pending`, exposed that status in the interface, and
   added all-root, lineage, collision, playback, boundary, and chord-subset regression tests.
+- Promoted all five Dorian forms to `verified` after hands-on guitar review and pinned
+  their approved C-root coordinates as fixed regression fixtures.
+- Added five independently stored Mixolydian E/D/C/A/G candidates from the reviewed
+  Major parents using only the declared `7 → b7` one-fret downward mutation.
+- Kept Mixolydian explicitly `pending` while testing all roots, exact lineage, collisions,
+  playback, boundaries, and maj/dominant-7 subset relationships.
 - Pinned the source-transcribed major G scale form to 17 positions / 15 pitches and
   required its playback to begin on the low-E-string tonic rather than below the root.
 - Restored the diminished E and C triads as literal subsets of their Popov m7b5 forms.

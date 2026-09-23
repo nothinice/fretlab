@@ -126,8 +126,9 @@ mechanically derived geometry as source-verified material.
    declared one-fret delta. Reject collisions, duplicate string/fret points with different
    degrees, missing degrees, foreign degrees, or any undeclared coordinate change.
 6. Implement in small reviewable stages: Dorian first as the minor-parent pilot
-   (five literal candidates added as `pending` on 2026-09-23),
-   Mixolydian second as the major-parent pilot, then Lydian, Phrygian, and Locrian last.
+   (all five forms guitar-verified on 2026-09-23), Mixolydian second as the major-parent
+   pilot (five literal candidates added as `pending` on 2026-09-23), then Lydian,
+   Phrygian, and Locrian last.
    Locrian remains last because it changes two degrees and adds the diminished/m7b5
    relationship, making it the highest-risk diatonic conversion.
 7. Before exposing a raw derived candidate, test all five forms in all twelve roots for
@@ -150,9 +151,10 @@ mechanically derived geometry as source-verified material.
    `pending`, or `mismatch`; never force a chord form into a scale form or repair either
    library to manufacture a match.
 11. Danila reviews each E/D/C/A/G candidate on guitar for fingering, continuity, range,
-    tonic placement, and playback order. Promote only the approved individual form from
-    `pending` to `verified`. Store any correction as explicit coordinates with a written
-    reason instead of changing the mutation rule globally.
+    tonic placement, and playback order. All five Dorian candidates passed this review
+    on 2026-09-23 without coordinate corrections. Promote only the approved individual
+    form from `pending` to `verified`. Store any correction as explicit coordinates with
+    a written reason instead of changing the mutation rule globally.
 12. After hands-on approval, replace derivation-only assertions with fixed-coordinate
     regression fixtures so later parent edits cannot silently alter an approved modal
     form. Maintain a per-form comparison record against the independent published modal

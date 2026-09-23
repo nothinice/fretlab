@@ -671,7 +671,7 @@ const DORIAN_MUTATION=[{fromDegree:'b6',toDegree:'6',fretDelta:1}];
 const CURATED_DORIAN_SCALE_FORMS=prepareScaleForms('dorian','0,2,3,5,7,9,10',[
   {
     id:'E',name:'E',anchorStringIdx:5,parentScaleId:'naturalMinor',
-    provenance:'derived-candidate',reviewStatus:'pending',mutationMap:DORIAN_MUTATION,
+    provenance:'derived-candidate',reviewStatus:'verified',mutationMap:DORIAN_MUTATION,
     positions:[
       [0,0,'1'],[0,2,'2'],[0,3,'b3'],[1,0,'5'],[1,2,'6'],[1,3,'b7'],
       [2,-1,'2'],[2,0,'b3'],[2,2,'4'],[3,0,'b7'],[3,2,'1'],
@@ -680,7 +680,7 @@ const CURATED_DORIAN_SCALE_FORMS=prepareScaleForms('dorian','0,2,3,5,7,9,10',[
   },
   {
     id:'D',name:'D',anchorStringIdx:3,parentScaleId:'naturalMinor',
-    provenance:'derived-candidate',reviewStatus:'pending',mutationMap:DORIAN_MUTATION,
+    provenance:'derived-candidate',reviewStatus:'verified',mutationMap:DORIAN_MUTATION,
     positions:[
       [0,0,'2'],[0,1,'b3'],[0,3,'4'],[1,1,'b7'],[1,3,'1'],
       [2,0,'4'],[2,2,'5'],[2,4,'6'],[3,0,'1'],[3,2,'2'],[3,3,'b3']
@@ -688,7 +688,7 @@ const CURATED_DORIAN_SCALE_FORMS=prepareScaleForms('dorian','0,2,3,5,7,9,10',[
   },
   {
     id:'C',name:'C',anchorStringIdx:4,parentScaleId:'naturalMinor',
-    provenance:'derived-candidate',reviewStatus:'pending',mutationMap:DORIAN_MUTATION,
+    provenance:'derived-candidate',reviewStatus:'verified',mutationMap:DORIAN_MUTATION,
     positions:[
       [0,-2,'4'],[0,0,'5'],[0,2,'6'],[1,-2,'1'],[1,0,'2'],[1,1,'b3'],
       [2,-3,'5'],[2,-1,'6'],[2,0,'b7'],[3,-3,'2'],[3,-2,'b3'],[3,0,'4'],
@@ -697,7 +697,7 @@ const CURATED_DORIAN_SCALE_FORMS=prepareScaleForms('dorian','0,2,3,5,7,9,10',[
   },
   {
     id:'A',name:'A',anchorStringIdx:4,parentScaleId:'naturalMinor',
-    provenance:'derived-candidate',reviewStatus:'pending',mutationMap:DORIAN_MUTATION,
+    provenance:'derived-candidate',reviewStatus:'verified',mutationMap:DORIAN_MUTATION,
     positions:[
       [0,0,'5'],[0,2,'6'],[0,3,'b7'],[1,0,'2'],[1,1,'b3'],[1,3,'4'],
       [2,0,'b7'],[2,2,'1'],[3,0,'4'],[3,2,'5'],[3,4,'6'],
@@ -706,7 +706,7 @@ const CURATED_DORIAN_SCALE_FORMS=prepareScaleForms('dorian','0,2,3,5,7,9,10',[
   },
   {
     id:'G',name:'G',anchorStringIdx:5,parentScaleId:'naturalMinor',
-    provenance:'derived-candidate',reviewStatus:'pending',mutationMap:DORIAN_MUTATION,
+    provenance:'derived-candidate',reviewStatus:'verified',mutationMap:DORIAN_MUTATION,
     positions:[
       [0,-2,'b7'],[0,0,'1'],[1,-2,'4'],[1,0,'5'],[1,2,'6'],
       [2,-3,'1'],[2,-1,'2'],[2,0,'b3'],[3,-3,'5'],[3,-1,'6'],[3,0,'b7'],
@@ -715,16 +715,68 @@ const CURATED_DORIAN_SCALE_FORMS=prepareScaleForms('dorian','0,2,3,5,7,9,10',[
   }
 ]);
 
+// Major-parent pilot: literal Mixolydian candidates. Only degree 7 moves one fret
+// downward to b7; every unaffected parent point and tonic anchor stays unchanged.
+const MIXOLYDIAN_MUTATION=[{fromDegree:'7',toDegree:'b7',fretDelta:-1}];
+const CURATED_MIXOLYDIAN_SCALE_FORMS=prepareScaleForms('mixolydian','0,2,4,5,7,9,10',[
+  {
+    id:'E',name:'E',anchorStringIdx:5,parentScaleId:'major',
+    provenance:'derived-candidate',reviewStatus:'pending',mutationMap:MIXOLYDIAN_MUTATION,
+    positions:[
+      [0,-2,'b7'],[0,0,'1'],[0,2,'2'],[1,0,'5'],[1,2,'6'],
+      [2,-1,'2'],[2,1,'3'],[2,2,'4'],[3,-1,'6'],[3,0,'b7'],[3,2,'1'],
+      [4,-1,'3'],[4,0,'4'],[4,2,'5'],[5,0,'1'],[5,2,'2']
+    ]
+  },
+  {
+    id:'D',name:'D',anchorStringIdx:5,parentScaleId:'major',
+    provenance:'derived-candidate',reviewStatus:'pending',mutationMap:MIXOLYDIAN_MUTATION,
+    positions:[
+      [0,2,'2'],[0,4,'3'],[0,5,'4'],[1,2,'6'],[1,3,'b7'],[1,5,'1'],
+      [2,1,'3'],[2,2,'4'],[2,4,'5'],[3,0,'b7'],[3,2,'1'],[3,4,'2'],
+      [4,0,'4'],[4,2,'5'],[4,4,'6'],[5,0,'1'],[5,2,'2'],[5,4,'3']
+    ]
+  },
+  {
+    id:'C',name:'C',anchorStringIdx:4,parentScaleId:'major',
+    provenance:'derived-candidate',reviewStatus:'pending',mutationMap:MIXOLYDIAN_MUTATION,
+    positions:[
+      [0,-3,'3'],[0,-2,'4'],[0,0,'5'],[1,-4,'b7'],[1,-2,'1'],[1,0,'2'],
+      [2,-3,'5'],[2,-1,'6'],[3,-3,'2'],[3,-1,'3'],[3,0,'4'],[4,0,'1']
+    ]
+  },
+  {
+    id:'A',name:'A',anchorStringIdx:4,parentScaleId:'major',
+    provenance:'derived-candidate',reviewStatus:'pending',mutationMap:MIXOLYDIAN_MUTATION,
+    positions:[
+      [0,0,'5'],[0,2,'6'],[0,3,'b7'],[1,0,'2'],[1,2,'3'],[1,3,'4'],
+      [2,-1,'6'],[2,0,'b7'],[2,2,'1'],[3,-1,'3'],[3,0,'4'],[3,2,'5'],
+      [4,0,'1'],[4,2,'2']
+    ]
+  },
+  {
+    id:'G',name:'G',anchorStringIdx:5,parentScaleId:'major',
+    provenance:'derived-candidate',reviewStatus:'pending',mutationMap:MIXOLYDIAN_MUTATION,
+    positions:[
+      [0,-3,'6'],[0,-2,'b7'],[0,0,'1'],[1,-3,'3'],[1,-2,'4'],[1,0,'5'],
+      [2,-5,'b7'],[2,-3,'1'],[2,-1,'2'],[3,-5,'4'],[3,-3,'5'],[3,-1,'6'],
+      [4,-5,'1'],[4,-3,'2'],[4,-1,'3'],[4,0,'4'],[5,0,'1']
+    ]
+  }
+]);
+
 const SCALE_FORM_LIBRARY={
   major:CURATED_MAJOR_SCALE_FORMS,
   naturalMinor:CURATED_NATURAL_MINOR_SCALE_FORMS,
-  dorian:CURATED_DORIAN_SCALE_FORMS
+  dorian:CURATED_DORIAN_SCALE_FORMS,
+  mixolydian:CURATED_MIXOLYDIAN_SCALE_FORMS
 };
 
 const SCALE_FORMULA_LIBRARY={
   '0,2,4,5,7,9,11':'major',
   '0,2,3,5,7,8,10':'naturalMinor',
-  '0,2,3,5,7,9,10':'dorian'
+  '0,2,3,5,7,9,10':'dorian',
+  '0,2,4,5,7,9,10':'mixolydian'
 };
 
 const SCALE_CHORD_FORM_RELATIONSHIPS=[
@@ -748,16 +800,26 @@ const SCALE_CHORD_FORM_RELATIONSHIPS=[
   {scaleId:'naturalMinor',formId:'C',chordQuality:'m7',status:'mismatch'},
   {scaleId:'naturalMinor',formId:'A',chordQuality:'m7',status:'verified'},
   {scaleId:'naturalMinor',formId:'G',chordQuality:'m7',status:'verified'},
-  {scaleId:'dorian',formId:'E',chordQuality:'min',status:'pending'},
+  {scaleId:'dorian',formId:'E',chordQuality:'min',status:'verified'},
   {scaleId:'dorian',formId:'D',chordQuality:'min',status:'mismatch'},
   {scaleId:'dorian',formId:'C',chordQuality:'min',status:'mismatch'},
-  {scaleId:'dorian',formId:'A',chordQuality:'min',status:'pending'},
-  {scaleId:'dorian',formId:'G',chordQuality:'min',status:'pending'},
-  {scaleId:'dorian',formId:'E',chordQuality:'m7',status:'pending'},
+  {scaleId:'dorian',formId:'A',chordQuality:'min',status:'verified'},
+  {scaleId:'dorian',formId:'G',chordQuality:'min',status:'verified'},
+  {scaleId:'dorian',formId:'E',chordQuality:'m7',status:'verified'},
   {scaleId:'dorian',formId:'D',chordQuality:'m7',status:'mismatch'},
   {scaleId:'dorian',formId:'C',chordQuality:'m7',status:'mismatch'},
-  {scaleId:'dorian',formId:'A',chordQuality:'m7',status:'pending'},
-  {scaleId:'dorian',formId:'G',chordQuality:'m7',status:'pending'}
+  {scaleId:'dorian',formId:'A',chordQuality:'m7',status:'verified'},
+  {scaleId:'dorian',formId:'G',chordQuality:'m7',status:'verified'},
+  {scaleId:'mixolydian',formId:'E',chordQuality:'maj',status:'pending'},
+  {scaleId:'mixolydian',formId:'D',chordQuality:'maj',status:'pending'},
+  {scaleId:'mixolydian',formId:'C',chordQuality:'maj',status:'pending'},
+  {scaleId:'mixolydian',formId:'A',chordQuality:'maj',status:'pending'},
+  {scaleId:'mixolydian',formId:'G',chordQuality:'maj',status:'mismatch'},
+  {scaleId:'mixolydian',formId:'E',chordQuality:'7',status:'mismatch'},
+  {scaleId:'mixolydian',formId:'D',chordQuality:'7',status:'pending'},
+  {scaleId:'mixolydian',formId:'C',chordQuality:'7',status:'mismatch'},
+  {scaleId:'mixolydian',formId:'A',chordQuality:'7',status:'pending'},
+  {scaleId:'mixolydian',formId:'G',chordQuality:'7',status:'mismatch'}
 ];
 
 function realizeScaleForm(rootPc,scaleId,formId,maxFret=FRET_COUNT){
@@ -1354,11 +1416,13 @@ function render(){
       });
       const note=document.createElement('span');
       note.className='hint'; note.style.margin='6px 0 0 10px';
-      note.textContent=currentScaleId==='dorian'
-        ? 'Производные формы дорийского лада; ожидают проверки на гитаре.'
-        : currentScaleId==='major'
-          ? 'Проверенные на гитаре формы мажорной гаммы.'
-          : 'Проверенные на гитаре формы натурального минора.';
+      const scaleFormMessages={
+        major:'Проверенные на гитаре формы мажорной гаммы.',
+        naturalMinor:'Проверенные на гитаре формы натурального минора.',
+        dorian:'Проверенные на гитаре формы дорийского лада.',
+        mixolydian:'Производные формы миксолидийского лада; ожидают проверки на гитаре.'
+      };
+      note.textContent=scaleFormMessages[currentScaleId]||'';
       scaleFormRow.appendChild(note);
       currentScaleForm=scaleRealizations.find(entry=>entry.form.id===state.scaleForm)?.result||null;
       if(currentScaleForm.complete){
@@ -1372,12 +1436,13 @@ function render(){
     }else{
       const message=document.createElement('span');
       message.className='hint'; message.style.margin='6px 0 0';
-      message.textContent='Формы сейчас доступны для мажора, натурального минора и дорийского лада:';
+      message.textContent='Формы сейчас доступны для мажора, натурального минора, дорийского и миксолидийского ладов:';
       scaleFormRow.appendChild(message);
       [
         {label:'Открыть мажор',formula:'1 2 3 4 5 6 7'},
         {label:'Открыть натуральный минор',formula:'1 2 b3 4 5 b6 b7'},
-        {label:'Открыть дорийский',formula:'1 2 b3 4 5 6 b7'}
+        {label:'Открыть дорийский',formula:'1 2 b3 4 5 6 b7'},
+        {label:'Открыть миксолидийский',formula:'1 2 3 4 5 6 b7'}
       ].forEach(option=>{
         const btn=document.createElement('button');
         btn.type='button'; btn.className='chip clickable'; btn.textContent=option.label;
