@@ -35,7 +35,7 @@ const expectedC={
     D:['0:10:2','0:12:3','0:13:4','1:10:6','1:12:7','1:13:1','2:9:3','2:10:4','2:12:5','3:9:7','3:10:1','3:12:2','4:8:4','4:10:5','4:12:6','5:8:1','5:10:2','5:12:3'],
     C:['0:0:3','0:1:4','0:3:5','1:0:7','1:1:1','1:3:2','2:0:5','2:2:6','3:0:2','3:2:3','3:3:4','4:3:1'],
     A:['0:3:5','0:5:6','0:7:7','1:3:2','1:5:3','1:6:4','2:2:6','2:4:7','2:5:1','3:2:3','3:3:4','3:5:5','4:3:1','4:5:2'],
-    G:['0:5:6','0:7:7','0:8:1','1:5:3','1:6:4','1:8:5','2:4:7','2:5:1','2:7:2','3:3:4','3:5:5','3:7:6','4:3:1','4:5:2','4:7:3','4:8:4','5:8:1']
+    G:['0:5:6','0:7:7','0:8:1','1:5:3','1:6:4','1:8:5','2:4:7','2:5:1','2:7:2','3:3:4','3:5:5','3:7:6','4:3:1','4:5:2','4:7:3','4:8:4','5:5:6','5:7:7','5:8:1']
   },
   naturalMinor:{
     E:['0:8:1','0:10:2','0:11:b3','1:8:5','1:9:b6','1:11:b7','2:7:2','2:8:b3','2:10:4','3:8:b7','3:10:1','4:8:4','4:10:5','4:11:b6','5:8:1','5:10:2','5:11:b3'],
@@ -107,7 +107,8 @@ for(const relationship of api.SCALE_CHORD_FORM_RELATIONSHIPS){
 assert.deepEqual(completeByScale,{major:60,naturalMinor:60});
 assert.equal(totalComplete,120);
 const majorG=api.realizeScaleForm(0,'major','G',FRET_COUNT);
-assert.ok(majorG.positions.length>majorG.playbackMidi.length,'Major G must preserve both source positions that share one pitch');
+assert.equal(majorG.positions.length,19,'Major G must preserve all 19 source positions');
+assert.equal(majorG.playbackMidi.length,17,'Major G must provide the 17 distinct ascending source pitches');
 assert.equal(api.realizeScaleForm(9,'major','A',15).complete,false,'A-major A form must expose the old 15-fret boundary failure');
 assert.equal(api.realizeScaleForm(9,'major','A',16).complete,true,'A-major A form must fit on the 16-fret board');
 assert.ok(/key:'scaleShape',\s*label:'Формы гаммы'/.test(html),'Curated scale-form mode must be visible in the UI');
