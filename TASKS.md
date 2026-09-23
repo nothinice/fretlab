@@ -80,6 +80,12 @@ mechanically derived geometry as source-verified material.
    land in the parent library before generating modal candidates.
 2. Produce each new mode from the parent requiring the fewest altered degrees:
 
+   Parent selection is a data-engineering decision, not a pedagogical claim. The closest
+   parent minimizes coordinate changes and transcription risk; it does not prescribe how
+   the mode must be explained to a student. Teaching material may use the parallel mode,
+   relative major, characteristic degree, tonic chord, or another musically useful route
+   independently from the stored form's derivation provenance.
+
    | New mode | Parent | Coordinate mutation | Formula |
    | --- | --- | --- | --- |
    | Dorian | Natural Minor | every `b6` moves `+1` fret and becomes `6` | `1 2 b3 4 5 6 b7` |
