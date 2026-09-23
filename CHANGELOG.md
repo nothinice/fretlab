@@ -2,8 +2,8 @@
 
 ## 0.9.1-preview — 2026-09-23
 
-- Restored the two omitted low-E-string notes in the source-transcribed major G scale
-  form and pinned its complete 19-position / 17-pitch geometry in regression tests.
+- Pinned the source-transcribed major G scale form to 17 positions / 15 pitches and
+  required its playback to begin on the low-E-string tonic rather than below the root.
 - Restored the diminished E and C triads as literal subsets of their Popov m7b5 forms.
 - Retained their exact source-derived string skips instead of relocating notes to unisons.
 - Added named regression assertions for the E-form B-string gap and C-form G-string gap;
