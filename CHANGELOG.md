@@ -2,6 +2,12 @@
 
 ## 0.9.1-preview — 2026-09-23
 
+- Recorded completed hands-on guitar review of all current Major, Natural Minor, triad,
+  and seventh-chord forms with no remaining corrections.
+- Added five independently stored Dorian E/D/C/A/G candidates derived from the reviewed
+  Natural Minor parents by the sole declared mutation `b6 → 6` one fret higher.
+- Kept every Dorian form explicitly `pending`, exposed that status in the interface, and
+  added all-root, lineage, collision, playback, boundary, and chord-subset regression tests.
 - Pinned the source-transcribed major G scale form to 17 positions / 15 pitches and
   required its playback to begin on the low-E-string tonic rather than below the root.
 - Restored the diminished E and C triads as literal subsets of their Popov m7b5 forms.

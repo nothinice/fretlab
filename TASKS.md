@@ -65,8 +65,9 @@ This file is the shared handoff between Danila, Claude, and Codex.
     root and form id, every stored triad or seventh-chord point must exist in the parent
     scale form at the same string and fret offset; a failed subset check must be reviewed
     against both sources rather than repaired automatically.
-12. User-test every scale form and its playback on a real guitar, then record corrections
-    as fixed source coordinates.
+12. Major and Natural Minor E/D/C/A/G forms and their playback were tested on a real
+    guitar on 2026-09-23 with no remaining corrections. Repeat this hands-on review for
+    every future modal candidate and store any correction as fixed coordinates.
 
 ### Proposed rollout for the remaining diatonic modes
 
@@ -75,9 +76,9 @@ Lydian, Mixolydian, and Locrian as 25 explicit E/D/C/A/G candidates without pres
 mechanically derived geometry as source-verified material.
 
 1. Freeze the current Major and Natural Minor coordinates as parent references. Their ten
-   diagrams have been re-audited point by point against the supplied scans; Danila is now
-   completing the separate hands-on guitar review. Any correction from that review must
-   land in the parent library before generating modal candidates.
+   diagrams were re-audited point by point against the supplied scans and Danila completed
+   the separate hands-on guitar review on 2026-09-23 without finding further problems.
+   Any later correction must land in the parent library before generating more candidates.
 2. Produce each new mode from the parent requiring the fewest altered degrees:
 
    Parent selection is a data-engineering decision, not a pedagogical claim. The closest
@@ -124,7 +125,8 @@ mechanically derived geometry as source-verified material.
    unchanged. A changed degree stays on its original string and may move only by the
    declared one-fret delta. Reject collisions, duplicate string/fret points with different
    degrees, missing degrees, foreign degrees, or any undeclared coordinate change.
-6. Implement in small reviewable stages: Dorian first as the minor-parent pilot,
+6. Implement in small reviewable stages: Dorian first as the minor-parent pilot
+   (five literal candidates added as `pending` on 2026-09-23),
    Mixolydian second as the major-parent pilot, then Lydian, Phrygian, and Locrian last.
    Locrian remains last because it changes two degrees and adds the diminished/m7b5
    relationship, making it the highest-risk diatonic conversion.
@@ -177,7 +179,9 @@ mechanically derived geometry as source-verified material.
     source-confirmed gap: diminished E skips stringIdx 1 and diminished C skips stringIdx
     2. An independent CAGED triad source validates string skipping as a legitimate form
     behavior, but does not contribute coordinates to the Popov-derived library.
-17. User-test the curated Popov-based triad and seventh-chord forms on a real guitar.
+17. The current curated Popov-based triad and seventh-chord forms were tested on a real
+    guitar on 2026-09-23 with no remaining corrections. Repeat the review for any future
+    chord-form addition or coordinate change.
 18. Verify every transcribed point and the ascending playback order against the source
     diagrams. Record hands-on corrections before adding derived exotic qualities.
 

@@ -21,11 +21,13 @@ const api=new Function('OPEN_STRINGS_TOP_TO_BOTTOM','FRET_COUNT',
   `SCALE_DEGREE_SEMITONES,realizeScaleForm,POPOV_FORM_LIBRARY};`
 )(OPEN_STRINGS_TOP_TO_BOTTOM,FRET_COUNT);
 
-assert.deepEqual(Object.keys(api.SCALE_FORM_LIBRARY).sort(),['major','naturalMinor']);
+assert.deepEqual(Object.keys(api.SCALE_FORM_LIBRARY).sort(),['dorian','major','naturalMinor']);
 assert.deepEqual(api.SCALE_FORM_LIBRARY.major.map(form=>form.id),['E','D','C','A','G']);
 assert.deepEqual(api.SCALE_FORM_LIBRARY.naturalMinor.map(form=>form.id),['E','D','C','A','G']);
+assert.deepEqual(api.SCALE_FORM_LIBRARY.dorian.map(form=>form.id),['E','D','C','A','G']);
 assert.equal(api.SCALE_FORMULA_LIBRARY['0,2,4,5,7,9,11'],'major');
 assert.equal(api.SCALE_FORMULA_LIBRARY['0,2,3,5,7,8,10'],'naturalMinor');
+assert.equal(api.SCALE_FORMULA_LIBRARY['0,2,3,5,7,9,10'],'dorian');
 
 // Fixed C-root fixtures are independent of the realization algorithm and
 // protect every transcribed source point, repetition, and degree label.
@@ -48,17 +50,53 @@ const expectedC={
 
 const expectedDegrees={
   major:new Set(['1','2','3','4','5','6','7']),
-  naturalMinor:new Set(['1','2','b3','4','5','b6','b7'])
+  naturalMinor:new Set(['1','2','b3','4','5','b6','b7']),
+  dorian:new Set(['1','2','b3','4','5','6','b7'])
 };
 
-for(const [scaleId,forms] of Object.entries(api.SCALE_FORM_LIBRARY)){
+// Source-transcribed and guitar-reviewed parent forms retain exact C-root fixtures.
+for(const [scaleId,fixtures] of Object.entries(expectedC)){
+  const forms=api.SCALE_FORM_LIBRARY[scaleId];
   for(const form of forms){
     const c=api.realizeScaleForm(0,scaleId,form.id,FRET_COUNT);
     assert.equal(c.complete,true,`C ${scaleId} ${form.id} should fit`);
-    assert.deepEqual(c.positions.map(p=>`${p.stringIdx}:${p.fret}:${p.degree}`),expectedC[scaleId][form.id]);
+    assert.deepEqual(c.positions.map(p=>`${p.stringIdx}:${p.fret}:${p.degree}`),fixtures[form.id]);
+    assert.equal(form.provenance,'source-transcription');
+    assert.equal(form.reviewStatus,'verified');
+  }
+}
+
+for(const [scaleId,forms] of Object.entries(api.SCALE_FORM_LIBRARY)){
+  for(const form of forms){
     const actualDegrees=new Set(form.positions.map(position=>position.degree));
     assert.deepEqual(actualDegrees,expectedDegrees[scaleId],`${scaleId} ${form.id} must contain exactly the expected degrees`);
   }
+}
+
+// Dorian is stored literally, but its candidate lineage is checked independently
+// against Natural Minor so no undeclared coordinate change can enter the pilot.
+for(const dorian of api.SCALE_FORM_LIBRARY.dorian){
+  const parent=api.SCALE_FORM_LIBRARY.naturalMinor.find(form=>form.id===dorian.id);
+  assert.ok(parent,`Dorian ${dorian.id} parent must exist`);
+  assert.equal(dorian.parentScaleId,'naturalMinor');
+  assert.equal(dorian.provenance,'derived-candidate');
+  assert.equal(dorian.reviewStatus,'pending');
+  assert.deepEqual(dorian.mutationMap,[{fromDegree:'b6',toDegree:'6',fretDelta:1}]);
+  assert.equal(dorian.anchorStringIdx,parent.anchorStringIdx,`Dorian ${dorian.id} must preserve its anchor`);
+  assert.equal(dorian.positions.length,parent.positions.length,`Dorian ${dorian.id} must preserve point count`);
+  parent.positions.forEach((sourcePoint,index)=>{
+    const candidate=dorian.positions[index];
+    assert.equal(candidate.stringIdx,sourcePoint.stringIdx,`Dorian ${dorian.id} point ${index} must stay on its string`);
+    if(sourcePoint.degree==='b6'){
+      assert.equal(candidate.degree,'6',`Dorian ${dorian.id} point ${index} must raise b6 to 6`);
+      assert.equal(candidate.fretOffset,sourcePoint.fretOffset+1,`Dorian ${dorian.id} point ${index} must move exactly one fret`);
+    }else{
+      assert.equal(candidate.degree,sourcePoint.degree,`Dorian ${dorian.id} point ${index} degree must stay unchanged`);
+      assert.equal(candidate.fretOffset,sourcePoint.fretOffset,`Dorian ${dorian.id} point ${index} fret must stay unchanged`);
+    }
+  });
+  const coordinates=dorian.positions.map(point=>`${point.stringIdx}:${point.fretOffset}`);
+  assert.equal(new Set(coordinates).size,coordinates.length,`Dorian ${dorian.id} must not contain collisions`);
 }
 
 let totalComplete=0;
@@ -76,6 +114,7 @@ for(const [scaleId,forms] of Object.entries(api.SCALE_FORM_LIBRARY)){
       totalComplete++;
       assert.ok(result.positions.every(p=>p.fret>=0&&p.fret<=FRET_COUNT));
       assert.ok(result.playbackMidi.length>0,`${scaleId} ${form.id} must provide a playback route`);
+      assert.equal(result.playbackMidi[0]%12,rootPc,`${scaleId} ${form.id} playback must begin on the tonic`);
       assert.equal(new Set(result.playbackMidi).size,result.playbackMidi.length,`${scaleId} ${form.id} playback route must not repeat pitches`);
       for(let i=1;i<result.playbackMidi.length;i++){
         assert.ok(result.playbackMidi[i]>result.playbackMidi[i-1],`${scaleId} ${form.id} playback route must ascend`);
@@ -101,11 +140,16 @@ for(const relationship of api.SCALE_CHORD_FORM_RELATIONSHIPS){
   const chordForm=api.POPOV_FORM_LIBRARY[relationship.chordQuality].find(form=>form.id===relationship.formId);
   assert.ok(scaleForm&&chordForm,`Relationship targets must exist: ${JSON.stringify(relationship)}`);
   const subset=isLiteralSubset(scaleForm,chordForm);
-  assert.equal(subset,relationship.status==='verified',`${relationship.scaleId} ${relationship.formId} ${relationship.chordQuality} status must match geometry`);
+  assert.ok(['verified','pending','mismatch'].includes(relationship.status),'Relationship status must be explicit');
+  if(relationship.status==='mismatch'){
+    assert.equal(subset,false,`${relationship.scaleId} ${relationship.formId} ${relationship.chordQuality} mismatch must match geometry`);
+  }else{
+    assert.equal(subset,true,`${relationship.scaleId} ${relationship.formId} ${relationship.chordQuality} ${relationship.status} status must match geometry`);
+  }
 }
 
-assert.deepEqual(completeByScale,{major:60,naturalMinor:60});
-assert.equal(totalComplete,120);
+assert.deepEqual(completeByScale,{major:60,naturalMinor:60,dorian:60});
+assert.equal(totalComplete,180);
 const majorG=api.realizeScaleForm(0,'major','G',FRET_COUNT);
 assert.equal(majorG.positions.length,17,'Major G must preserve all 17 source positions');
 assert.equal(majorG.playbackMidi.length,15,'Major G must provide the 15 distinct ascending source pitches');
@@ -117,8 +161,10 @@ assert.ok(/key:'arpeggioShape',\s*label:'Арпеджио'/.test(html),'Arpeggio
 assert.ok(html.includes('1. Выберите трезвучие'),'Arpeggio mode must explain its first step');
 assert.ok(html.includes('2. Выберите форму:'),'Arpeggio mode must explain its second step');
 assert.ok(html.includes('Открыть натуральный минор'),'Unsupported scales must offer a direct path to a curated scale');
+assert.ok(html.includes('Открыть дорийский'),'Unsupported scales must offer a direct path to the Dorian pilot');
+assert.ok(html.includes('ожидают проверки на гитаре'),'Dorian candidates must not be presented as verified');
 assert.ok(html.includes('btn.disabled=!realization.complete'),'Unavailable form buttons must be disabled before selection');
 assert.ok(!html.includes("{key:'octaveShape', label:'Октавная аппликатура'}"),'Legacy octave-shape option must be removed from the UI');
 assert.ok(!html.includes("{key:'playableRun', label:'Игровой маршрут'}"),'Legacy playable-run option must be removed from the UI');
-assert.equal(api.SCALE_CHORD_FORM_RELATIONSHIPS.length,20);
-console.log(`OK: ${totalComplete} curated scale form/root realizations and 20 scale/chord relationships validated`);
+assert.equal(api.SCALE_CHORD_FORM_RELATIONSHIPS.length,30);
+console.log(`OK: ${totalComplete} curated scale form/root realizations and 30 scale/chord relationships validated`);
