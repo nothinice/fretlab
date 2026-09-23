@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.9.1-preview — 2026-09-23
+
+- Restored the diminished E and C triads as literal subsets of their Popov m7b5 forms.
+- Retained their exact source-derived string skips instead of relocating notes to unisons.
+- Added named regression assertions for the E-form B-string gap and C-form G-string gap;
+  every other current triad form must remain contiguous.
+- Used an independent published CAGED diminished-triad source to validate string skipping
+  as legitimate methodology without mixing its extra coordinates into the Popov library.
+
 ## 0.9.0-preview — 2026-09-22
 
 - Added five independently stored E/D/C/A/G forms for major, minor, and diminished triad arpeggios.
