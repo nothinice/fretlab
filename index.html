@@ -830,13 +830,13 @@ const CURATED_LYDIAN_SCALE_FORMS=prepareScaleForms('lydian','0,2,4,6,7,9,11',[
   }
 ]);
 
-// Phrygian candidates preserve every Natural Minor point except degree 2,
+// Guitar-reviewed Phrygian forms preserve every Natural Minor point except degree 2,
 // which moves one fret downward on its original string and becomes b2.
 const PHRYGIAN_MUTATION=[{fromDegree:'2',toDegree:'b2',fretDelta:-1}];
 const CURATED_PHRYGIAN_SCALE_FORMS=prepareScaleForms('phrygian','0,1,3,5,7,8,10',[
   {
     id:'E',name:'E',anchorStringIdx:5,parentScaleId:'naturalMinor',
-    provenance:'derived-candidate',reviewStatus:'pending',mutationMap:PHRYGIAN_MUTATION,
+    provenance:'derived-candidate',reviewStatus:'verified',mutationMap:PHRYGIAN_MUTATION,
     corrections:[{
       kind:'unison-relocation',sourceIndex:6,degree:'b2',
       fromStringIdx:2,fromFretOffset:-2,toStringIdx:3,toFretOffset:3,
@@ -850,7 +850,7 @@ const CURATED_PHRYGIAN_SCALE_FORMS=prepareScaleForms('phrygian','0,1,3,5,7,8,10'
   },
   {
     id:'D',name:'D',anchorStringIdx:3,parentScaleId:'naturalMinor',
-    provenance:'derived-candidate',reviewStatus:'pending',mutationMap:PHRYGIAN_MUTATION,
+    provenance:'derived-candidate',reviewStatus:'verified',mutationMap:PHRYGIAN_MUTATION,
     positions:[
       [0,-1,'b2'],[0,1,'b3'],[0,3,'4'],[1,1,'b7'],[1,3,'1'],
       [2,0,'4'],[2,2,'5'],[2,3,'b6'],[3,0,'1'],[3,1,'b2'],[3,3,'b3']
@@ -858,7 +858,7 @@ const CURATED_PHRYGIAN_SCALE_FORMS=prepareScaleForms('phrygian','0,1,3,5,7,8,10'
   },
   {
     id:'C',name:'C',anchorStringIdx:4,parentScaleId:'naturalMinor',
-    provenance:'derived-candidate',reviewStatus:'pending',mutationMap:PHRYGIAN_MUTATION,
+    provenance:'derived-candidate',reviewStatus:'verified',mutationMap:PHRYGIAN_MUTATION,
     positions:[
       [0,-2,'4'],[0,0,'5'],[0,1,'b6'],[1,-2,'1'],[1,-1,'b2'],[1,1,'b3'],
       [2,-3,'5'],[2,-2,'b6'],[2,0,'b7'],[3,-4,'b2'],[3,-2,'b3'],[3,0,'4'],
@@ -867,7 +867,7 @@ const CURATED_PHRYGIAN_SCALE_FORMS=prepareScaleForms('phrygian','0,1,3,5,7,8,10'
   },
   {
     id:'A',name:'A',anchorStringIdx:4,parentScaleId:'naturalMinor',
-    provenance:'derived-candidate',reviewStatus:'pending',mutationMap:PHRYGIAN_MUTATION,
+    provenance:'derived-candidate',reviewStatus:'verified',mutationMap:PHRYGIAN_MUTATION,
     corrections:[{
       kind:'unison-relocation',sourceIndex:3,degree:'b2',
       fromStringIdx:1,fromFretOffset:-1,toStringIdx:2,toFretOffset:3,
@@ -881,7 +881,7 @@ const CURATED_PHRYGIAN_SCALE_FORMS=prepareScaleForms('phrygian','0,1,3,5,7,8,10'
   },
   {
     id:'G',name:'G',anchorStringIdx:5,parentScaleId:'naturalMinor',
-    provenance:'derived-candidate',reviewStatus:'pending',mutationMap:PHRYGIAN_MUTATION,
+    provenance:'derived-candidate',reviewStatus:'verified',mutationMap:PHRYGIAN_MUTATION,
     positions:[
       [0,-2,'b7'],[0,0,'1'],[1,-2,'4'],[1,0,'5'],[1,1,'b6'],
       [2,-3,'1'],[2,-2,'b2'],[2,0,'b3'],[3,-3,'5'],[3,-2,'b6'],[3,0,'b7'],
@@ -890,7 +890,7 @@ const CURATED_PHRYGIAN_SCALE_FORMS=prepareScaleForms('phrygian','0,1,3,5,7,8,10'
   }
 ]);
 
-// Locrian candidates preserve every Natural Minor point except degrees 2 and 5,
+// Guitar-reviewed Locrian forms preserve every Natural Minor point except degrees 2 and 5,
 // which each move one fret downward on their original strings to b2 and b5.
 const LOCRIAN_MUTATION=[
   {fromDegree:'2',toDegree:'b2',fretDelta:-1},
@@ -899,7 +899,7 @@ const LOCRIAN_MUTATION=[
 const CURATED_LOCRIAN_SCALE_FORMS=prepareScaleForms('locrian','0,1,3,5,6,8,10',[
   {
     id:'E',name:'E',anchorStringIdx:5,parentScaleId:'naturalMinor',
-    provenance:'derived-candidate',reviewStatus:'pending',mutationMap:LOCRIAN_MUTATION,
+    provenance:'derived-candidate',reviewStatus:'verified',mutationMap:LOCRIAN_MUTATION,
     corrections:[
       {
         kind:'unison-relocation',sourceIndex:3,degree:'b5',
@@ -920,7 +920,7 @@ const CURATED_LOCRIAN_SCALE_FORMS=prepareScaleForms('locrian','0,1,3,5,6,8,10',[
   },
   {
     id:'D',name:'D',anchorStringIdx:3,parentScaleId:'naturalMinor',
-    provenance:'derived-candidate',reviewStatus:'pending',mutationMap:LOCRIAN_MUTATION,
+    provenance:'derived-candidate',reviewStatus:'verified',mutationMap:LOCRIAN_MUTATION,
     positions:[
       [0,-1,'b2'],[0,1,'b3'],[0,3,'4'],[1,1,'b7'],[1,3,'1'],
       [2,0,'4'],[2,1,'b5'],[2,3,'b6'],[3,0,'1'],[3,1,'b2'],[3,3,'b3']
@@ -928,7 +928,7 @@ const CURATED_LOCRIAN_SCALE_FORMS=prepareScaleForms('locrian','0,1,3,5,6,8,10',[
   },
   {
     id:'C',name:'C',anchorStringIdx:4,parentScaleId:'naturalMinor',
-    provenance:'derived-candidate',reviewStatus:'pending',mutationMap:LOCRIAN_MUTATION,
+    provenance:'derived-candidate',reviewStatus:'verified',mutationMap:LOCRIAN_MUTATION,
     positions:[
       [0,-2,'4'],[0,-1,'b5'],[0,1,'b6'],[1,-2,'1'],[1,-1,'b2'],[1,1,'b3'],
       [2,-4,'b5'],[2,-2,'b6'],[2,0,'b7'],[3,-4,'b2'],[3,-2,'b3'],[3,0,'4'],
@@ -937,7 +937,7 @@ const CURATED_LOCRIAN_SCALE_FORMS=prepareScaleForms('locrian','0,1,3,5,6,8,10',[
   },
   {
     id:'A',name:'A',anchorStringIdx:4,parentScaleId:'naturalMinor',
-    provenance:'derived-candidate',reviewStatus:'pending',mutationMap:LOCRIAN_MUTATION,
+    provenance:'derived-candidate',reviewStatus:'verified',mutationMap:LOCRIAN_MUTATION,
     positions:[
       [0,-1,'b5'],[0,1,'b6'],[0,3,'b7'],[1,-1,'b2'],[1,1,'b3'],[1,3,'4'],
       [2,0,'b7'],[2,2,'1'],[3,0,'4'],[3,1,'b5'],[3,3,'b6'],
@@ -946,7 +946,7 @@ const CURATED_LOCRIAN_SCALE_FORMS=prepareScaleForms('locrian','0,1,3,5,6,8,10',[
   },
   {
     id:'G',name:'G',anchorStringIdx:5,parentScaleId:'naturalMinor',
-    provenance:'derived-candidate',reviewStatus:'pending',mutationMap:LOCRIAN_MUTATION,
+    provenance:'derived-candidate',reviewStatus:'verified',mutationMap:LOCRIAN_MUTATION,
     positions:[
       [0,-2,'b7'],[0,0,'1'],[1,-2,'4'],[1,-1,'b5'],[1,1,'b6'],
       [2,-3,'1'],[2,-2,'b2'],[2,0,'b3'],[3,-4,'b5'],[3,-2,'b6'],[3,0,'b7'],
@@ -1026,26 +1026,26 @@ const SCALE_CHORD_FORM_RELATIONSHIPS=[
   {scaleId:'lydian',formId:'C',chordQuality:'maj7',status:'verified'},
   {scaleId:'lydian',formId:'A',chordQuality:'maj7',status:'verified'},
   {scaleId:'lydian',formId:'G',chordQuality:'maj7',status:'mismatch'},
-  {scaleId:'phrygian',formId:'E',chordQuality:'min',status:'pending'},
+  {scaleId:'phrygian',formId:'E',chordQuality:'min',status:'verified'},
   {scaleId:'phrygian',formId:'D',chordQuality:'min',status:'mismatch'},
   {scaleId:'phrygian',formId:'C',chordQuality:'min',status:'mismatch'},
-  {scaleId:'phrygian',formId:'A',chordQuality:'min',status:'pending'},
-  {scaleId:'phrygian',formId:'G',chordQuality:'min',status:'pending'},
-  {scaleId:'phrygian',formId:'E',chordQuality:'m7',status:'pending'},
+  {scaleId:'phrygian',formId:'A',chordQuality:'min',status:'verified'},
+  {scaleId:'phrygian',formId:'G',chordQuality:'min',status:'verified'},
+  {scaleId:'phrygian',formId:'E',chordQuality:'m7',status:'verified'},
   {scaleId:'phrygian',formId:'D',chordQuality:'m7',status:'mismatch'},
   {scaleId:'phrygian',formId:'C',chordQuality:'m7',status:'mismatch'},
-  {scaleId:'phrygian',formId:'A',chordQuality:'m7',status:'pending'},
-  {scaleId:'phrygian',formId:'G',chordQuality:'m7',status:'pending'},
-  {scaleId:'locrian',formId:'E',chordQuality:'dim',status:'pending'},
+  {scaleId:'phrygian',formId:'A',chordQuality:'m7',status:'verified'},
+  {scaleId:'phrygian',formId:'G',chordQuality:'m7',status:'verified'},
+  {scaleId:'locrian',formId:'E',chordQuality:'dim',status:'verified'},
   {scaleId:'locrian',formId:'D',chordQuality:'dim',status:'mismatch'},
   {scaleId:'locrian',formId:'C',chordQuality:'dim',status:'mismatch'},
   {scaleId:'locrian',formId:'A',chordQuality:'dim',status:'mismatch'},
-  {scaleId:'locrian',formId:'G',chordQuality:'dim',status:'pending'},
-  {scaleId:'locrian',formId:'E',chordQuality:'m7b5',status:'pending'},
+  {scaleId:'locrian',formId:'G',chordQuality:'dim',status:'verified'},
+  {scaleId:'locrian',formId:'E',chordQuality:'m7b5',status:'verified'},
   {scaleId:'locrian',formId:'D',chordQuality:'m7b5',status:'mismatch'},
   {scaleId:'locrian',formId:'C',chordQuality:'m7b5',status:'mismatch'},
   {scaleId:'locrian',formId:'A',chordQuality:'m7b5',status:'mismatch'},
-  {scaleId:'locrian',formId:'G',chordQuality:'m7b5',status:'pending'}
+  {scaleId:'locrian',formId:'G',chordQuality:'m7b5',status:'verified'}
 ];
 
 function realizeScaleForm(rootPc,scaleId,formId,maxFret=FRET_COUNT){
@@ -1648,8 +1648,8 @@ function render(){
         dorian:'Проверенные на гитаре формы дорийского лада.',
         mixolydian:'Проверенные на гитаре формы миксолидийского лада.',
         lydian:'Проверенные на гитаре формы лидийского лада.',
-        phrygian:'Производные формы фригийского лада; ожидают проверки на гитаре.',
-        locrian:'Производные формы локрийского лада; ожидают проверки на гитаре.'
+        phrygian:'Проверенные на гитаре формы фригийского лада.',
+        locrian:'Проверенные на гитаре формы локрийского лада.'
       };
       note.textContent=scaleFormMessages[currentScaleId]||'';
       scaleFormRow.appendChild(note);

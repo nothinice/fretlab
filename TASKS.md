@@ -125,13 +125,12 @@ mechanically derived geometry as source-verified material.
    unchanged. A changed degree stays on its original string and may move only by the
    declared one-fret delta. Reject collisions, duplicate string/fret points with different
    degrees, missing degrees, foreign degrees, or any undeclared coordinate change.
-6. Implement in small reviewable stages: Dorian first as the minor-parent pilot
-   (all five forms guitar-verified on 2026-09-23), Mixolydian second as the major-parent
-   pilot (all five forms guitar-verified on 2026-09-23), then Lydian (all five forms
-   guitar-verified on 2026-09-23), Phrygian (five literal candidates added as `pending`
-   on 2026-09-23), and Locrian last (five literal candidates added as `pending` on
-   2026-09-23). Locrian changes two degrees and adds the diminished/m7b5 relationship,
-   making it the highest-risk diatonic conversion and requiring separate hands-on review.
+6. Implement in small reviewable stages: Dorian first as the minor-parent pilot,
+   Mixolydian second as the major-parent pilot, then Lydian, Phrygian, and Locrian.
+   Danila completed the hands-on review of all five forms of every diatonic mode on
+   2026-09-23; all 35 forms are playable and are now `verified`. Locrian changes two
+   degrees and adds the diminished/m7b5 relationship, so its separate review remained
+   mandatory even though the final result passed.
 7. Before exposing a raw derived candidate, test all five forms in all twelve roots for
    exact degree content, preserved parent point count and root positions, correct pitch classes, collisions,
    fretboard boundaries, and strictly ascending unique playback. Playback must begin on
@@ -152,18 +151,18 @@ mechanically derived geometry as source-verified material.
    `pending`, or `mismatch`; never force a chord form into a scale form or repair either
    library to manufacture a match.
 11. Danila reviews each E/D/C/A/G candidate on guitar for fingering, continuity, range,
-    tonic placement, and playback order. All five Dorian, Mixolydian, and Lydian
-    candidates passed this review on 2026-09-23. Subsequent hands-on continuity review
-    relocated exact unisons in Dorian E/G and Lydian E without changing pitch or degree.
+    tonic placement, and playback order. All five forms of all seven diatonic modes
+    passed this review on 2026-09-23. Hands-on continuity review relocated exact unisons
+    in Dorian E/G and Lydian E without changing pitch or degree.
     Promote only the approved individual form from `pending` to `verified`. Store any
     correction as explicit coordinates with a written reason instead of changing the
     mutation rule globally.
-    The pending Phrygian E and A candidates have explicit hands-on corrections. E's
+    The verified Phrygian E and A forms have explicit hands-on corrections. E's
     `b2` at G-string offset `-2` is relocated to the pitch-identical D-string offset
     `+3`, producing a continuous D-E-F group. A's `b2` at B-string offset `-1` is
     relocated to the pitch-identical G-string offset `+3`, producing a continuous
     G-A-Bb group. Neither relocation changes degree content or pitch.
-    The pending Locrian E candidate relocates its `b5` from B-string offset `-1` to
+    The verified Locrian E form relocates its `b5` from B-string offset `-1` to
     G-string offset `+3` and its `b2` from G-string offset `-2` to D-string offset `+3`.
     These exact unisons remove the isolated left-edge F and C while retaining every pitch.
 12. After hands-on approval, replace derivation-only assertions with fixed-coordinate
@@ -173,6 +172,17 @@ mechanically derived geometry as source-verified material.
 13. Keep curated modal forms out of Compare mode until all five standalone libraries and
     their review statuses are stable; the deferred Compare-mode design must not reshape
     the core data model during this rollout.
+14. Claude completed the independent programmatic audit of the full seven-mode library
+    on 2026-09-23. The three official suites pass with 418 scale realizations / 70
+    scale-chord relationships, 468 Popov realizations, and 15 triad forms. All seven
+    formulas and E/D/C/A/G libraries, exact mutations, literal corrections, fretboard
+    boundaries, degree sets, pitch classes, collisions, playback order, relationship
+    metadata, and parent-library regression checks passed. Five isolated mutation tests
+    were also proven sensitive by introducing one deliberate error at a time and then
+    restoring a clean working copy. This audit validates theory, transposition, and stored
+    geometry only. Danila subsequently completed the hands-on guitar review of all 35
+    modal forms with no remaining playability concerns. The broader first-time-user UI
+    interaction checklist remains open for the design phase.
 
 ### Triad arpeggio forms
 
@@ -208,6 +218,70 @@ mechanically derived geometry as source-verified material.
     scale-step stacks.
 23. Expand permanent regression tests before splitting the single-file prototype into
     modules.
+
+### Product design and commercial direction
+
+24. Pause broad library expansion after the current diatonic-mode review and prototype a
+    clearer FretLab v2 learning surface without removing the formula-driven engine. The
+    primary screen should lead with the musical task and the fretboard, not the formula
+    editor: tonic, mode, E/D/C/A/G form, and a prominent board should be visible before
+    advanced construction controls.
+25. Organize the product around four explicit jobs: `Learn` verified positional forms,
+    `Explore` the complete fretboard and custom formulas, `Practice` with playback and
+    later tempo/progress tools, and `My Materials` for saved or teacher-assigned work.
+    Keep formula editing, outside-mode comparison, custom fret ranges, and other expert
+    controls available in an Advanced/Explore surface rather than exposing every choice
+    at once to a new student.
+26. Make the scale-to-harmony relationship the central differentiator: within one
+    physical position, let the learner switch among the complete scale, tonic triad,
+    seventh chord, and a combined overlay. Explain the active form in plain language and
+    distinguish the primary playback route from optional duplicated unisons.
+27. Preserve the current warm paper / forest-green / amber visual identity, but reduce
+    nested boxes, strengthen hierarchy, keep the fretboard above the fold, and make the
+    main action unambiguous. Internal provenance and review statuses should remain
+    inspectable without dominating student-facing copy.
+28. Use competitor patterns selectively rather than cloning a single product:
+    FretMap's immediate fretboard and simple position switching; Fretastic's advanced
+    controls, shareable state, PWA, and later backing tracks; Oolimo's separation of
+    finder, analyzer, theory, and quiz jobs; Fret Monster's concise instructional context;
+    and fr3t.app's explanation of how CAGED chords, scales, and arpeggios connect. Avoid
+    their recurring weaknesses: control overload before the board, fragmented tool
+    navigation, oversized marketing pages around the tool, and feature breadth without a
+    guided learning path.
+29. Validate the redesign before adding accounts or payments. Give an isolated prototype
+    to 5-10 students and teachers without instructions and observe whether they can open a
+    requested key/mode, choose a form, reveal its triad or seventh chord, play it, and
+    understand the next action. Record failures as product requirements rather than
+    explaining the existing interface to the participant.
+30. Treat the commercial proposition as guided fretboard learning, not paid scale lookup.
+    A possible free tier keeps the whole-fretboard explorer, core scales, and basic audio;
+    individual Pro can later add the full verified library, saved practice, loops,
+    progress, and backing tracks; Teacher can add shareable assignments, student groups,
+    comments, and lesson collections. Pricing and backend implementation remain discovery
+    items until a small paid pilot demonstrates demand.
+
+### Chord dictionary and identification
+
+31. Investigate adding an Oolimo-like chord workflow to FretLab: place notes on the
+    fretboard and identify possible chord names/inversions, or choose a chord symbol and
+    display playable shapes. Keep `Chord Finder`, `Chord Analyzer`, and the existing
+    curated arpeggio learner as separate user jobs even if they share one theory engine.
+32. Do not copy Oolimo's proprietary database, diagrams, wording, or interface. First
+    determine whether FretLab can generate its own chord dictionary from interval
+    formulas, required/optional tones, omissions, extensions, alterations, bass note,
+    enharmonic spelling, and inversion rules. If an external dataset is considered,
+    document its license, provenance, update policy, and commercial-use permission before
+    importing any records.
+33. Design chord identification to return ranked interpretations rather than one absolute
+    answer. Ranking should consider the selected bass note, compact/common spelling,
+    characteristic tones, omitted fifths, enharmonic context, and the current key or mode.
+    Show the pitch-class formula and explain ambiguous alternatives so the result remains
+    musically honest.
+34. Reuse the formula engine where practical, but keep chord-symbol parsing and naming in
+    a tested module independent from fretboard geometry. Add fixtures for inversions,
+    slash chords, enharmonic roots, incomplete voicings, duplicated notes, altered
+    dominants, and genuinely ambiguous pitch-class sets before exposing identification in
+    the main learning flow.
 
 ## Implemented safeguards
 

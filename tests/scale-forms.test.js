@@ -81,6 +81,20 @@ const expectedC={
     C:['0:0:3','0:2:#4','0:3:5','1:0:7','1:1:1','1:3:2','2:0:5','2:2:6','3:0:2','3:2:3','3:4:#4','4:3:1'],
     A:['0:3:5','0:5:6','0:7:7','1:3:2','1:5:3','1:7:#4','2:2:6','2:4:7','2:5:1','3:2:3','3:4:#4','3:5:5','4:3:1','4:5:2'],
     G:['0:5:6','0:7:7','0:8:1','1:5:3','1:7:#4','1:8:5','2:4:7','2:5:1','2:7:2','3:4:#4','3:5:5','3:7:6','4:3:1','4:5:2','4:7:3','4:9:#4','5:8:1']
+  },
+  phrygian:{
+    E:['0:8:1','0:9:b2','0:11:b3','1:8:5','1:9:b6','1:11:b7','3:11:b2','2:8:b3','2:10:4','3:8:b7','3:10:1','4:8:4','4:10:5','4:11:b6','5:8:1','5:9:b2','5:11:b3'],
+    D:['0:9:b2','0:11:b3','0:13:4','1:11:b7','1:13:1','2:10:4','2:12:5','2:13:b6','3:10:1','3:11:b2','3:13:b3'],
+    C:['0:13:4','0:15:5','0:16:b6','1:13:1','1:14:b2','1:16:b3','2:12:5','2:13:b6','2:15:b7','3:11:b2','3:13:b3','3:15:4','4:15:1'],
+    A:['0:3:5','0:4:b6','0:6:b7','2:6:b2','1:4:b3','1:6:4','2:3:b7','2:5:1','3:3:4','3:5:5','3:6:b6','4:3:1','4:4:b2','4:6:b3'],
+    G:['0:6:b7','0:8:1','1:6:4','1:8:5','1:9:b6','2:5:1','2:6:b2','2:8:b3','3:5:5','3:6:b6','3:8:b7','4:4:b2','4:6:b3','4:8:4','5:8:1']
+  },
+  locrian:{
+    E:['0:8:1','0:9:b2','0:11:b3','2:11:b5','1:9:b6','1:11:b7','3:11:b2','2:8:b3','2:10:4','3:8:b7','3:10:1','4:8:4','4:9:b5','4:11:b6','5:8:1','5:9:b2','5:11:b3'],
+    D:['0:9:b2','0:11:b3','0:13:4','1:11:b7','1:13:1','2:10:4','2:11:b5','2:13:b6','3:10:1','3:11:b2','3:13:b3'],
+    C:['0:13:4','0:14:b5','0:16:b6','1:13:1','1:14:b2','1:16:b3','2:11:b5','2:13:b6','2:15:b7','3:11:b2','3:13:b3','3:15:4','4:15:1'],
+    A:['0:2:b5','0:4:b6','0:6:b7','1:2:b2','1:4:b3','1:6:4','2:3:b7','2:5:1','3:3:4','3:4:b5','3:6:b6','4:3:1','4:4:b2','4:6:b3'],
+    G:['0:6:b7','0:8:1','1:6:4','1:7:b5','1:9:b6','2:5:1','2:6:b2','2:8:b3','3:4:b5','3:6:b6','3:8:b7','4:4:b2','4:6:b3','4:8:4','5:8:1']
   }
 };
 
@@ -102,7 +116,7 @@ for(const [scaleId,fixtures] of Object.entries(expectedC)){
     assert.equal(c.complete,true,`C ${scaleId} ${form.id} should fit`);
     assert.deepEqual(c.positions.map(p=>`${p.stringIdx}:${p.fret}:${p.degree}`),fixtures[form.id]);
     assert.equal(form.reviewStatus,'verified');
-    assert.equal(form.provenance,['dorian','mixolydian','lydian'].includes(scaleId)?'derived-candidate':'source-transcription');
+    assert.equal(form.provenance,['dorian','mixolydian','lydian','phrygian','locrian'].includes(scaleId)?'derived-candidate':'source-transcription');
   }
 }
 
@@ -154,8 +168,8 @@ function assertDegreeMutations({scaleId,parentScaleId,mutationMap,reviewStatus})
 assertDegreeMutations({scaleId:'dorian',parentScaleId:'naturalMinor',mutationMap:[{fromDegree:'b6',toDegree:'6',fretDelta:1}],reviewStatus:'verified'});
 assertDegreeMutations({scaleId:'mixolydian',parentScaleId:'major',mutationMap:[{fromDegree:'7',toDegree:'b7',fretDelta:-1}],reviewStatus:'verified'});
 assertDegreeMutations({scaleId:'lydian',parentScaleId:'major',mutationMap:[{fromDegree:'4',toDegree:'#4',fretDelta:1}],reviewStatus:'verified'});
-assertDegreeMutations({scaleId:'phrygian',parentScaleId:'naturalMinor',mutationMap:[{fromDegree:'2',toDegree:'b2',fretDelta:-1}],reviewStatus:'pending'});
-assertDegreeMutations({scaleId:'locrian',parentScaleId:'naturalMinor',mutationMap:[{fromDegree:'2',toDegree:'b2',fretDelta:-1},{fromDegree:'5',toDegree:'b5',fretDelta:-1}],reviewStatus:'pending'});
+assertDegreeMutations({scaleId:'phrygian',parentScaleId:'naturalMinor',mutationMap:[{fromDegree:'2',toDegree:'b2',fretDelta:-1}],reviewStatus:'verified'});
+assertDegreeMutations({scaleId:'locrian',parentScaleId:'naturalMinor',mutationMap:[{fromDegree:'2',toDegree:'b2',fretDelta:-1},{fromDegree:'5',toDegree:'b5',fretDelta:-1}],reviewStatus:'verified'});
 const phrygianECorrections=api.SCALE_FORM_LIBRARY.phrygian.find(form=>form.id==='E').corrections;
 assert.equal(phrygianECorrections.length,1,'Phrygian E must declare exactly one hands-on relocation');
 assert.equal(phrygianECorrections[0].reason,'hands-on-continuity');
@@ -259,8 +273,8 @@ assert.ok(html.includes('Открыть миксолидийский'),'Unsuppor
 assert.ok(html.includes('Открыть лидийский'),'Unsupported scales must offer a direct path to the Lydian pilot');
 assert.ok(html.includes('Открыть фригийский'),'Unsupported scales must offer a direct path to the Phrygian pilot');
 assert.ok(html.includes('Открыть локрийский'),'Unsupported scales must offer a direct path to the Locrian candidates');
-assert.ok(html.includes('Производные формы фригийского лада; ожидают проверки на гитаре.'),'Phrygian candidates must not be presented as verified');
-assert.ok(html.includes('Производные формы локрийского лада; ожидают проверки на гитаре.'),'Locrian candidates must not be presented as verified');
+assert.ok(html.includes('Проверенные на гитаре формы фригийского лада.'),'Phrygian forms must be presented as guitar-verified');
+assert.ok(html.includes('Проверенные на гитаре формы локрийского лада.'),'Locrian forms must be presented as guitar-verified');
 assert.equal(api.realizeScaleForm(3,'lydian','D',FRET_COUNT).reason,'outside','D Lydian D form must expose its reviewed 16-fret boundary');
 assert.equal(api.realizeScaleForm(8,'lydian','G',FRET_COUNT).reason,'outside','G# Lydian G form must expose its reviewed 16-fret boundary');
 assert.ok(html.includes('p.dataset.preferredToken=activeToken'),'Degree pills must preserve #4 spelling from the active formula');
