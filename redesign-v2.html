@@ -287,8 +287,8 @@
       <button id="learnPlayBtn" class="play-btn">▶ Играть форму</button>
     </div>
 
-    <p class="hint" id="learnExplain" style="font-size:15px; color:var(--ink);"></p>
-    <div id="learnHintBanner"></div>
+    <p class="hint" id="learnExplain" aria-live="polite" style="font-size:15px; color:var(--ink);"></p>
+    <div id="learnHintBanner" aria-live="polite"></div>
     <div class="v2-legend" id="learnLegend"></div>
     <div class="board-outer"><div class="board" id="learnBoard"></div></div>
 
@@ -2165,7 +2165,8 @@ const V2_MODE_CHORD_QUALITY = {
   locrian:{triad:'dim',seventh:'m7b5'}
 };
 const V2_CHORD_SUFFIX = {maj:'',min:'m',dim:'dim',maj7:'maj7',m7:'m7','7':'7',m7b5:'m7b5'};
-const V2_STRING_ORDINALS = ['первой струне','второй струне','третьей струне','четвёртой струне','пятой струне','шестой струне'];
+const V2_STRING_NAMES = ['первая','вторая','третья','четвёртая','пятая','шестая'];
+const V2_STRING_LOCATIONS = ['первой','второй','третьей','четвёртой','пятой','шестой'];
 
 let v2State = { root: findRootIndex('C'), mode:'major', form:'E', content:'scale', display:'notes' };
 let v2PlaybackMidi = [];
@@ -2372,7 +2373,7 @@ function renderLearn(){
   legend.innerHTML = legendParts.join('');
 
   const rangeText = tonicFrets.length ? `Тоника на ладах: ${[...new Set(tonicFrets)].sort((a,b)=>a-b).join(', ')}.` : '';
-  explainEl.innerHTML = `<strong>${v2State.form}-форма ${tonicName} ${mode.label}.</strong> Якорная струна — ${V2_STRING_ORDINALS[result.form.anchorStringIdx]}. ${rangeText} ${tail}`;
+  explainEl.innerHTML = `<strong>${v2State.form}-форма ${tonicName} ${mode.label}.</strong> Якорь формы находится на ${V2_STRING_LOCATIONS[result.form.anchorStringIdx]} струне. ${rangeText} ${tail}`;
 
   const allFrets = [...cellsMap.keys()].map(k=>parseInt(k.split(':')[1],10));
   if(allFrets.length){
@@ -2380,7 +2381,7 @@ function renderLearn(){
     detailGrid.innerHTML = `
       <div>Позиций на грифе: <strong>${cellsMap.size}</strong></div>
       <div>Диапазон ладов: <strong>${Math.min(...allFrets)}–${Math.max(...allFrets)}</strong></div>
-      <div>Якорная струна: <strong>${V2_STRING_ORDINALS[result.form.anchorStringIdx]}</strong></div>
+      <div>Якорная струна: <strong>${V2_STRING_NAMES[result.form.anchorStringIdx]}</strong></div>
     `;
   } else {
     detailsBox.style.display = 'none';
@@ -2403,8 +2404,8 @@ function v2InitTabs(){
   tabs.forEach((tab,i)=>{
     tab.addEventListener('click', ()=>activate(tab));
     tab.addEventListener('keydown', (e)=>{
-      if(e.key==='ArrowRight') activate(tabs[(i+1)%tabs.length]);
-      if(e.key==='ArrowLeft') activate(tabs[(i-1+tabs.length)%tabs.length]);
+      if(e.key==='ArrowRight') { e.preventDefault(); activate(tabs[(i+1)%tabs.length]); }
+      if(e.key==='ArrowLeft') { e.preventDefault(); activate(tabs[(i-1+tabs.length)%tabs.length]); }
     });
   });
 }
