@@ -1,0 +1,2445 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fretlab — формулы, гаммы и арпеджио</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F3EEE3; --panel:#FFFFFF; --ink:#241E19; --muted:#8A8073;
+    --wood:#D8C9A8; --wood-dark:#C3B08A; --brass:#A8672B; --teal:#3E5C55;
+    --border:#DCD2BC; --string:#6B6357; --fret-wire:#A79C87; --danger:#B3453A;
+    --warn:#8A6A1E; --warn-bg:#F3E6C4;
+    --ov-outside:#B5651D; --ov-common:#3E5C55;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#1B1714; --panel:#241E19; --ink:#EDE7DA; --muted:#9C948A;
+      --wood:#3B2A20; --wood-dark:#2C1E16; --brass:#D68C4C; --teal:#6FA093;
+      --border:#3A3128; --string:#D8D2C4; --fret-wire:#8F8672; --danger:#D97C6F;
+      --warn:#E3C878; --warn-bg:#3A2F16;
+      --ov-outside:#E08A45; --ov-common:#6FA093;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#1B1714; --panel:#241E19; --ink:#EDE7DA; --muted:#9C948A;
+    --wood:#3B2A20; --wood-dark:#2C1E16; --brass:#D68C4C; --teal:#6FA093;
+    --border:#3A3128; --string:#D8D2C4; --fret-wire:#8F8672; --danger:#D97C6F;
+    --warn:#E3C878; --warn-bg:#3A2F16;
+    --ov-outside:#E08A45; --ov-common:#6FA093;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:'IBM Plex Sans', system-ui, sans-serif;
+    padding:28px 20px 60px;
+  }
+  button{ font-family:inherit; -webkit-appearance:none; appearance:none; margin:0; }
+  button:focus-visible{ outline:2px solid var(--teal); outline-offset:2px; }
+  .wrap{max-width:980px; margin:0 auto;}
+  h1{
+    font-family:'Fraunces', Georgia, serif; font-weight:600; font-size:28px;
+    margin:0 0 4px; letter-spacing:-0.01em;
+  }
+  .sub{color:var(--muted); font-size:14px; margin:0 0 28px; max-width:60ch; line-height:1.5;}
+
+  .controls{
+    display:grid; grid-template-columns: repeat(auto-fit, minmax(160px,1fr));
+    gap:14px; background:var(--panel); border:1px solid var(--border);
+    border-radius:10px; padding:18px; margin-bottom:16px;
+  }
+  .scale-compare-grid{
+    display:grid; grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);
+    gap:12px; align-items:stretch; margin-bottom:16px;
+  }
+  .scale-card{
+    background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:16px;
+  }
+  .scale-card.inactive{opacity:.5;}
+  .scale-card h2{font-family:'Fraunces',serif; font-size:17px; margin:0 0 12px;}
+  .scale-card-fields{display:grid; grid-template-columns:110px 1fr; gap:12px;}
+  .scale-card .formula-field{grid-column:1 / -1;}
+  .comparison-action{display:flex; align-items:center; justify-content:center;}
+  .comparison-details{background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin-bottom:16px;}
+  @media (max-width:760px){
+    .scale-compare-grid{grid-template-columns:1fr;}
+    .comparison-action{justify-content:flex-start;}
+  }
+  label{display:block; font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin-bottom:6px;}
+  select, input[type=text], input[type=number]{
+    width:100%; font-size:15px; padding:9px 10px; border-radius:6px;
+    border:1px solid var(--border); background:var(--bg); color:var(--ink);
+    font-family:'IBM Plex Mono', monospace;
+  }
+  select{font-family:'IBM Plex Sans', sans-serif;}
+  input:focus-visible, select:focus-visible{outline:2px solid var(--teal); outline-offset:1px;}
+
+  .pill-row{display:flex; gap:5px; margin-bottom:8px; flex-wrap:wrap;}
+  .pill{
+    flex:1; min-width:38px; text-align:center; padding:10px 4px; border-radius:7px;
+    border:1px solid var(--border); background:var(--panel); color:var(--muted);
+    font-family:'IBM Plex Mono',monospace; font-size:12px; font-weight:600; cursor:pointer;
+    user-select:none;
+  }
+  .pill.black{background:var(--wood-dark); color:var(--wood);}
+  .pill.active{background:var(--teal); color:#fff; border-color:var(--teal);}
+  .pill.active.root-pill{background:var(--brass); border-color:var(--brass);}
+  .hint{color:var(--muted); font-size:12px; margin:0 0 22px; line-height:1.5;}
+
+  .toggles{display:flex; gap:18px; align-items:center; flex-wrap:wrap; margin-bottom:18px;}
+  .toggle-group{
+    display:inline-flex; border:1px solid var(--border); border-radius:8px; overflow:hidden;
+  }
+  .toggle-group button{
+    background:var(--panel); color:var(--muted); border:none; padding:8px 14px;
+    font-size:13px; font-family:'IBM Plex Sans',sans-serif; cursor:pointer;
+  }
+  .toggle-group button.active{background:var(--teal); color:#fff;}
+  .play-btn{
+    padding:8px 16px; border-radius:8px; border:1px solid var(--brass); background:var(--brass);
+    color:#211408; font-weight:600; font-size:13px; cursor:pointer; font-family:'IBM Plex Sans',sans-serif;
+  }
+  .play-btn:hover{opacity:.85;}
+  .play-btn:disabled{opacity:.4; cursor:not-allowed;}
+  .play-btn.outside{border-color:var(--ov-outside); background:var(--ov-outside); color:#241505;}
+
+  .overlay-toggle-row{margin-bottom:14px;}
+  .overlay-btn{
+    padding:8px 16px; border-radius:8px; border:1px solid var(--teal); background:var(--panel);
+    color:var(--teal); font-weight:600; font-size:13px; cursor:pointer; font-family:'IBM Plex Sans',sans-serif;
+  }
+  .overlay-btn.active{background:var(--teal); color:#fff;}
+  .overlay-panel{
+    background:var(--panel); border:1px solid var(--border); border-radius:10px;
+    padding:16px; margin-bottom:16px;
+  }
+  .overlay-grid{display:grid; grid-template-columns: repeat(auto-fit, minmax(160px,1fr)); gap:14px; margin-bottom:12px;}
+  .legend{display:flex; gap:16px; flex-wrap:wrap; font-size:12px; color:var(--muted); margin-top:8px;}
+  .legend-item{display:flex; align-items:center; gap:6px;}
+  .swatch{width:14px; height:14px; border-radius:50%; display:inline-block; border:1px solid rgba(0,0,0,.2);}
+  .sw-inside{background:#EFE7D6;} .sw-outside{background:var(--ov-outside);}
+  .sw-common{background:var(--ov-common);} .sw-root{background:var(--panel); box-shadow:0 0 0 2px var(--ink) inset;}
+  .overlay-lists{display:flex; gap:24px; flex-wrap:wrap; font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--muted); margin-top:10px;}
+
+  .readout{
+    display:flex; flex-direction:column; gap:6px; margin-bottom:22px; font-family:'IBM Plex Mono',monospace;
+    font-size:13px; color:var(--muted);
+  }
+  .readout strong{color:var(--ink); font-weight:600;}
+  .err{color:var(--danger); font-size:13px; margin-bottom:14px; font-family:'IBM Plex Mono',monospace; padding:10px 12px; border:1px solid var(--danger); border-radius:8px;}
+  .warn{color:var(--warn); font-size:13px; margin-bottom:14px; font-family:'IBM Plex Mono',monospace; padding:10px 12px; border:1px solid var(--warn); background:var(--warn-bg); border-radius:8px;}
+
+  .board-outer{
+    background:var(--wood-dark); border-radius:10px; padding:20px 16px 26px;
+    overflow-x:auto;
+  }
+  .board{
+    display:grid; min-width:760px;
+  }
+  .fret-label{
+    font-family:'IBM Plex Mono',monospace; font-size:11px;
+    color:var(--wood); text-align:center; padding-bottom:6px;
+  }
+  .open-label{
+    display:flex; align-items:center; justify-content:center;
+    font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--wood);
+  }
+  .cell{
+    position:relative; height:46px; border-bottom:2px solid var(--fret-wire);
+    border-right:1px solid rgba(0,0,0,.15);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .cell.nut{border-right:3px solid var(--wood);}
+  .cell.dimmed{opacity:.28;}
+  .string-line{
+    position:absolute; left:0; right:0; top:50%; height:1px;
+    background:var(--string); transform:translateY(-50%); z-index:0;
+  }
+  .marker-dot{
+    position:absolute; bottom:4px; width:6px; height:6px; border-radius:50%;
+    background:var(--wood); opacity:.55; left:50%; transform:translateX(-50%);
+  }
+  .note{
+    position:relative; z-index:1; width:28px; height:28px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+    font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:600;
+    background:#EFE7D6; color:#241E19; border:1px solid rgba(0,0,0,.12);
+  }
+  .note:active{ transform: scale(0.88); }
+  .note.root{ background:var(--brass); color:#211408; font-weight:700; box-shadow:0 0 0 2px rgba(0,0,0,.15); }
+  .note.route-note::after{
+    content:attr(data-order); position:absolute; right:-7px; top:-8px; min-width:16px; height:16px;
+    padding:0 3px; border-radius:9px; background:var(--teal); color:#fff; border:1px solid var(--panel);
+    font:600 9px/14px 'IBM Plex Mono',monospace; text-align:center;
+  }
+  .mode-banner{
+    display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
+    background:var(--panel); border:1px solid var(--border); border-radius:8px; padding:10px 12px;
+  }
+  .note.ov-inside{ background:#EFE7D6; color:#241E19; }
+  .note.ov-outside{ background:var(--ov-outside); color:#241505; }
+  .note.ov-common{ background:var(--ov-common); color:#fff; }
+  .note.ov-is-root{ box-shadow:0 0 0 2px var(--ink), 0 0 0 4px var(--wood); }
+
+  .chords-section{margin-top:24px;}
+  .chords-section h2{font-family:'Fraunces',serif; font-size:16px; font-weight:600; margin:0 0 10px;}
+  .chip-row{display:flex; flex-wrap:wrap; gap:6px;}
+  .chip{
+    padding:6px 10px; border-radius:8px; border:1px solid var(--border);
+    background:var(--panel); color:var(--ink); font-family:'IBM Plex Mono',monospace; font-size:13px;
+  }
+  .chip.clickable{cursor:pointer;}
+  .chip.clickable:hover{border-color:var(--teal);}
+  .chip.active{background:var(--teal); color:#fff; border-color:var(--teal);}
+  .chip.disabled{opacity:.45; cursor:not-allowed;}
+  button.chip:disabled{opacity:.4; cursor:not-allowed;}
+  .note.dual-label{width:38px; font-size:9px; letter-spacing:-.04em;}
+  .range-controls{display:flex; gap:8px; align-items:center; margin-top:8px; flex-wrap:wrap;}
+  .range-controls input[type=number]{width:70px;}
+  .range-controls label{margin:0; display:inline;}
+  .route-info{
+    width:100%; margin:4px 0 0; padding:8px 10px; border-radius:8px;
+    background:var(--panel); border:1px solid var(--border); color:var(--muted);
+    font:12px/1.5 'IBM Plex Mono',monospace;
+  }
+  .route-info strong{color:var(--ink);}
+  .route-tag{display:inline-block; margin-left:6px; color:var(--teal); font-size:11px;}
+  .chip.active .route-tag{color:#fff; opacity:.8;}
+  .study-picker{
+    margin:0 0 14px; padding:14px; border:1px solid var(--border); border-radius:10px; background:var(--panel);
+  }
+  .study-picker-title{font:600 16px 'Fraunces',serif; margin-bottom:4px;}
+  .study-picker .hint{margin:0 0 10px;}
+  .study-picker .chip{background:var(--bg);}
+  .study-picker .chip.active{background:var(--teal);}
+  #rangePresetRow{margin-top:10px; padding-top:10px; border-top:1px solid var(--border);}
+  #chordsSection{
+    margin:0 0 14px; padding:14px; border:1px solid var(--border); border-radius:10px; background:var(--panel);
+  }
+
+  /* ---------- v2 redesign: tab shell + Learn panel (additive, does not restyle Explore) ---------- */
+  .v2-topbar{display:flex; align-items:center; gap:16px; padding:12px 20px; flex-wrap:wrap; background:var(--panel); border-bottom:1px solid var(--border); position:sticky; top:0; z-index:20;}
+  .v2-brand{font-family:'Fraunces',serif; font-weight:700; font-size:19px; color:var(--ink);}
+  .v2-tabs{display:flex; gap:4px;}
+  .v2-tab-btn{min-height:44px; padding:9px 16px; border-radius:8px; border:1px solid transparent; background:transparent; color:var(--muted); font-size:14px; font-weight:600; cursor:pointer; font-family:inherit;}
+  .v2-tab-btn[aria-selected="true"]{background:var(--bg); color:var(--ink);}
+  [role="tabpanel"]{display:none;}
+  [role="tabpanel"].v2-active{display:block;}
+  .v2-wrap{max-width:1180px; margin:0 auto; padding:20px;}
+  .v2-selector-row{display:flex; gap:14px; flex-wrap:wrap; align-items:flex-end; margin-bottom:14px;}
+  .v2-field{display:flex; flex-direction:column; gap:6px;}
+  .v2-field label{font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); font-weight:600;}
+  .v2-form-btns{display:flex; gap:6px; flex-wrap:wrap;}
+  .v2-form-btn{width:44px; height:44px; border-radius:8px; border:1px solid var(--border); background:var(--panel); color:var(--ink); font-family:'IBM Plex Mono',monospace; font-weight:700; font-size:15px; cursor:pointer;}
+  .v2-form-btn[aria-pressed="true"]{background:var(--teal); color:#fff; border-color:var(--teal);}
+  .v2-content-toggle{display:flex; gap:6px; margin:4px 0 16px; flex-wrap:wrap;}
+  .v2-content-btn{min-height:44px; padding:10px 16px; border-radius:20px; border:1px solid var(--border); background:var(--panel); color:var(--ink); font-size:14px; font-weight:600; cursor:pointer; font-family:inherit;}
+  .v2-content-btn[aria-pressed="true"]{background:var(--root-color,#C2872E); color:#2A1B04; border-color:var(--root-color,#C2872E);}
+  .v2-legend{display:flex; gap:16px; flex-wrap:wrap; font-size:12px; color:var(--muted); margin-bottom:14px; min-height:18px;}
+  .v2-hint{background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:10px 14px; font-size:13px; margin-bottom:14px;}
+  .note.chord-tone{ background:var(--ov-outside); color:#241505; }
+  .note.chord-tone.root{ background:var(--brass); box-shadow:0 0 0 2px var(--ov-outside); }
+  @media (max-width:480px){
+    .v2-topbar{padding:10px 12px;}
+    .v2-brand{font-size:15px; flex-basis:100%;}
+    .v2-tabs{flex-basis:100%;}
+    .v2-wrap{padding:12px;}
+  }
+
+</style>
+</head>
+<body>
+
+<div class="v2-topbar">
+  <div class="v2-brand">FretLab</div>
+  <nav class="v2-tabs" role="tablist" aria-label="Разделы">
+    <button class="v2-tab-btn" id="tab-learn" role="tab" aria-selected="true" aria-controls="panel-learn" tabindex="0">Изучать</button>
+    <button class="v2-tab-btn" id="tab-explore" role="tab" aria-selected="false" aria-controls="panel-explore" tabindex="-1">Исследовать</button>
+  </nav>
+</div>
+
+<section id="panel-learn" role="tabpanel" aria-labelledby="tab-learn" class="v2-active">
+  <div class="v2-wrap">
+    <div class="v2-selector-row">
+      <div class="v2-field">
+        <label for="learnRoot">Тоника</label>
+        <select id="learnRoot"></select>
+      </div>
+      <div class="v2-field">
+        <label for="learnMode">Лад</label>
+        <select id="learnMode"></select>
+      </div>
+      <div class="v2-field">
+        <label id="learnFormLabel">Форма</label>
+        <div class="v2-form-btns" id="learnFormBtns" role="group" aria-labelledby="learnFormLabel"></div>
+      </div>
+    </div>
+
+    <div class="v2-content-toggle" id="contentToggle" role="group" aria-label="Что показать"></div>
+
+    <div class="toggles">
+      <div class="toggle-group" id="learnDisplayToggle" role="group" aria-label="Ноты или ступени">
+        <button data-mode="notes" class="active" aria-pressed="true">Ноты</button>
+        <button data-mode="degrees" aria-pressed="false">Ступени</button>
+      </div>
+      <button id="learnPlayBtn" class="play-btn">▶ Играть форму</button>
+    </div>
+
+    <p class="hint" id="learnExplain" style="font-size:15px; color:var(--ink);"></p>
+    <div id="learnHintBanner"></div>
+    <div class="v2-legend" id="learnLegend"></div>
+    <div class="board-outer"><div class="board" id="learnBoard"></div></div>
+
+    <div class="chords-section" id="learnDetails" style="display:none;">
+      <div class="detail-grid" id="learnDetailGrid" style="display:flex; gap:20px; flex-wrap:wrap; font-family:'IBM Plex Mono',monospace; font-size:13px; color:var(--muted);"></div>
+    </div>
+
+    <p class="hint">Нужна вся гамма целиком, пресеты, гаммы Холдсворта или гармонизация? Загляните в «Исследовать».</p>
+  </div>
+</section>
+
+<section id="panel-explore" role="tabpanel" aria-labelledby="tab-explore">
+<div class="wrap">
+  <h1>Fretlab — формулы на грифе</h1>
+  <p class="sub">Выберите тонику и задайте интервальную формулу — приложение правильно назовёт ноты и покажет их на грифе. Можно вводить любую формулу: <span style="font-family:'IBM Plex Mono',monospace">1 2 b3 4 5 6 7</span> или <span style="font-family:'IBM Plex Mono',monospace">1-b3-5-bb7</span>.</p>
+
+  <div class="scale-compare-grid">
+    <section class="scale-card" aria-labelledby="mainScaleHeading">
+      <h2 id="mainScaleHeading">Основной лад</h2>
+      <div class="scale-card-fields">
+        <div>
+          <label for="root">Тоника</label>
+          <select id="root"></select>
+        </div>
+        <div>
+          <label for="mainScalePreset">Лад</label>
+          <select id="mainScalePreset"></select>
+        </div>
+        <div class="formula-field">
+          <label for="formula">Формула</label>
+          <input type="text" id="formula" value="1 2 b3 4 5 6 7">
+        </div>
+      </div>
+    </section>
+
+    <div class="comparison-action">
+      <button id="overlayToggleBtn" class="overlay-btn" aria-pressed="false">Добавить аутсайд-лад →</button>
+    </div>
+
+    <section class="scale-card inactive" id="overlayPanel" aria-labelledby="tensionScaleHeading">
+      <h2 id="tensionScaleHeading">Аутсайд-лад</h2>
+      <div class="scale-card-fields">
+        <div>
+          <label for="outsideRoot">Тоника</label>
+          <select id="outsideRoot" disabled></select>
+        </div>
+        <div>
+          <label for="outsideScalePreset">Лад</label>
+          <select id="outsideScalePreset" disabled></select>
+        </div>
+        <div class="formula-field">
+          <label for="outsideFormula">Формула</label>
+          <input type="text" id="outsideFormula" value="1 b2 b3 3 b5 5 6 b7" disabled>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="pill-row" id="pillRow" role="group" aria-label="Выбор хроматических ступеней"></div>
+  <p class="hint">Нажмите на ступень, чтобы добавить или убрать её. Формулу также можно вводить вручную через пробелы, дефисы или запятые.</p>
+
+  <div class="toggles">
+    <div class="toggle-group" id="displayToggle" role="group" aria-label="Ноты или ступени">
+      <button data-mode="notes" class="active" aria-pressed="true">Ноты</button>
+      <button data-mode="degrees" aria-pressed="false">Ступени</button>
+    </div>
+    <button id="playBtn" class="play-btn">▶ Играть</button>
+    <button id="playInsideBtn" class="play-btn" style="display:none;">▶ Основной лад</button>
+    <button id="playOutsideBtn" class="play-btn outside" style="display:none;">▶ Аутсайд-лад</button>
+  </div>
+
+  <div class="comparison-details" id="comparisonDetails" style="display:none;">
+    <div class="legend" aria-hidden="true">
+      <span class="legend-item"><span class="swatch sw-inside"></span> Основной лад</span>
+      <span class="legend-item"><span class="swatch sw-common"></span> Общие ноты</span>
+      <span class="legend-item"><span class="swatch sw-outside"></span> Ноты аутсайд-лада</span>
+      <span class="legend-item"><span class="swatch sw-root"></span> Тоника</span>
+    </div>
+    <p class="hint" style="margin:10px 0 0;">Общие ноты входят в оба лада. Ноты аутсайд-лада появляются только при выходе из основного лада.</p>
+    <div class="overlay-lists" id="overlayLists"></div>
+  </div>
+
+  <div id="errorBox" class="err" style="display:none;" role="alert"></div>
+  <div id="warnBox" class="warn" style="display:none;" role="status"></div>
+
+  <div class="readout" id="readout"></div>
+
+  <div class="study-picker" id="studyPicker">
+    <div class="study-picker-title">Что хотите изучить?</div>
+    <p class="hint" id="modeGuideText">Выберите отображение: вся гамма, готовая позиционная форма или арпеджио аккорда.</p>
+    <div class="chip-row" id="viewModeRow" role="group" aria-label="Режим изучения"></div>
+    <div class="chip-row" id="rangePresetRow" role="group" aria-label="Диапазон ладов" style="display:none;"></div>
+  </div>
+
+  <div class="chords-section" id="chordsSection" style="display:none;">
+    <h2 id="triadsHeading">1. Выберите трезвучие</h2>
+    <div class="chip-row" id="triadsRow"></div>
+    <h2 style="margin-top:16px;" id="tetradsHeading">Или выберите септаккорд</h2>
+    <div class="chip-row" id="tetradsRow"></div>
+    <p class="hint" style="margin-top:8px;" id="harmonizationHint"></p>
+  </div>
+
+  <div class="chip-row" id="scaleFormRow" role="group" aria-label="Форма гаммы" style="display:none; margin:8px 0 6px;"></div>
+  <div class="route-info" id="scaleRouteInfo" style="display:none;"></div>
+  <div class="chip-row" id="arpeggioFormRow" role="group" aria-label="Настройки арпеджио" style="display:none; margin:8px 0 6px;"></div>
+  <div class="route-info" id="arpeggioRouteInfo" style="display:none;"></div>
+  <div class="range-controls" id="customRangeControls" style="display:none;">
+    <label for="rangeFromInput" style="display:inline; margin:0;">От лада</label>
+    <input type="number" id="rangeFromInput" min="0" max="16" value="0">
+    <label for="rangeToInput" style="display:inline; margin:0;">До лада</label>
+    <input type="number" id="rangeToInput" min="0" max="16" value="4">
+  </div>
+  <p class="hint" id="formWarning" style="display:none;"></p>
+
+  <div class="board-outer">
+    <div class="board" id="board"></div>
+  </div>
+
+</div>
+</section>
+
+<script>
+const LETTERS = ['C','D','E','F','G','A','B'];
+const NATURAL_PC = {C:0,D:2,E:4,F:5,G:7,A:9,B:11};
+const DEGREE_NATURAL = {1:0,2:2,3:4,4:5,5:7,6:9,7:11};
+const ACC_SYMBOL = {'-2':'bb','-1':'b','0':'','1':'#','2':'##'};
+
+const TRIAD_QUALITY = { '3,7':'m', '4,7':'maj', '3,6':'dim', '4,8':'aug', '2,7':'sus2', '5,7':'sus4' };
+// Fixed: '2,7,10' has a 2nd and a 5th and a b7, but NO 4th — calling it
+// "9sus4" was wrong (there's nothing to "sus" a 4th into). It's a dominant
+// 7th with the 3rd replaced by the 2nd: 7sus2. Also renamed '4,6,11' to
+// maj7b5 for naming consistency with the '4,6,10' -> 7b5 entry above it.
+const TETRAD_QUALITY = {
+  '3,7,10':'m7', '4,7,11':'maj7', '4,7,10':'7', '3,6,10':'m7b5', '3,6,9':'dim7',
+  '3,7,11':'mMaj7', '4,7,9':'6', '3,7,9':'m6', '4,8,11':'maj7#5', '4,8,10':'7#5',
+  '4,6,10':'7b5', '4,6,11':'maj7b5', '5,7,10':'7sus4', '2,7,10':'7sus2'
+};
+function nameChord(rootNote, otherNotes){
+  const key = otherNotes.map(n => ((n.semitone - rootNote.semitone) % 12 + 12) % 12).sort((a,b)=>a-b).join(',');
+  const table = otherNotes.length === 2 ? TRIAD_QUALITY : TETRAD_QUALITY;
+  const quality = table[key];
+  if(quality) return rootNote.noteName + quality;
+  return rootNote.noteName + '(' + [rootNote, ...otherNotes].map(n=>n.noteName).join(' ') + ')';
+}
+// Generalized harmonization: stack every other scale tone, wrapping by the
+// scale's own length (not by 7) — this is what makes it work for 6/8/9-note
+// scales, not just standard diatonic ones. For exactly-7-note scales this
+// produces standard tertian triads/7th chords; the caller decides which
+// heading/framing to show based on note count (see render()).
+function harmonizeScale(uniqueNotesSorted, size){
+  const n = uniqueNotesSorted.length;
+  if(n < size) return [];
+  const chords = [];
+  for(let start=0; start<n; start++){
+    const idxs = [];
+    for(let k=0; k<size; k++) idxs.push((start + 2*k) % n);
+    if(new Set(idxs).size < size) continue;
+    const notes = idxs.map(i => uniqueNotesSorted[i]);
+    chords.push({ label: nameChord(notes[0], notes.slice(1)), pcs: notes.map(nt => nt.pc) });
+  }
+  return chords;
+}
+function buildAliasMap(chords){
+  const map = new Map();
+  chords.forEach(c => {
+    const key = [...c.pcs].sort((a,b)=>a-b).join(',');
+    if(!map.has(key)) map.set(key, []);
+    map.get(key).push(c.label);
+  });
+  return map;
+}
+
+const ROOTS = [
+  {name:'C',pc:0,letter:'C'},
+  {name:'C#',pc:1,letter:'C'}, {name:'Db',pc:1,letter:'D'},
+  {name:'D',pc:2,letter:'D'},
+  {name:'D#',pc:3,letter:'D'}, {name:'Eb',pc:3,letter:'E'},
+  {name:'E',pc:4,letter:'E'},
+  {name:'F',pc:5,letter:'F'},
+  {name:'F#',pc:6,letter:'F'}, {name:'Gb',pc:6,letter:'G'},
+  {name:'G',pc:7,letter:'G'},
+  {name:'G#',pc:8,letter:'G'}, {name:'Ab',pc:8,letter:'A'},
+  {name:'A',pc:9,letter:'A'},
+  {name:'A#',pc:10,letter:'A'}, {name:'Bb',pc:10,letter:'B'},
+  {name:'B',pc:11,letter:'B'}
+];
+function findRootIndex(name){ return ROOTS.findIndex(r => r.name === name); }
+
+const OPEN_STRINGS_TOP_TO_BOTTOM = [
+  {label:'e', pc:4, midi:64}, {label:'B', pc:11, midi:59}, {label:'G', pc:7, midi:55},
+  {label:'D', pc:2, midi:50}, {label:'A', pc:9, midi:45}, {label:'E', pc:4, midi:40}
+];
+const FRET_COUNT = 16;
+const MARKER_FRETS = new Set([3,5,7,9,12,15]);
+const DOUBLE_MARKER_FRETS = new Set([12]);
+
+const PRESETS_DIATONIC = [
+  ['Ионийский / мажор','1 2 3 4 5 6 7'], ['Дорийский','1 2 b3 4 5 6 b7'],
+  ['Фригийский','1 b2 b3 4 5 b6 b7'], ['Лидийский','1 2 3 #4 5 6 7'],
+  ['Миксолидийский','1 2 3 4 5 6 b7'], ['Эолийский / натуральный минор','1 2 b3 4 5 b6 b7'],
+  ['Локрийский','1 b2 b3 4 b5 b6 b7']
+];
+const PRESETS_OTHER = [
+  ['Гармонический минор','1 2 b3 4 5 b6 7'], ['Мелодический минор','1 2 b3 4 5 6 7'],
+  ['Мажорная пентатоника','1 2 3 5 6'], ['Минорная пентатоника','1 b3 4 5 b7'],
+  ['Блюзовая','1 b3 4 b5 5 b7'], ['Целотонная','1 2 3 #4 #5 b7'],
+  ['Фригийский доминантовый','1 b2 3 4 5 b6 b7'], ['Лидийский доминантовый','1 2 3 #4 5 6 b7'],
+  ['Уменьшённая тон-полутон','1 2 b3 4 b5 b6 6 7'], ['Уменьшённая полутон-тон','1 b2 b3 3 b5 5 6 b7']
+];
+const PRESETS_HOLDSWORTH = [
+  ['Дорийский','D','1 2 b3 4 5 6 b7'],
+  ['Мелодический минор','D','1 2 b3 4 5 6 7'],
+  ['Гармонический минор','A','1 2 b3 4 5 b6 7'],
+  ['Мелодический минор #4','A','1 2 b3 #4 5 6 7'],
+  ['Доминантовая уменьшённая (M2)','G','1 b2 b3 3 #4 5 6 b7'],
+  ['Джазовый мажор','Bb','1 2 3 4 5 b6 6 7'],
+  ['Джазовый доминантовый','C','1 2 3 4 5 6 b7 7'],
+  ['Бибоп-дорийский','B','1 2 b3 4 5 6 b7 7'],
+  ['Бибоп-мелодический минор','A','1 2 b3 4 5 b6 6 7'],
+  ['Черепнин (M3)','C','1 2 b3 3 #4 5 b6 b7 7'],
+  ['Джазовый минор (добавлена #4)','Db','1 2 b3 4 #4 5 6 7'],
+  ['Джазовый доминантовый (добавлены b3 и 7)','C','1 2 b3 3 4 5 6 b7 7'],
+  ['Джазовый мажор (добавлены b3 и b6)','C','1 2 b3 3 4 5 b6 6 7'],
+  ['Миксолидийский #9','C','1 b3 3 4 5 6 b7'],
+  ['Целотонная','F','1 2 3 #4 #5 b7']
+];
+
+const SCALE_PRESET_OPTIONS = [
+  ...PRESETS_DIATONIC.map(([name, formula], i) => ({id:`diatonic-${i}`, group:'Диатонические лады', name, formula})),
+  ...PRESETS_OTHER.map(([name, formula], i) => ({id:`other-${i}`, group:'Другие гаммы', name, formula})),
+  ...PRESETS_HOLDSWORTH.map(([name, root, formula], i) => ({id:`holdsworth-${i}`, group:'Гаммы Холдсворта', name:`${name} [Холдсворт]`, formula}))
+];
+
+function formulaSignature(text){
+  return text.split(/[\s,\-]+/).filter(Boolean).join(' ');
+}
+function populateScaleSelect(select){
+  const groups = new Map();
+  SCALE_PRESET_OPTIONS.forEach(preset => {
+    if(!groups.has(preset.group)){
+      const group = document.createElement('optgroup');
+      group.label = preset.group;
+      groups.set(preset.group, group);
+      select.appendChild(group);
+    }
+    const option = document.createElement('option');
+    option.value = preset.id;
+    option.textContent = preset.name;
+    groups.get(preset.group).appendChild(option);
+  });
+  const custom = document.createElement('option');
+  custom.value = 'custom'; custom.textContent = 'Своя формула';
+  select.appendChild(custom);
+}
+function syncScaleSelect(select, formula){
+  const match = SCALE_PRESET_OPTIONS.find(p => formulaSignature(p.formula) === formulaSignature(formula));
+  select.value = match ? match.id : 'custom';
+}
+
+const DEGREE_PILLS = [
+  {semitone:0, token:'1'}, {semitone:1, token:'b2'}, {semitone:2, token:'2'},
+  {semitone:3, token:'b3'}, {semitone:4, token:'3'}, {semitone:5, token:'4'},
+  {semitone:6, token:'b5'}, {semitone:7, token:'5'}, {semitone:8, token:'b6'},
+  {semitone:9, token:'6'}, {semitone:10, token:'b7'}, {semitone:11, token:'7'}
+];
+function tokenSemitoneMod12(tok){
+  const p = parseToken(tok);
+  if(!p) return null;
+  const baseDegree = ((p.degree - 1) % 7) + 1;
+  return ((DEGREE_NATURAL[baseDegree] + p.acc) % 12 + 12) % 12;
+}
+function semitoneSetKey(formulaText){
+  const set = new Set(formulaText.split(/[\s,\-]+/).filter(Boolean).map(tokenSemitoneMod12).filter(s => s !== null));
+  return [...set].sort((a,b)=>a-b).join(',');
+}
+
+const DIATONIC_KEYS = PRESETS_DIATONIC.map(([name, formula]) => ({name, key: semitoneSetKey(formula)}));
+const OTHER_KEYS = PRESETS_OTHER.map(([name, formula]) => ({name, key: semitoneSetKey(formula)}));
+const HOLDSWORTH_KEYS = PRESETS_HOLDSWORTH.map(([name, root, formula]) => ({name: name + ' [Холдсворт]', key: semitoneSetKey(formula)}));
+const ALL_NAMED_SCALES = [...DIATONIC_KEYS, ...OTHER_KEYS, ...HOLDSWORTH_KEYS];
+
+let state = {
+  root: findRootIndex('A'), formula: '1 2 b3 4 5 6 7', mode: 'notes',
+  selectedChordId: null, selectedChordPcs: null,
+  selectedChordLabel: null, selectedChordQuality: null,
+  arpeggioForm: 'E',
+  scaleForm: 'E',
+  viewMode: 'whole', // 'whole' | 'range' | 'scaleShape' | 'arpeggioShape'
+  rangePreset: null, // '0-4' | '5-9' | '10-16' | 'custom' | null
+  rangeFrom: 0, rangeTo: 4,
+  overlayEnabled: false,
+  overlayPathMode: 'compare', // 'main' | 'tension' | 'compare'
+  outsideRoot: findRootIndex('A'), outsideFormula: '1 b2 b3 3 b5 5 6 b7'
+};
+
+function clearSelectedChord(){
+  state.selectedChordId = null;
+  state.selectedChordPcs = null;
+  state.selectedChordLabel = null;
+  state.selectedChordQuality = null;
+}
+let currentPlayableMidi = [];
+let insidePlayableMidi = [];
+let outsidePlayableMidi = [];
+let lastGoodFormulaValid = true;
+
+let audioCtx = null;
+function getAudioCtx(){
+  if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if(audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+function playMidi(midi, when, dur){
+  if(!Number.isFinite(midi)) return; // guard: never hand NaN/Infinity to Web Audio
+  const ctx = getAudioCtx();
+  const t = when !== undefined ? when : ctx.currentTime;
+  const d = dur !== undefined ? dur : 0.9;
+  const freq = 440 * Math.pow(2, (midi - 69) / 12);
+  if(!Number.isFinite(freq) || freq <= 0) return;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = 'triangle';
+  osc.frequency.value = freq;
+  gain.gain.setValueAtTime(0.0001, t);
+  gain.gain.exponentialRampToValueAtTime(0.22, t + 0.01);
+  gain.gain.exponentialRampToValueAtTime(0.0001, t + d);
+  osc.connect(gain); gain.connect(ctx.destination);
+  osc.start(t); osc.stop(t + d + 0.05);
+}
+function playSequence(midiList){
+  if(!midiList || !midiList.length) return;
+  const ctx = getAudioCtx();
+  let t = ctx.currentTime + 0.03;
+  midiList.forEach(midi => { playMidi(midi, t, 0.5); t += 0.32; });
+}
+function ascendingMidiFromPcs(pcsOrdered, firstMidi){
+  if(!pcsOrdered || !pcsOrdered.length || !Number.isFinite(firstMidi)) return [];
+  const result = [firstMidi];
+  let prev = firstMidi;
+  for(let i=1; i<pcsOrdered.length; i++){
+    let candidate = prev + (((pcsOrdered[i] - (prev % 12)) % 12 + 12) % 12);
+    if(candidate <= prev) candidate += 12;
+    result.push(candidate);
+    prev = candidate;
+  }
+  return result;
+}
+function lowestFretboardMidiForPc(pc){
+  if(!Number.isFinite(pc)) return NaN;
+  let best = Infinity;
+  OPEN_STRINGS_TOP_TO_BOTTOM.forEach(str => {
+    const fret = ((pc - str.midi) % 12 + 12) % 12;
+    const midi = str.midi + fret;
+    if(midi < best) best = midi;
+  });
+  return best;
+}
+
+// ---------- Curated positional scale forms ----------
+// These are literal transcriptions of the supplied E/D/C/A/G diagrams.
+// Scale geometry is independent from Popov chord geometry. Relationships are
+// recorded separately below and may be verified or mismatching per form.
+function prepareScaleForms(scaleId,formulaKey,forms){
+  return forms.map(form=>({...form,scaleId,formulaKey,positions:form.positions.map(([stringIdx,fretOffset,degree],i)=>({
+    id:`${scaleId}-${form.id}-${i+1}`,stringIdx,fretOffset,degree
+  }))}));
+}
+
+const SCALE_DEGREE_SEMITONES={
+  '1':0,'b2':1,'2':2,'b3':3,'3':4,'4':5,'b5':6,'#4':6,'5':7,'b6':8,'6':9,'b7':10,'7':11
+};
+
+const CURATED_MAJOR_SCALE_FORMS=prepareScaleForms('major','0,2,4,5,7,9,11',[
+  {
+    id:'E',name:'E',anchorStringIdx:5,provenance:'source-transcription',reviewStatus:'verified',
+    positions:[
+      [0,-1,'7'],[0,0,'1'],[0,2,'2'],[1,0,'5'],[1,2,'6'],
+      [2,-1,'2'],[2,1,'3'],[2,2,'4'],[3,-1,'6'],[3,1,'7'],[3,2,'1'],
+      [4,-1,'3'],[4,0,'4'],[4,2,'5'],[5,0,'1'],[5,2,'2']
+    ]
+  },
+  {
+    id:'D',name:'D',anchorStringIdx:5,provenance:'source-transcription',reviewStatus:'verified',
+    positions:[
+      [0,2,'2'],[0,4,'3'],[0,5,'4'],[1,2,'6'],[1,4,'7'],[1,5,'1'],
+      [2,1,'3'],[2,2,'4'],[2,4,'5'],[3,1,'7'],[3,2,'1'],[3,4,'2'],
+      [4,0,'4'],[4,2,'5'],[4,4,'6'],[5,0,'1'],[5,2,'2'],[5,4,'3']
+    ]
+  },
+  {
+    id:'C',name:'C',anchorStringIdx:4,provenance:'source-transcription',reviewStatus:'verified',
+    positions:[
+      [0,-3,'3'],[0,-2,'4'],[0,0,'5'],[1,-3,'7'],[1,-2,'1'],[1,0,'2'],
+      [2,-3,'5'],[2,-1,'6'],[3,-3,'2'],[3,-1,'3'],[3,0,'4'],[4,0,'1']
+    ]
+  },
+  {
+    id:'A',name:'A',anchorStringIdx:4,provenance:'source-transcription',reviewStatus:'verified',
+    positions:[
+      [0,0,'5'],[0,2,'6'],[0,4,'7'],[1,0,'2'],[1,2,'3'],[1,3,'4'],
+      [2,-1,'6'],[2,1,'7'],[2,2,'1'],[3,-1,'3'],[3,0,'4'],[3,2,'5'],
+      [4,0,'1'],[4,2,'2']
+    ]
+  },
+  {
+    id:'G',name:'G',anchorStringIdx:5,provenance:'source-transcription',reviewStatus:'verified',
+    positions:[
+      [0,-3,'6'],[0,-1,'7'],[0,0,'1'],[1,-3,'3'],[1,-2,'4'],[1,0,'5'],
+      [2,-4,'7'],[2,-3,'1'],[2,-1,'2'],[3,-5,'4'],[3,-3,'5'],[3,-1,'6'],
+      [4,-5,'1'],[4,-3,'2'],[4,-1,'3'],[4,0,'4'],[5,0,'1']
+    ]
+  }
+]);
+
+const CURATED_NATURAL_MINOR_SCALE_FORMS=prepareScaleForms('naturalMinor','0,2,3,5,7,8,10',[
+  {
+    id:'E',name:'E',anchorStringIdx:5,provenance:'source-transcription',reviewStatus:'verified',
+    positions:[
+      [0,0,'1'],[0,2,'2'],[0,3,'b3'],[1,0,'5'],[1,1,'b6'],[1,3,'b7'],
+      [2,-1,'2'],[2,0,'b3'],[2,2,'4'],[3,0,'b7'],[3,2,'1'],
+      [4,0,'4'],[4,2,'5'],[4,3,'b6'],[5,0,'1'],[5,2,'2'],[5,3,'b3']
+    ]
+  },
+  {
+    id:'D',name:'D',anchorStringIdx:3,provenance:'source-transcription',reviewStatus:'verified',
+    positions:[
+      [0,0,'2'],[0,1,'b3'],[0,3,'4'],[1,1,'b7'],[1,3,'1'],
+      [2,0,'4'],[2,2,'5'],[2,3,'b6'],[3,0,'1'],[3,2,'2'],[3,3,'b3']
+    ]
+  },
+  {
+    id:'C',name:'C',anchorStringIdx:4,provenance:'source-transcription',reviewStatus:'verified',
+    positions:[
+      [0,-2,'4'],[0,0,'5'],[0,1,'b6'],[1,-2,'1'],[1,0,'2'],[1,1,'b3'],
+      [2,-3,'5'],[2,-2,'b6'],[2,0,'b7'],[3,-3,'2'],[3,-2,'b3'],[3,0,'4'],
+      [4,0,'1']
+    ]
+  },
+  {
+    id:'A',name:'A',anchorStringIdx:4,provenance:'source-transcription',reviewStatus:'verified',
+    positions:[
+      [0,0,'5'],[0,1,'b6'],[0,3,'b7'],[1,0,'2'],[1,1,'b3'],[1,3,'4'],
+      [2,0,'b7'],[2,2,'1'],[3,0,'4'],[3,2,'5'],[3,3,'b6'],
+      [4,0,'1'],[4,2,'2'],[4,3,'b3']
+    ]
+  },
+  {
+    id:'G',name:'G',anchorStringIdx:5,provenance:'source-transcription',reviewStatus:'verified',
+    positions:[
+      [0,-2,'b7'],[0,0,'1'],[1,-2,'4'],[1,0,'5'],[1,1,'b6'],
+      [2,-3,'1'],[2,-1,'2'],[2,0,'b3'],[3,-3,'5'],[3,-2,'b6'],[3,0,'b7'],
+      [4,-3,'2'],[4,-2,'b3'],[4,0,'4'],[5,0,'1']
+    ]
+  }
+]);
+
+// First modal pilot: literal, independently stored candidates derived offline from
+// the reviewed Natural Minor forms. Only b6 points move one fret upward to degree 6.
+const DORIAN_MUTATION=[{fromDegree:'b6',toDegree:'6',fretDelta:1}];
+const CURATED_DORIAN_SCALE_FORMS=prepareScaleForms('dorian','0,2,3,5,7,9,10',[
+  {
+    id:'E',name:'E',anchorStringIdx:5,parentScaleId:'naturalMinor',
+    provenance:'derived-candidate',reviewStatus:'verified',mutationMap:DORIAN_MUTATION,
+    corrections:[{
+      kind:'unison-relocation',sourceIndex:6,degree:'2',
+      fromStringIdx:2,fromFretOffset:-1,toStringIdx:3,toFretOffset:4,
+      reason:'hands-on-continuity'
+    }],
+    positions:[
+      [0,0,'1'],[0,2,'2'],[0,3,'b3'],[1,0,'5'],[1,2,'6'],[1,3,'b7'],
+      [3,4,'2'],[2,0,'b3'],[2,2,'4'],[3,0,'b7'],[3,2,'1'],
+      [4,0,'4'],[4,2,'5'],[4,4,'6'],[5,0,'1'],[5,2,'2'],[5,3,'b3']
+    ]
+  },
+  {
+    id:'D',name:'D',anchorStringIdx:3,parentScaleId:'naturalMinor',
+    provenance:'derived-candidate',reviewStatus:'verified',mutationMap:DORIAN_MUTATION,
+    positions:[
+      [0,0,'2'],[0,1,'b3'],[0,3,'4'],[1,1,'b7'],[1,3,'1'],
+      [2,0,'4'],[2,2,'5'],[2,4,'6'],[3,0,'1'],[3,2,'2'],[3,3,'b3']
+    ]
+  },
+  {
+    id:'C',name:'C',anchorStringIdx:4,parentScaleId:'naturalMinor',
+    provenance:'derived-candidate',reviewStatus:'verified',mutationMap:DORIAN_MUTATION,
+    positions:[
+      [0,-2,'4'],[0,0,'5'],[0,2,'6'],[1,-2,'1'],[1,0,'2'],[1,1,'b3'],
+      [2,-3,'5'],[2,-1,'6'],[2,0,'b7'],[3,-3,'2'],[3,-2,'b3'],[3,0,'4'],
+      [4,0,'1']
+    ]
+  },
+  {
+    id:'A',name:'A',anchorStringIdx:4,parentScaleId:'naturalMinor',
+    provenance:'derived-candidate',reviewStatus:'verified',mutationMap:DORIAN_MUTATION,
+    positions:[
+      [0,0,'5'],[0,2,'6'],[0,3,'b7'],[1,0,'2'],[1,1,'b3'],[1,3,'4'],
+      [2,0,'b7'],[2,2,'1'],[3,0,'4'],[3,2,'5'],[3,4,'6'],
+      [4,0,'1'],[4,2,'2'],[4,3,'b3']
+    ]
+  },
+  {
+    id:'G',name:'G',anchorStringIdx:5,parentScaleId:'naturalMinor',
+    provenance:'derived-candidate',reviewStatus:'verified',mutationMap:DORIAN_MUTATION,
+    corrections:[{
+      kind:'unison-relocation',sourceIndex:4,degree:'6',
+      fromStringIdx:1,fromFretOffset:2,toStringIdx:0,toFretOffset:-3,
+      reason:'hands-on-continuity'
+    }],
+    positions:[
+      [0,-2,'b7'],[0,0,'1'],[1,-2,'4'],[1,0,'5'],[0,-3,'6'],
+      [2,-3,'1'],[2,-1,'2'],[2,0,'b3'],[3,-3,'5'],[3,-1,'6'],[3,0,'b7'],
+      [4,-3,'2'],[4,-2,'b3'],[4,0,'4'],[5,0,'1']
+    ]
+  }
+]);
+
+// Major-parent pilot: literal Mixolydian candidates. Only degree 7 moves one fret
+// downward to b7; every unaffected parent point and tonic anchor stays unchanged.
+const MIXOLYDIAN_MUTATION=[{fromDegree:'7',toDegree:'b7',fretDelta:-1}];
+const CURATED_MIXOLYDIAN_SCALE_FORMS=prepareScaleForms('mixolydian','0,2,4,5,7,9,10',[
+  {
+    id:'E',name:'E',anchorStringIdx:5,parentScaleId:'major',
+    provenance:'derived-candidate',reviewStatus:'verified',mutationMap:MIXOLYDIAN_MUTATION,
+    positions:[
+      [0,-2,'b7'],[0,0,'1'],[0,2,'2'],[1,0,'5'],[1,2,'6'],
+      [2,-1,'2'],[2,1,'3'],[2,2,'4'],[3,-1,'6'],[3,0,'b7'],[3,2,'1'],
+      [4,-1,'3'],[4,0,'4'],[4,2,'5'],[5,0,'1'],[5,2,'2']
+    ]
+  },
+  {
+    id:'D',name:'D',anchorStringIdx:5,parentScaleId:'major',
+    provenance:'derived-candidate',reviewStatus:'verified',mutationMap:MIXOLYDIAN_MUTATION,
+    positions:[
+      [0,2,'2'],[0,4,'3'],[0,5,'4'],[1,2,'6'],[1,3,'b7'],[1,5,'1'],
+      [2,1,'3'],[2,2,'4'],[2,4,'5'],[3,0,'b7'],[3,2,'1'],[3,4,'2'],
+      [4,0,'4'],[4,2,'5'],[4,4,'6'],[5,0,'1'],[5,2,'2'],[5,4,'3']
+    ]
+  },
+  {
+    id:'C',name:'C',anchorStringIdx:4,parentScaleId:'major',
+    provenance:'derived-candidate',reviewStatus:'verified',mutationMap:MIXOLYDIAN_MUTATION,
+    positions:[
+      [0,-3,'3'],[0,-2,'4'],[0,0,'5'],[1,-4,'b7'],[1,-2,'1'],[1,0,'2'],
+      [2,-3,'5'],[2,-1,'6'],[3,-3,'2'],[3,-1,'3'],[3,0,'4'],[4,0,'1']
+    ]
+  },
+  {
+    id:'A',name:'A',anchorStringIdx:4,parentScaleId:'major',
+    provenance:'derived-candidate',reviewStatus:'verified',mutationMap:MIXOLYDIAN_MUTATION,
+    positions:[
+      [0,0,'5'],[0,2,'6'],[0,3,'b7'],[1,0,'2'],[1,2,'3'],[1,3,'4'],
+      [2,-1,'6'],[2,0,'b7'],[2,2,'1'],[3,-1,'3'],[3,0,'4'],[3,2,'5'],
+      [4,0,'1'],[4,2,'2']
+    ]
+  },
+  {
+    id:'G',name:'G',anchorStringIdx:5,parentScaleId:'major',
+    provenance:'derived-candidate',reviewStatus:'verified',mutationMap:MIXOLYDIAN_MUTATION,
+    positions:[
+      [0,-3,'6'],[0,-2,'b7'],[0,0,'1'],[1,-3,'3'],[1,-2,'4'],[1,0,'5'],
+      [2,-5,'b7'],[2,-3,'1'],[2,-1,'2'],[3,-5,'4'],[3,-3,'5'],[3,-1,'6'],
+      [4,-5,'1'],[4,-3,'2'],[4,-1,'3'],[4,0,'4'],[5,0,'1']
+    ]
+  }
+]);
+
+// Lydian candidates are independently stored Major forms with the sole declared
+// mutation 4 -> #4, one fret upward on the original string.
+const LYDIAN_MUTATION=[{fromDegree:'4',toDegree:'#4',fretDelta:1}];
+const CURATED_LYDIAN_SCALE_FORMS=prepareScaleForms('lydian','0,2,4,6,7,9,11',[
+  {
+    id:'E',name:'E',anchorStringIdx:5,parentScaleId:'major',
+    provenance:'derived-candidate',reviewStatus:'verified',mutationMap:LYDIAN_MUTATION,
+    corrections:[{
+      kind:'unison-relocation',sourceIndex:7,degree:'#4',
+      fromStringIdx:2,fromFretOffset:3,toStringIdx:1,toFretOffset:-1,
+      reason:'hands-on-continuity'
+    }],
+    positions:[
+      [0,-1,'7'],[0,0,'1'],[0,2,'2'],[1,0,'5'],[1,2,'6'],
+      [2,-1,'2'],[2,1,'3'],[1,-1,'#4'],[3,-1,'6'],[3,1,'7'],[3,2,'1'],
+      [4,-1,'3'],[4,1,'#4'],[4,2,'5'],[5,0,'1'],[5,2,'2']
+    ]
+  },
+  {
+    id:'D',name:'D',anchorStringIdx:5,parentScaleId:'major',
+    provenance:'derived-candidate',reviewStatus:'verified',mutationMap:LYDIAN_MUTATION,
+    positions:[
+      [0,2,'2'],[0,4,'3'],[0,6,'#4'],[1,2,'6'],[1,4,'7'],[1,5,'1'],
+      [2,1,'3'],[2,3,'#4'],[2,4,'5'],[3,1,'7'],[3,2,'1'],[3,4,'2'],
+      [4,1,'#4'],[4,2,'5'],[4,4,'6'],[5,0,'1'],[5,2,'2'],[5,4,'3']
+    ]
+  },
+  {
+    id:'C',name:'C',anchorStringIdx:4,parentScaleId:'major',
+    provenance:'derived-candidate',reviewStatus:'verified',mutationMap:LYDIAN_MUTATION,
+    positions:[
+      [0,-3,'3'],[0,-1,'#4'],[0,0,'5'],[1,-3,'7'],[1,-2,'1'],[1,0,'2'],
+      [2,-3,'5'],[2,-1,'6'],[3,-3,'2'],[3,-1,'3'],[3,1,'#4'],[4,0,'1']
+    ]
+  },
+  {
+    id:'A',name:'A',anchorStringIdx:4,parentScaleId:'major',
+    provenance:'derived-candidate',reviewStatus:'verified',mutationMap:LYDIAN_MUTATION,
+    positions:[
+      [0,0,'5'],[0,2,'6'],[0,4,'7'],[1,0,'2'],[1,2,'3'],[1,4,'#4'],
+      [2,-1,'6'],[2,1,'7'],[2,2,'1'],[3,-1,'3'],[3,1,'#4'],[3,2,'5'],
+      [4,0,'1'],[4,2,'2']
+    ]
+  },
+  {
+    id:'G',name:'G',anchorStringIdx:5,parentScaleId:'major',
+    provenance:'derived-candidate',reviewStatus:'verified',mutationMap:LYDIAN_MUTATION,
+    positions:[
+      [0,-3,'6'],[0,-1,'7'],[0,0,'1'],[1,-3,'3'],[1,-1,'#4'],[1,0,'5'],
+      [2,-4,'7'],[2,-3,'1'],[2,-1,'2'],[3,-4,'#4'],[3,-3,'5'],[3,-1,'6'],
+      [4,-5,'1'],[4,-3,'2'],[4,-1,'3'],[4,1,'#4'],[5,0,'1']
+    ]
+  }
+]);
+
+// Guitar-reviewed Phrygian forms preserve every Natural Minor point except degree 2,
+// which moves one fret downward on its original string and becomes b2.
+const PHRYGIAN_MUTATION=[{fromDegree:'2',toDegree:'b2',fretDelta:-1}];
+const CURATED_PHRYGIAN_SCALE_FORMS=prepareScaleForms('phrygian','0,1,3,5,7,8,10',[
+  {
+    id:'E',name:'E',anchorStringIdx:5,parentScaleId:'naturalMinor',
+    provenance:'derived-candidate',reviewStatus:'verified',mutationMap:PHRYGIAN_MUTATION,
+    corrections:[{
+      kind:'unison-relocation',sourceIndex:6,degree:'b2',
+      fromStringIdx:2,fromFretOffset:-2,toStringIdx:3,toFretOffset:3,
+      reason:'hands-on-continuity'
+    }],
+    positions:[
+      [0,0,'1'],[0,1,'b2'],[0,3,'b3'],[1,0,'5'],[1,1,'b6'],[1,3,'b7'],
+      [3,3,'b2'],[2,0,'b3'],[2,2,'4'],[3,0,'b7'],[3,2,'1'],
+      [4,0,'4'],[4,2,'5'],[4,3,'b6'],[5,0,'1'],[5,1,'b2'],[5,3,'b3']
+    ]
+  },
+  {
+    id:'D',name:'D',anchorStringIdx:3,parentScaleId:'naturalMinor',
+    provenance:'derived-candidate',reviewStatus:'verified',mutationMap:PHRYGIAN_MUTATION,
+    positions:[
+      [0,-1,'b2'],[0,1,'b3'],[0,3,'4'],[1,1,'b7'],[1,3,'1'],
+      [2,0,'4'],[2,2,'5'],[2,3,'b6'],[3,0,'1'],[3,1,'b2'],[3,3,'b3']
+    ]
+  },
+  {
+    id:'C',name:'C',anchorStringIdx:4,parentScaleId:'naturalMinor',
+    provenance:'derived-candidate',reviewStatus:'verified',mutationMap:PHRYGIAN_MUTATION,
+    positions:[
+      [0,-2,'4'],[0,0,'5'],[0,1,'b6'],[1,-2,'1'],[1,-1,'b2'],[1,1,'b3'],
+      [2,-3,'5'],[2,-2,'b6'],[2,0,'b7'],[3,-4,'b2'],[3,-2,'b3'],[3,0,'4'],
+      [4,0,'1']
+    ]
+  },
+  {
+    id:'A',name:'A',anchorStringIdx:4,parentScaleId:'naturalMinor',
+    provenance:'derived-candidate',reviewStatus:'verified',mutationMap:PHRYGIAN_MUTATION,
+    corrections:[{
+      kind:'unison-relocation',sourceIndex:3,degree:'b2',
+      fromStringIdx:1,fromFretOffset:-1,toStringIdx:2,toFretOffset:3,
+      reason:'hands-on-continuity'
+    }],
+    positions:[
+      [0,0,'5'],[0,1,'b6'],[0,3,'b7'],[2,3,'b2'],[1,1,'b3'],[1,3,'4'],
+      [2,0,'b7'],[2,2,'1'],[3,0,'4'],[3,2,'5'],[3,3,'b6'],
+      [4,0,'1'],[4,1,'b2'],[4,3,'b3']
+    ]
+  },
+  {
+    id:'G',name:'G',anchorStringIdx:5,parentScaleId:'naturalMinor',
+    provenance:'derived-candidate',reviewStatus:'verified',mutationMap:PHRYGIAN_MUTATION,
+    positions:[
+      [0,-2,'b7'],[0,0,'1'],[1,-2,'4'],[1,0,'5'],[1,1,'b6'],
+      [2,-3,'1'],[2,-2,'b2'],[2,0,'b3'],[3,-3,'5'],[3,-2,'b6'],[3,0,'b7'],
+      [4,-4,'b2'],[4,-2,'b3'],[4,0,'4'],[5,0,'1']
+    ]
+  }
+]);
+
+// Guitar-reviewed Locrian forms preserve every Natural Minor point except degrees 2 and 5,
+// which each move one fret downward on their original strings to b2 and b5.
+const LOCRIAN_MUTATION=[
+  {fromDegree:'2',toDegree:'b2',fretDelta:-1},
+  {fromDegree:'5',toDegree:'b5',fretDelta:-1}
+];
+const CURATED_LOCRIAN_SCALE_FORMS=prepareScaleForms('locrian','0,1,3,5,6,8,10',[
+  {
+    id:'E',name:'E',anchorStringIdx:5,parentScaleId:'naturalMinor',
+    provenance:'derived-candidate',reviewStatus:'verified',mutationMap:LOCRIAN_MUTATION,
+    corrections:[
+      {
+        kind:'unison-relocation',sourceIndex:3,degree:'b5',
+        fromStringIdx:1,fromFretOffset:-1,toStringIdx:2,toFretOffset:3,
+        reason:'hands-on-continuity'
+      },
+      {
+        kind:'unison-relocation',sourceIndex:6,degree:'b2',
+        fromStringIdx:2,fromFretOffset:-2,toStringIdx:3,toFretOffset:3,
+        reason:'hands-on-continuity'
+      }
+    ],
+    positions:[
+      [0,0,'1'],[0,1,'b2'],[0,3,'b3'],[2,3,'b5'],[1,1,'b6'],[1,3,'b7'],
+      [3,3,'b2'],[2,0,'b3'],[2,2,'4'],[3,0,'b7'],[3,2,'1'],
+      [4,0,'4'],[4,1,'b5'],[4,3,'b6'],[5,0,'1'],[5,1,'b2'],[5,3,'b3']
+    ]
+  },
+  {
+    id:'D',name:'D',anchorStringIdx:3,parentScaleId:'naturalMinor',
+    provenance:'derived-candidate',reviewStatus:'verified',mutationMap:LOCRIAN_MUTATION,
+    positions:[
+      [0,-1,'b2'],[0,1,'b3'],[0,3,'4'],[1,1,'b7'],[1,3,'1'],
+      [2,0,'4'],[2,1,'b5'],[2,3,'b6'],[3,0,'1'],[3,1,'b2'],[3,3,'b3']
+    ]
+  },
+  {
+    id:'C',name:'C',anchorStringIdx:4,parentScaleId:'naturalMinor',
+    provenance:'derived-candidate',reviewStatus:'verified',mutationMap:LOCRIAN_MUTATION,
+    positions:[
+      [0,-2,'4'],[0,-1,'b5'],[0,1,'b6'],[1,-2,'1'],[1,-1,'b2'],[1,1,'b3'],
+      [2,-4,'b5'],[2,-2,'b6'],[2,0,'b7'],[3,-4,'b2'],[3,-2,'b3'],[3,0,'4'],
+      [4,0,'1']
+    ]
+  },
+  {
+    id:'A',name:'A',anchorStringIdx:4,parentScaleId:'naturalMinor',
+    provenance:'derived-candidate',reviewStatus:'verified',mutationMap:LOCRIAN_MUTATION,
+    positions:[
+      [0,-1,'b5'],[0,1,'b6'],[0,3,'b7'],[1,-1,'b2'],[1,1,'b3'],[1,3,'4'],
+      [2,0,'b7'],[2,2,'1'],[3,0,'4'],[3,1,'b5'],[3,3,'b6'],
+      [4,0,'1'],[4,1,'b2'],[4,3,'b3']
+    ]
+  },
+  {
+    id:'G',name:'G',anchorStringIdx:5,parentScaleId:'naturalMinor',
+    provenance:'derived-candidate',reviewStatus:'verified',mutationMap:LOCRIAN_MUTATION,
+    positions:[
+      [0,-2,'b7'],[0,0,'1'],[1,-2,'4'],[1,-1,'b5'],[1,1,'b6'],
+      [2,-3,'1'],[2,-2,'b2'],[2,0,'b3'],[3,-4,'b5'],[3,-2,'b6'],[3,0,'b7'],
+      [4,-4,'b2'],[4,-2,'b3'],[4,0,'4'],[5,0,'1']
+    ]
+  }
+]);
+
+const SCALE_FORM_LIBRARY={
+  major:CURATED_MAJOR_SCALE_FORMS,
+  naturalMinor:CURATED_NATURAL_MINOR_SCALE_FORMS,
+  dorian:CURATED_DORIAN_SCALE_FORMS,
+  mixolydian:CURATED_MIXOLYDIAN_SCALE_FORMS,
+  lydian:CURATED_LYDIAN_SCALE_FORMS,
+  phrygian:CURATED_PHRYGIAN_SCALE_FORMS,
+  locrian:CURATED_LOCRIAN_SCALE_FORMS
+};
+
+const SCALE_FORMULA_LIBRARY={
+  '0,2,4,5,7,9,11':'major',
+  '0,2,3,5,7,8,10':'naturalMinor',
+  '0,2,3,5,7,9,10':'dorian',
+  '0,2,4,5,7,9,10':'mixolydian',
+  '0,2,4,6,7,9,11':'lydian',
+  '0,1,3,5,7,8,10':'phrygian',
+  '0,1,3,5,6,8,10':'locrian'
+};
+
+const SCALE_CHORD_FORM_RELATIONSHIPS=[
+  {scaleId:'major',formId:'E',chordQuality:'maj',status:'verified'},
+  {scaleId:'major',formId:'D',chordQuality:'maj',status:'verified'},
+  {scaleId:'major',formId:'C',chordQuality:'maj',status:'verified'},
+  {scaleId:'major',formId:'A',chordQuality:'maj',status:'verified'},
+  {scaleId:'major',formId:'G',chordQuality:'maj',status:'mismatch'},
+  {scaleId:'major',formId:'E',chordQuality:'maj7',status:'verified'},
+  {scaleId:'major',formId:'D',chordQuality:'maj7',status:'verified'},
+  {scaleId:'major',formId:'C',chordQuality:'maj7',status:'verified'},
+  {scaleId:'major',formId:'A',chordQuality:'maj7',status:'verified'},
+  {scaleId:'major',formId:'G',chordQuality:'maj7',status:'mismatch'},
+  {scaleId:'naturalMinor',formId:'E',chordQuality:'min',status:'verified'},
+  {scaleId:'naturalMinor',formId:'D',chordQuality:'min',status:'mismatch'},
+  {scaleId:'naturalMinor',formId:'C',chordQuality:'min',status:'mismatch'},
+  {scaleId:'naturalMinor',formId:'A',chordQuality:'min',status:'verified'},
+  {scaleId:'naturalMinor',formId:'G',chordQuality:'min',status:'verified'},
+  {scaleId:'naturalMinor',formId:'E',chordQuality:'m7',status:'verified'},
+  {scaleId:'naturalMinor',formId:'D',chordQuality:'m7',status:'mismatch'},
+  {scaleId:'naturalMinor',formId:'C',chordQuality:'m7',status:'mismatch'},
+  {scaleId:'naturalMinor',formId:'A',chordQuality:'m7',status:'verified'},
+  {scaleId:'naturalMinor',formId:'G',chordQuality:'m7',status:'verified'},
+  {scaleId:'dorian',formId:'E',chordQuality:'min',status:'verified'},
+  {scaleId:'dorian',formId:'D',chordQuality:'min',status:'mismatch'},
+  {scaleId:'dorian',formId:'C',chordQuality:'min',status:'mismatch'},
+  {scaleId:'dorian',formId:'A',chordQuality:'min',status:'verified'},
+  {scaleId:'dorian',formId:'G',chordQuality:'min',status:'verified'},
+  {scaleId:'dorian',formId:'E',chordQuality:'m7',status:'verified'},
+  {scaleId:'dorian',formId:'D',chordQuality:'m7',status:'mismatch'},
+  {scaleId:'dorian',formId:'C',chordQuality:'m7',status:'mismatch'},
+  {scaleId:'dorian',formId:'A',chordQuality:'m7',status:'verified'},
+  {scaleId:'dorian',formId:'G',chordQuality:'m7',status:'verified'},
+  {scaleId:'mixolydian',formId:'E',chordQuality:'maj',status:'verified'},
+  {scaleId:'mixolydian',formId:'D',chordQuality:'maj',status:'verified'},
+  {scaleId:'mixolydian',formId:'C',chordQuality:'maj',status:'verified'},
+  {scaleId:'mixolydian',formId:'A',chordQuality:'maj',status:'verified'},
+  {scaleId:'mixolydian',formId:'G',chordQuality:'maj',status:'mismatch'},
+  {scaleId:'mixolydian',formId:'E',chordQuality:'7',status:'mismatch'},
+  {scaleId:'mixolydian',formId:'D',chordQuality:'7',status:'verified'},
+  {scaleId:'mixolydian',formId:'C',chordQuality:'7',status:'mismatch'},
+  {scaleId:'mixolydian',formId:'A',chordQuality:'7',status:'verified'},
+  {scaleId:'mixolydian',formId:'G',chordQuality:'7',status:'mismatch'},
+  {scaleId:'lydian',formId:'E',chordQuality:'maj',status:'verified'},
+  {scaleId:'lydian',formId:'D',chordQuality:'maj',status:'verified'},
+  {scaleId:'lydian',formId:'C',chordQuality:'maj',status:'verified'},
+  {scaleId:'lydian',formId:'A',chordQuality:'maj',status:'verified'},
+  {scaleId:'lydian',formId:'G',chordQuality:'maj',status:'mismatch'},
+  {scaleId:'lydian',formId:'E',chordQuality:'maj7',status:'verified'},
+  {scaleId:'lydian',formId:'D',chordQuality:'maj7',status:'verified'},
+  {scaleId:'lydian',formId:'C',chordQuality:'maj7',status:'verified'},
+  {scaleId:'lydian',formId:'A',chordQuality:'maj7',status:'verified'},
+  {scaleId:'lydian',formId:'G',chordQuality:'maj7',status:'mismatch'},
+  {scaleId:'phrygian',formId:'E',chordQuality:'min',status:'verified'},
+  {scaleId:'phrygian',formId:'D',chordQuality:'min',status:'mismatch'},
+  {scaleId:'phrygian',formId:'C',chordQuality:'min',status:'mismatch'},
+  {scaleId:'phrygian',formId:'A',chordQuality:'min',status:'verified'},
+  {scaleId:'phrygian',formId:'G',chordQuality:'min',status:'verified'},
+  {scaleId:'phrygian',formId:'E',chordQuality:'m7',status:'verified'},
+  {scaleId:'phrygian',formId:'D',chordQuality:'m7',status:'mismatch'},
+  {scaleId:'phrygian',formId:'C',chordQuality:'m7',status:'mismatch'},
+  {scaleId:'phrygian',formId:'A',chordQuality:'m7',status:'verified'},
+  {scaleId:'phrygian',formId:'G',chordQuality:'m7',status:'verified'},
+  {scaleId:'locrian',formId:'E',chordQuality:'dim',status:'verified'},
+  {scaleId:'locrian',formId:'D',chordQuality:'dim',status:'mismatch'},
+  {scaleId:'locrian',formId:'C',chordQuality:'dim',status:'mismatch'},
+  {scaleId:'locrian',formId:'A',chordQuality:'dim',status:'mismatch'},
+  {scaleId:'locrian',formId:'G',chordQuality:'dim',status:'verified'},
+  {scaleId:'locrian',formId:'E',chordQuality:'m7b5',status:'verified'},
+  {scaleId:'locrian',formId:'D',chordQuality:'m7b5',status:'mismatch'},
+  {scaleId:'locrian',formId:'C',chordQuality:'m7b5',status:'mismatch'},
+  {scaleId:'locrian',formId:'A',chordQuality:'m7b5',status:'mismatch'},
+  {scaleId:'locrian',formId:'G',chordQuality:'m7b5',status:'verified'}
+];
+
+function realizeScaleForm(rootPc,scaleId,formId,maxFret=FRET_COUNT){
+  const forms=SCALE_FORM_LIBRARY[scaleId]||[];
+  const form=forms.find(entry=>entry.id===formId);
+  if(!form||!Number.isFinite(rootPc))return {complete:false,positions:[],form:null,reason:'missing'};
+  const anchorString=OPEN_STRINGS_TOP_TO_BOTTOM[form.anchorStringIdx];
+  const lowestAnchor=((rootPc-anchorString.pc)%12+12)%12;
+  let anchorFret=null;
+  for(let candidate=lowestAnchor;candidate<=maxFret;candidate+=12){
+    const frets=form.positions.map(position=>candidate+position.fretOffset);
+    if(frets.every(fret=>fret>=0&&fret<=maxFret)){anchorFret=candidate;break;}
+  }
+  if(anchorFret===null)return {complete:false,positions:[],form,reason:'outside'};
+  const positions=form.positions.map(position=>{
+    const str=OPEN_STRINGS_TOP_TO_BOTTOM[position.stringIdx];
+    const fret=anchorFret+position.fretOffset;
+    return {...position,str,fret,midi:str.midi+fret};
+  });
+  const invalid=positions.find(position=>{
+    const expected=(rootPc+SCALE_DEGREE_SEMITONES[position.degree])%12;
+    return position.midi%12!==expected;
+  });
+  if(invalid)return {complete:false,positions:[],form,reason:'invalid'};
+  const playbackMidi=[...new Set(positions.map(position=>position.midi))].sort((a,b)=>a-b);
+  const orderedPositions=positions.map(position=>({...position,order:playbackMidi.indexOf(position.midi)+1}));
+  return {complete:true,positions:orderedPositions,playbackMidi,form,anchorFret,reason:null};
+}
+
+// ---------- Playable Shape (arpeggio mode) ----------
+// Curated chord-form library. These shapes preserve the geometry of the
+// chord forms described by Popov; they are data, not scoring results.
+// Every fret offset is measured from the form's circled root anchor.
+function preparePopovForms(quality,forms){
+  return forms.map(form=>({...form,quality,positions:form.positions.map(([stringIdx,fretOffset,degree],i)=>({
+    id:`${quality}-${form.id}-${i+1}`,stringIdx,fretOffset,degree
+  }))}));
+}
+
+const POPOV_MAJ7_FORMS = preparePopovForms('maj7',[
+  {
+    id:'E', name:'E', anchorStringIdx:5,
+    positions:[
+      [0,-1,'7'],[0,0,'1'],[1,0,'5'],[2,1,'3'],[3,1,'7'],
+      [3,2,'1'],[4,-1,'3'],[4,2,'5'],[5,0,'1']
+    ]
+  },
+  {
+    id:'D', name:'D', anchorStringIdx:5,
+    positions:[
+      [1,4,'7'],[1,5,'1'],[2,1,'3'],[2,4,'5'],[3,1,'7'],
+      [3,2,'1'],[4,2,'5'],[5,0,'1'],[5,4,'3']
+    ]
+  },
+  {
+    id:'C', name:'C', anchorStringIdx:4,
+    positions:[
+      [0,-3,'3'],[0,0,'5'],[1,-3,'7'],[1,-2,'1'],
+      [2,-3,'5'],[3,-1,'3'],[4,0,'1']
+    ]
+  },
+  {
+    id:'A', name:'A', anchorStringIdx:4,
+    positions:[
+      [0,0,'5'],[0,4,'7'],[1,2,'3'],[2,1,'7'],
+      [2,2,'1'],[3,-1,'3'],[3,2,'5'],[4,0,'1']
+    ]
+  },
+  {
+    id:'G', name:'G', anchorStringIdx:5,
+    positions:[
+      [0,-1,'7'],[0,0,'1'],[1,0,'5'],[2,-4,'7'],[2,-3,'1'],
+      [2,1,'3'],[3,-3,'5'],[4,-1,'3'],[5,0,'1']
+    ]
+  }
+]);
+
+const POPOV_DOM7_FORMS = preparePopovForms('7',[
+  {
+    id:'E', name:'E', anchorStringIdx:5,
+    positions:[
+      [0,0,'1'],[0,4,'3'],[1,0,'5'],[1,3,'b7'],[2,1,'3'],
+      [3,0,'b7'],[3,2,'1'],[4,-1,'3'],[4,2,'5'],[5,0,'1']
+    ]
+  },
+  {
+    id:'D', name:'D', anchorStringIdx:5,
+    positions:[
+      [0,4,'3'],[1,3,'b7'],[1,5,'1'],[2,1,'3'],[2,4,'5'],
+      [3,0,'b7'],[3,2,'1'],[4,2,'5'],[5,0,'1'],[5,4,'3']
+    ]
+  },
+  {
+    id:'C', name:'C', anchorStringIdx:4,
+    positions:[
+      [0,-3,'3'],[0,0,'5'],[1,-2,'1'],[2,-3,'5'],
+      [2,0,'b7'],[3,-1,'3'],[4,0,'1']
+    ]
+  },
+  {
+    id:'A', name:'A', anchorStringIdx:4,
+    positions:[
+      [0,0,'5'],[0,3,'b7'],[1,2,'3'],[2,0,'b7'],
+      [2,2,'1'],[3,-1,'3'],[3,2,'5'],[4,0,'1']
+    ]
+  },
+  {
+    id:'G', name:'G', anchorStringIdx:5,
+    positions:[
+      [0,-2,'b7'],[0,0,'1'],[1,0,'5'],[2,-3,'1'],[2,1,'3'],
+      [3,-3,'5'],[3,0,'b7'],[4,-1,'3'],[5,0,'1']
+    ]
+  }
+]);
+
+const POPOV_M7_FORMS = preparePopovForms('m7',[
+  {
+    id:'E', name:'E', anchorStringIdx:5,
+    positions:[
+      [0,0,'1'],[0,3,'b3'],[1,0,'5'],[1,3,'b7'],[2,0,'b3'],
+      [3,0,'b7'],[3,2,'1'],[4,2,'5'],[5,0,'1'],[5,3,'b3']
+    ]
+  },
+  {
+    id:'D', name:'D', anchorStringIdx:3,
+    positions:[
+      [0,1,'b3'],[0,5,'5'],[1,1,'b7'],[1,3,'1'],
+      [2,2,'5'],[3,0,'1'],[3,3,'b3']
+    ]
+  },
+  {
+    id:'C', name:'C', anchorStringIdx:4,
+    positions:[
+      [0,-4,'b3'],[0,0,'5'],[1,-2,'1'],[2,-3,'5'],
+      [2,0,'b7'],[3,-2,'b3'],[4,0,'1']
+    ]
+  },
+  {
+    id:'A', name:'A', anchorStringIdx:4,
+    positions:[
+      [0,0,'5'],[0,3,'b7'],[1,1,'b3'],[2,0,'b7'],
+      [2,2,'1'],[3,2,'5'],[4,0,'1'],[4,3,'b3']
+    ]
+  },
+  {
+    id:'G', name:'G', anchorStringIdx:5,
+    positions:[
+      [0,-2,'b7'],[0,0,'1'],[1,0,'5'],[2,-3,'1'],[2,0,'b3'],
+      [3,-3,'5'],[3,0,'b7'],[4,-2,'b3'],[5,0,'1']
+    ]
+  }
+]);
+
+const POPOV_M7B5_FORMS = preparePopovForms('m7b5',[
+  {
+    id:'E', name:'E', anchorStringIdx:5,
+    positions:[
+      [0,0,'1'],[0,3,'b3'],[1,3,'b7'],[2,0,'b3'],[2,3,'b5'],
+      [3,0,'b7'],[3,2,'1'],[4,1,'b5'],[5,0,'1'],[5,3,'b3']
+    ]
+  },
+  {
+    id:'D', name:'D', anchorStringIdx:3,
+    positions:[
+      [0,1,'b3'],[0,4,'b5'],[1,1,'b7'],[1,3,'1'],
+      [2,1,'b5'],[3,0,'1'],[3,3,'b3']
+    ]
+  },
+  {
+    id:'C', name:'C', anchorStringIdx:4,
+    positions:[
+      [0,-1,'b5'],[0,3,'b7'],[1,-2,'1'],[1,1,'b3'],
+      [2,0,'b7'],[3,-2,'b3'],[3,1,'b5'],[4,0,'1']
+    ]
+  },
+  {
+    id:'A', name:'A', anchorStringIdx:4,
+    positions:[
+      [0,3,'b7'],[1,1,'b3'],[1,4,'b5'],[2,0,'b7'],
+      [2,2,'1'],[3,1,'b5'],[4,0,'1'],[4,3,'b3']
+    ]
+  },
+  {
+    id:'G', name:'G', anchorStringIdx:5,
+    positions:[
+      [0,-2,'b7'],[0,0,'1'],[1,-1,'b5'],[2,-3,'1'],[2,0,'b3'],
+      [3,-4,'b5'],[3,0,'b7'],[4,-2,'b3'],[5,0,'1']
+    ]
+  }
+]);
+
+const POPOV_DIM7_FORMS = preparePopovForms('dim7',[
+  {
+    id:'E/G', name:'E/G', anchorStringIdx:5,
+    positions:[
+      [0,0,'1'],[0,3,'b3'],[1,2,'bb7'],[2,0,'b3'],
+      [3,-1,'bb7'],[3,2,'1'],[4,-2,'b3'],[4,1,'b5'],[5,0,'1']
+    ]
+  },
+  {
+    id:'D', name:'D', anchorStringIdx:3,
+    positions:[
+      [0,1,'b3'],[0,4,'b5'],[1,0,'bb7'],[1,3,'1'],
+      [2,1,'b5'],[3,0,'1'],[3,3,'b3']
+    ]
+  },
+  {
+    id:'C', name:'C', anchorStringIdx:4,
+    positions:[
+      [0,-1,'b5'],[0,2,'bb7'],[1,-2,'1'],[1,1,'b3'],
+      [2,-1,'bb7'],[3,-2,'b3'],[3,1,'b5'],[4,0,'1']
+    ]
+  },
+  {
+    id:'A', name:'A', anchorStringIdx:4,
+    positions:[
+      [0,2,'bb7'],[0,5,'1'],[1,1,'b3'],[1,4,'b5'],[2,2,'1'],
+      [3,1,'b5'],[3,4,'bb7'],[4,0,'1'],[4,3,'b3']
+    ]
+  }
+]);
+
+// Curated triads are stored independently from their seventh-chord sources.
+// Their geometry is the literal 1/3/5 subset of the corresponding Popov form:
+// maj <- maj7, min <- m7, dim <- m7b5. The diminished E and C subsets retain
+// their source-derived string skips instead of silently relocating chord tones.
+const POPOV_MAJOR_TRIAD_FORMS=preparePopovForms('maj',[
+  {id:'E',name:'E',anchorStringIdx:5,positions:[[0,0,'1'],[1,0,'5'],[2,1,'3'],[3,2,'1'],[4,-1,'3'],[4,2,'5'],[5,0,'1']]},
+  {id:'D',name:'D',anchorStringIdx:5,positions:[[1,5,'1'],[2,1,'3'],[2,4,'5'],[3,2,'1'],[4,2,'5'],[5,0,'1'],[5,4,'3']]},
+  {id:'C',name:'C',anchorStringIdx:4,positions:[[0,-3,'3'],[0,0,'5'],[1,-2,'1'],[2,-3,'5'],[3,-1,'3'],[4,0,'1']]},
+  {id:'A',name:'A',anchorStringIdx:4,positions:[[0,0,'5'],[1,2,'3'],[2,2,'1'],[3,-1,'3'],[3,2,'5'],[4,0,'1']]},
+  {id:'G',name:'G',anchorStringIdx:5,positions:[[0,0,'1'],[1,0,'5'],[2,-3,'1'],[2,1,'3'],[3,-3,'5'],[4,-1,'3'],[5,0,'1']]}
+]);
+
+const POPOV_MINOR_TRIAD_FORMS=preparePopovForms('min',[
+  {id:'E',name:'E',anchorStringIdx:5,positions:[[0,0,'1'],[0,3,'b3'],[1,0,'5'],[2,0,'b3'],[3,2,'1'],[4,2,'5'],[5,0,'1'],[5,3,'b3']]},
+  {id:'D',name:'D',anchorStringIdx:3,positions:[[0,1,'b3'],[0,5,'5'],[1,3,'1'],[2,2,'5'],[3,0,'1'],[3,3,'b3']]},
+  {id:'C',name:'C',anchorStringIdx:4,positions:[[0,-4,'b3'],[0,0,'5'],[1,-2,'1'],[2,-3,'5'],[3,-2,'b3'],[4,0,'1']]},
+  {id:'A',name:'A',anchorStringIdx:4,positions:[[0,0,'5'],[1,1,'b3'],[2,2,'1'],[3,2,'5'],[4,0,'1'],[4,3,'b3']]},
+  {id:'G',name:'G',anchorStringIdx:5,positions:[[0,0,'1'],[1,0,'5'],[2,-3,'1'],[2,0,'b3'],[3,-3,'5'],[4,-2,'b3'],[5,0,'1']]}
+]);
+
+const POPOV_DIM_TRIAD_FORMS=preparePopovForms('dim',[
+  {id:'E',name:'E',anchorStringIdx:5,sourceGapStringIdx:1,positions:[[0,0,'1'],[0,3,'b3'],[2,0,'b3'],[2,3,'b5'],[3,2,'1'],[4,1,'b5'],[5,0,'1'],[5,3,'b3']]},
+  {id:'D',name:'D',anchorStringIdx:3,positions:[[0,1,'b3'],[0,4,'b5'],[1,3,'1'],[2,1,'b5'],[3,0,'1'],[3,3,'b3']]},
+  {id:'C',name:'C',anchorStringIdx:4,sourceGapStringIdx:2,positions:[[0,-1,'b5'],[1,-2,'1'],[1,1,'b3'],[3,-2,'b3'],[3,1,'b5'],[4,0,'1']]},
+  {id:'A',name:'A',anchorStringIdx:4,positions:[[1,1,'b3'],[1,4,'b5'],[2,2,'1'],[3,1,'b5'],[4,0,'1'],[4,3,'b3']]},
+  {id:'G',name:'G',anchorStringIdx:5,positions:[[0,0,'1'],[1,-1,'b5'],[2,-3,'1'],[2,0,'b3'],[3,-4,'b5'],[4,-2,'b3'],[5,0,'1']]}
+]);
+
+const POPOV_FORM_LIBRARY={
+  maj:POPOV_MAJOR_TRIAD_FORMS,
+  min:POPOV_MINOR_TRIAD_FORMS,
+  dim:POPOV_DIM_TRIAD_FORMS,
+  maj7:POPOV_MAJ7_FORMS,
+  '7':POPOV_DOM7_FORMS,
+  m7:POPOV_M7_FORMS,
+  m7b5:POPOV_M7B5_FORMS,
+  dim7:POPOV_DIM7_FORMS
+};
+
+const CHORD_DEGREE_SEMITONES={'1':0,'b3':3,'3':4,'b5':6,'5':7,'bb7':9,'b7':10,'7':11};
+
+function realizePopovForm(rootPc,quality,formId,maxFret=FRET_COUNT){
+  const forms=POPOV_FORM_LIBRARY[quality]||[];
+  const form=forms.find(entry=>entry.id===formId);
+  if(!form||!Number.isFinite(rootPc))return {complete:false,path:[],form:null,reason:'missing'};
+  const anchorString=OPEN_STRINGS_TOP_TO_BOTTOM[form.anchorStringIdx];
+  const lowestAnchor=((rootPc-anchorString.pc)%12+12)%12;
+  let anchorFret=null;
+  for(let candidate=lowestAnchor;candidate<=maxFret;candidate+=12){
+    const frets=form.positions.map(position=>candidate+position.fretOffset);
+    if(frets.every(fret=>fret>=0&&fret<=maxFret)){anchorFret=candidate;break;}
+  }
+  if(anchorFret===null)return {complete:false,path:[],form,reason:'outside'};
+  const positions=form.positions.map(position=>{
+    const str=OPEN_STRINGS_TOP_TO_BOTTOM[position.stringIdx];
+    const fret=anchorFret+position.fretOffset;
+    return {...position,str,fret,midi:str.midi+fret};
+  });
+  const invalid=positions.find(position=>{
+    const expected=(rootPc+CHORD_DEGREE_SEMITONES[position.degree])%12;
+    return position.midi%12!==expected;
+  });
+  if(invalid)return {complete:false,path:[],form,reason:'invalid'};
+  const path=[...positions].sort((a,b)=>a.midi-b.midi).map((position,index)=>({...position,order:index+1}));
+  return {complete:true,path,form,anchorFret,reason:null};
+}
+
+function realizePopovMaj7Form(rootPc,formId,maxFret=FRET_COUNT){
+  return realizePopovForm(rootPc,'maj7',formId,maxFret);
+}
+
+function detectChordQuality(pcs){
+  if(!pcs || (pcs.length!==3&&pcs.length!==4)) return null;
+  const root = pcs[0];
+  const key = pcs.slice(1).map(pc => ((pc-root)%12+12)%12).sort((a,b)=>a-b).join(',');
+  const qualities=pcs.length===3
+    ? {'4,7':'maj','3,7':'min','3,6':'dim'}
+    : {'4,7,11':'maj7','4,7,10':'7','3,7,10':'m7','3,6,10':'m7b5','3,6,9':'dim7'};
+  return qualities[key]||null;
+}
+
+function arpeggioRouteFeatures(route){
+  const frets=route.map(p=>p.fret);
+  return {fretSpan:Math.max(...frets)-Math.min(...frets)};
+}
+
+function chordIntervalLabel(pc, rootPc){
+  return ['R','b2','2','b3','3','4','b5','5','#5','6','b7','7'][((pc-rootPc)%12+12)%12];
+}
+
+function parseToken(tok){
+  const m = tok.match(/^(b{0,2}|#{0,2})(\d{1,2})$/i);
+  if(!m) return null;
+  const [, accStr, degStr] = m;
+  const acc = accStr[0] === 'b' ? -accStr.length : accStr.length;
+  const degree = parseInt(degStr, 10);
+  if(degree < 1) return null;
+  return {degree, acc, raw: tok};
+}
+
+function buildScale(rootPc, rootLetter, formulaText){
+  const tokens = formulaText.split(/[\s,\-]+/).filter(Boolean);
+  if(tokens.length === 0) throw new Error('Введите хотя бы одну ступень, например 1');
+  const rootLetterIdx = LETTERS.indexOf(rootLetter);
+  const notes = [];
+  for(const tok of tokens){
+    const parsed = parseToken(tok);
+    if(!parsed) throw new Error(`Не удалось распознать «${tok}». Используйте обозначения 1, b3, #4 или bb7`);
+    const baseDegree = ((parsed.degree - 1) % 7) + 1;
+    const octaveShift = Math.floor((parsed.degree - 1) / 7) * 12;
+    const semitone = DEGREE_NATURAL[baseDegree] + parsed.acc + octaveShift;
+    const absolutePc = ((rootPc + semitone) % 12 + 12) % 12;
+    const letterIdx = (rootLetterIdx + (baseDegree - 1)) % 7;
+    const letter = LETTERS[letterIdx];
+    let diff = absolutePc - NATURAL_PC[letter];
+    while(diff > 6) diff -= 12;
+    while(diff < -6) diff += 12;
+    const accSymbol = ACC_SYMBOL[String(diff)];
+    const spelled = accSymbol !== undefined ? letter + accSymbol : letter + '(' + (diff>0?'+':'') + diff + ')';
+    notes.push({
+      pc: absolutePc, degreeLabel: (parsed.acc<0?'b'.repeat(-parsed.acc):'#'.repeat(parsed.acc)) + parsed.degree,
+      noteName: spelled, semitone, isRoot: parsed.degree === 1 && parsed.acc === 0
+    });
+  }
+  return notes;
+}
+
+// Detects degrees that collapse onto the same pitch class (e.g. "1 #7 8").
+// Returns null if there's no conflict, otherwise a list of {pc, notes}.
+function findPitchClassConflicts(scale){
+  const byPc = new Map();
+  scale.forEach(n => { if(!byPc.has(n.pc)) byPc.set(n.pc, []); byPc.get(n.pc).push(n); });
+  const conflicts = [...byPc.values()].filter(list => list.length > 1);
+  return conflicts.length ? conflicts : null;
+}
+
+function setBoardDimmed(dimmed){
+  document.getElementById('board').classList.toggle('dimmed-board', dimmed);
+}
+
+function render(){
+  const rootObj = ROOTS[state.root];
+  const errorBox = document.getElementById('errorBox');
+  const warnBox = document.getElementById('warnBox');
+  const playBtn = document.getElementById('playBtn');
+  const playInsideBtn = document.getElementById('playInsideBtn');
+  const playOutsideBtn = document.getElementById('playOutsideBtn');
+
+  let scale;
+  try{
+    scale = buildScale(rootObj.pc, rootObj.letter, state.formula);
+    errorBox.style.display = 'none';
+  }catch(e){
+    // Stop here entirely: don't touch the board, chords, or readout, so the
+    // last valid state stays visible instead of half-updating or crashing.
+    errorBox.style.display = 'block';
+    errorBox.textContent = e.message;
+    playBtn.disabled = true;
+    playInsideBtn.disabled = true;
+    playOutsideBtn.disabled = true;
+    updatePillHighlights();
+    return;
+  }
+  playBtn.disabled = false;
+  playInsideBtn.disabled = false;
+  playOutsideBtn.disabled = false;
+  updatePillHighlights();
+
+  const conflicts = findPitchClassConflicts(scale);
+  if(conflicts){
+    const parts = conflicts.map(list => `${list.map(n=>n.degreeLabel).join(' и ')} совпадают на ноте ${list[0].noteName}`);
+    warnBox.style.display = 'block';
+    warnBox.textContent = `Некоторые ступени совпадают по высоте: ${parts.join('; ')}. На каждой позиции показана одна нота; гармонизация для такой формулы отключена.`;
+  } else {
+    warnBox.style.display = 'none';
+  }
+
+  const pcMap = new Map();
+  scale.forEach(n => { if(!pcMap.has(n.pc)) pcMap.set(n.pc, n); });
+
+  const sortedBySemitone = [...scale].sort((a,b)=>a.semitone-b.semitone);
+  const semitones = sortedBySemitone.map(n=>n.semitone);
+  let pattern = [];
+  for(let i=0;i<semitones.length;i++){
+    const next = i+1<semitones.length ? semitones[i+1] : semitones[0]+12;
+    pattern.push(next - semitones[i]);
+  }
+
+  const currentKey = [...new Set(semitones.map(s => ((s%12)+12)%12))].sort((a,b)=>a-b).join(',');
+  const matches = currentKey ? ALL_NAMED_SCALES.filter(s => s.key === currentKey).map(s => s.name) : [];
+  const matchLabel = matches.length ? matches.join(', ') : (currentKey ? 'Своя формула / без названия' : '—');
+
+  const arpeggioMode = Boolean(state.selectedChordPcs) && !state.overlayEnabled;
+  const readout = document.getElementById('readout');
+  readout.innerHTML = `${arpeggioMode ? `
+    <div class="mode-banner"><span>Арпеджио: <strong>${state.selectedChordLabel}</strong></span><button type="button" class="chip clickable" id="backToScaleBtn">← Вернуться к ладу</button></div>` : ''}
+    <div>${state.overlayEnabled ? 'Сравнение' : 'Гамма'}: <strong>${matchLabel}</strong></div>
+    <div>Ноты: <strong>${sortedBySemitone.map(n=>n.noteName).join(' ')}</strong></div>
+    <div>Ступени: <strong>${sortedBySemitone.map(n=>n.degreeLabel).join('-')}</strong></div>
+    <div>Полутоновая структура: <strong>${pattern.join('-')}</strong></div>
+  `;
+  if(arpeggioMode) document.getElementById('backToScaleBtn').addEventListener('click',()=>{
+    clearSelectedChord(); state.viewMode='whole'; render();
+  });
+
+  const uniqueNotes = [...pcMap.values()].sort((a,b)=>a.semitone-b.semitone);
+  const pcsForPlayback = state.selectedChordPcs ? state.selectedChordPcs : uniqueNotes.map(n => n.pc);
+  currentPlayableMidi = ascendingMidiFromPcs(pcsForPlayback, lowestFretboardMidiForPc(pcsForPlayback[0]));
+  const insideOrderedPcs = uniqueNotes.map(n=>n.pc);
+  insidePlayableMidi = ascendingMidiFromPcs(insideOrderedPcs, lowestFretboardMidiForPc(insideOrderedPcs[0]));
+
+  // ---- Harmonization: only when there are no pitch-class conflicts ----
+  const chordsSection = document.getElementById('chordsSection');
+  const harmonizationHint = document.getElementById('harmonizationHint');
+  chordsSection.style.display = !state.overlayEnabled&&state.viewMode==='arpeggioShape' ? 'block' : 'none';
+  if(conflicts){
+    chordsSection.style.opacity = '.5';
+    document.getElementById('triadsRow').innerHTML = '<div class="chip">—</div>';
+    document.getElementById('tetradsRow').innerHTML = '<div class="chip">—</div>';
+    harmonizationHint.textContent = 'Гармонизация отключена: в формуле есть ступени, совпадающие по высоте.';
+  } else {
+    chordsSection.style.opacity = '1';
+    const triads = harmonizeScale(uniqueNotes, 3);
+    const tetrads = harmonizeScale(uniqueNotes, 4);
+    const isSevenNote = uniqueNotes.length === 7;
+    document.getElementById('triadsHeading').textContent = isSevenNote ? '1. Выберите трезвучие' : '1. Выберите трезвучие по ступени';
+    document.getElementById('tetradsHeading').textContent = isSevenNote ? 'Или выберите септаккорд' : 'Или выберите четырёхзвучный аккорд';
+    harmonizationHint.textContent = isSevenNote
+      ? 'Стандартная терцовая гармония: трезвучия и септаккорды строятся по ступеням семинотной гаммы.'
+      : `В этой гамме ${uniqueNotes.length} нот. Аккорды строятся через одну ступень и не всегда имеют стандартное название.`;
+
+    function renderChordRow(containerId, chords){
+      const row = document.getElementById(containerId);
+      row.innerHTML = '';
+      if(chords.length === 0){ row.innerHTML = '<div class="chip">—</div>'; return; }
+      const aliasMap = buildAliasMap(chords);
+      chords.forEach((chord, i) => {
+        const id = containerId + '-' + i;
+        const key = [...chord.pcs].sort((a,b)=>a-b).join(',');
+        const aliases = aliasMap.get(key).filter(l => l !== chord.label);
+        const quality = detectChordQuality(chord.pcs);
+        const hasCuratedForms = Boolean(quality && POPOV_FORM_LIBRARY[quality]?.length);
+        const chip = document.createElement(hasCuratedForms ? 'button' : 'span');
+        if(hasCuratedForms) chip.type = 'button';
+        chip.className = 'chip' + (hasCuratedForms ? ' clickable' : '') + (state.selectedChordId === id ? ' active' : '');
+        chip.textContent = chord.label;
+        const aliasHint = aliases.length ? `Те же ноты: ${aliases.join(', ')} — построено от другой ступени гаммы. ` : '';
+        chip.title = aliasHint + (hasCuratedForms ? 'Открыть проверенные аппликатуры.' : 'Проверенная аппликатура пока не добавлена.');
+        if(hasCuratedForms){
+          chip.setAttribute('aria-pressed', state.selectedChordId === id ? 'true' : 'false');
+          chip.addEventListener('click', ()=>{
+            if(state.selectedChordId === id){
+              clearSelectedChord();
+            } else {
+              state.selectedChordId = id; state.selectedChordPcs = chord.pcs.slice();
+              state.selectedChordLabel = chord.label;
+              state.selectedChordQuality = quality;
+              state.viewMode = 'arpeggioShape';
+            }
+            render();
+          });
+        }
+        row.appendChild(chip);
+      });
+    }
+    renderChordRow('triadsRow', triads);
+    renderChordRow('tetradsRow', tetrads);
+  }
+
+  // ---- Visible fretboard area: whole neck / fret range / curated forms ----
+  const viewModeRow = document.getElementById('viewModeRow');
+  viewModeRow.innerHTML = '';
+  if(state.overlayEnabled && state.viewMode !== 'whole') state.viewMode = 'whole';
+  const modeButtons = state.overlayEnabled
+    ? [{key:'whole',label:'Сравнение гамм'}]
+    : [
+        {key:'whole',label:'Вся гамма'},
+        {key:'scaleShape',label:'Формы гаммы'},
+        {key:'arpeggioShape',label:'Арпеджио'}
+      ];
+  const currentModeKey=state.viewMode==='range'?'whole':state.viewMode;
+  document.getElementById('modeGuideText').textContent=state.overlayEnabled
+    ? 'Сейчас показано сравнение основного и аутсайд-лада.'
+    : 'Выберите отображение: вся гамма, готовая позиционная форма или арпеджио аккорда.';
+  modeButtons.forEach(m => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'chip clickable' + (currentModeKey === m.key ? ' active' : '');
+    btn.setAttribute('aria-pressed', currentModeKey === m.key ? 'true' : 'false');
+    btn.textContent = m.label;
+    btn.addEventListener('click', ()=>{
+      if(m.key === 'whole'){
+        clearSelectedChord(); state.viewMode='whole'; state.rangePreset=null;
+      }
+      else if(m.key === 'scaleShape'){
+        clearSelectedChord(); state.viewMode='scaleShape';
+      }
+      else if(m.key === 'arpeggioShape'){ state.viewMode = 'arpeggioShape'; }
+      render();
+    });
+    viewModeRow.appendChild(btn);
+  });
+
+  const rangePresetRow=document.getElementById('rangePresetRow');
+  rangePresetRow.innerHTML='';
+  rangePresetRow.style.display=!state.overlayEnabled&&(state.viewMode==='whole'||state.viewMode==='range')?'flex':'none';
+  const rangeButtons=[
+    {key:'whole',label:'Все лады'},
+    {key:'0-4',label:'Лады 0–4'},
+    {key:'5-9',label:'Лады 5–9'},
+    {key:'10-16',label:'Лады 10–16'},
+    {key:'custom',label:'Свой диапазон'}
+  ];
+  const activeRangeKey=state.viewMode==='range'?(state.rangePreset||'custom'):'whole';
+  rangeButtons.forEach(range=>{
+    const btn=document.createElement('button');
+    btn.type='button';
+    btn.className='chip clickable'+(activeRangeKey===range.key?' active':'');
+    btn.setAttribute('aria-pressed',activeRangeKey===range.key?'true':'false');
+    btn.textContent=range.label;
+    btn.addEventListener('click',()=>{
+      if(range.key==='whole'){
+        state.viewMode='whole'; state.rangePreset=null;
+      }else{
+        state.viewMode='range'; state.rangePreset=range.key;
+        if(range.key==='0-4'){state.rangeFrom=0;state.rangeTo=4;}
+        else if(range.key==='5-9'){state.rangeFrom=5;state.rangeTo=9;}
+        else if(range.key==='10-16'){state.rangeFrom=10;state.rangeTo=16;}
+      }
+      render();
+    });
+    rangePresetRow.appendChild(btn);
+  });
+  const rangeFromInput = document.getElementById('rangeFromInput');
+  const rangeToInput = document.getElementById('rangeToInput');
+  rangeFromInput.value = state.rangeFrom;
+  rangeToInput.value = state.rangeTo;
+  document.getElementById('customRangeControls').style.display = (state.viewMode === 'range' && state.rangePreset === 'custom') ? 'flex' : 'none';
+
+  const scaleFormRow=document.getElementById('scaleFormRow');
+  const scaleRouteInfo=document.getElementById('scaleRouteInfo');
+  const currentScaleId=SCALE_FORMULA_LIBRARY[currentKey]||null;
+  let currentScaleForm=null;
+  scaleFormRow.innerHTML='';
+  scaleFormRow.style.display=state.viewMode==='scaleShape'?'flex':'none';
+  scaleRouteInfo.style.display='none';
+  if(state.viewMode==='scaleShape'){
+    const curatedScaleForms=currentScaleId?(SCALE_FORM_LIBRARY[currentScaleId]||[]):[];
+    if(curatedScaleForms.length){
+      const scaleRealizations=curatedScaleForms.map(form=>({form,result:realizeScaleForm(rootObj.pc,currentScaleId,form.id,FRET_COUNT)}));
+      const availableScaleForms=scaleRealizations.filter(entry=>entry.result.complete);
+      if(!availableScaleForms.some(entry=>entry.form.id===state.scaleForm)){
+        state.scaleForm=availableScaleForms[0]?.form.id||curatedScaleForms[0].id;
+      }
+      const label=document.createElement('span');
+      label.className='hint'; label.style.margin='6px 4px 0 0';
+      label.textContent='Форма гаммы:';
+      scaleFormRow.appendChild(label);
+      curatedScaleForms.forEach(form=>{
+        const realization=scaleRealizations.find(entry=>entry.form.id===form.id).result;
+        const btn=document.createElement('button');
+        btn.type='button';
+        btn.disabled=!realization.complete;
+        btn.className='chip'+(realization.complete?' clickable':' disabled')+(state.scaleForm===form.id?' active':'');
+        btn.setAttribute('aria-pressed',state.scaleForm===form.id?'true':'false');
+        btn.textContent=form.name;
+        btn.title=realization.complete
+          ? (form.reviewStatus==='pending'?'Показать кандидата, ожидающего проверки на гитаре.':'Показать проверенную форму.')
+          : 'Форма не помещается на отображаемом грифе.';
+        btn.addEventListener('click',()=>{state.scaleForm=form.id;render();});
+        scaleFormRow.appendChild(btn);
+      });
+      const note=document.createElement('span');
+      note.className='hint'; note.style.margin='6px 0 0 10px';
+      const scaleFormMessages={
+        major:'Проверенные на гитаре формы мажорной гаммы.',
+        naturalMinor:'Проверенные на гитаре формы натурального минора.',
+        dorian:'Проверенные на гитаре формы дорийского лада.',
+        mixolydian:'Проверенные на гитаре формы миксолидийского лада.',
+        lydian:'Проверенные на гитаре формы лидийского лада.',
+        phrygian:'Проверенные на гитаре формы фригийского лада.',
+        locrian:'Проверенные на гитаре формы локрийского лада.'
+      };
+      note.textContent=scaleFormMessages[currentScaleId]||'';
+      scaleFormRow.appendChild(note);
+      currentScaleForm=scaleRealizations.find(entry=>entry.form.id===state.scaleForm)?.result||null;
+      if(currentScaleForm.complete){
+        const frets=currentScaleForm.positions.map(position=>position.fret);
+        const strings=[...new Set(currentScaleForm.positions.map(position=>position.stringIdx+1))];
+        const fretSpan=Math.max(...frets)-Math.min(...frets);
+        scaleRouteInfo.style.display='block';
+        const reviewLabel=currentScaleForm.form.reviewStatus==='pending'?' · статус: ожидает проверки на гитаре':'';
+        scaleRouteInfo.innerHTML=`<strong>Форма ${currentScaleForm.form.name}</strong> · ${currentScaleForm.positions.length} позиций · ${currentScaleForm.playbackMidi.length} высот · диапазон: ${fretSpan} ладов · струны: ${strings.join(', ')}${reviewLabel}`;
+      }
+    }else{
+      const message=document.createElement('span');
+      message.className='hint'; message.style.margin='6px 0 0';
+      message.textContent='Формы доступны для всех семи диатонических ладов:';
+      scaleFormRow.appendChild(message);
+      [
+        {label:'Открыть мажор',formula:'1 2 3 4 5 6 7'},
+        {label:'Открыть натуральный минор',formula:'1 2 b3 4 5 b6 b7'},
+        {label:'Открыть дорийский',formula:'1 2 b3 4 5 6 b7'},
+        {label:'Открыть миксолидийский',formula:'1 2 3 4 5 6 b7'},
+        {label:'Открыть лидийский',formula:'1 2 3 #4 5 6 7'},
+        {label:'Открыть фригийский',formula:'1 b2 b3 4 5 b6 b7'},
+        {label:'Открыть локрийский',formula:'1 b2 b3 4 b5 b6 b7'}
+      ].forEach(option=>{
+        const btn=document.createElement('button');
+        btn.type='button'; btn.className='chip clickable'; btn.textContent=option.label;
+        btn.addEventListener('click',()=>{
+          state.formula=option.formula;
+          document.getElementById('formula').value=option.formula;
+          syncScaleSelect(document.getElementById('mainScalePreset'),option.formula);
+          render();
+        });
+        scaleFormRow.appendChild(btn);
+      });
+    }
+  }
+
+  const arpeggioFormRow = document.getElementById('arpeggioFormRow');
+  const arpeggioRouteInfo = document.getElementById('arpeggioRouteInfo');
+  let currentCuratedForm = null;
+  arpeggioFormRow.innerHTML = '';
+  arpeggioRouteInfo.style.display = 'none';
+  arpeggioFormRow.style.display = state.viewMode === 'arpeggioShape' ? 'flex' : 'none';
+  if(state.viewMode === 'arpeggioShape'){
+    if(!arpeggioMode){
+      const message = document.createElement('span');
+      message.className = 'hint'; message.style.margin = '6px 0 0';
+      message.textContent = 'Сначала выберите трезвучие или септаккорд в списке выше.';
+      arpeggioFormRow.appendChild(message);
+    } else {
+      const quality=detectChordQuality(state.selectedChordPcs);
+      const allCuratedForms=POPOV_FORM_LIBRARY[quality]||[];
+      const curatedForms=allCuratedForms.filter(form=>form.availability!=='blocked-gap');
+      const blockedForms=allCuratedForms.filter(form=>form.availability==='blocked-gap');
+      const stringSkipForms=curatedForms.filter(form=>Number.isInteger(form.sourceGapStringIdx));
+      if(curatedForms.length){
+        const arpeggioRealizations=curatedForms.map(form=>({form,result:realizePopovForm(state.selectedChordPcs[0],quality,form.id,FRET_COUNT)}));
+        const availableArpeggioForms=arpeggioRealizations.filter(entry=>entry.result.complete);
+        if(!availableArpeggioForms.some(entry=>entry.form.id===state.arpeggioForm)){
+          state.arpeggioForm=availableArpeggioForms[0]?.form.id||curatedForms[0].id;
+        }
+        const label = document.createElement('span');
+        label.className = 'hint'; label.style.margin = '6px 4px 0 0';
+        label.textContent = '2. Выберите форму:';
+        arpeggioFormRow.appendChild(label);
+        curatedForms.forEach(form => {
+          const realization=arpeggioRealizations.find(entry=>entry.form.id===form.id).result;
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.disabled=!realization.complete;
+          btn.className='chip'+(realization.complete?' clickable':' disabled')+(state.arpeggioForm===form.id?' active':'');
+          btn.setAttribute('aria-pressed', state.arpeggioForm === form.id ? 'true' : 'false');
+          btn.textContent = form.name;
+          btn.title=realization.complete?'Показать эту форму.':'Форма не помещается на отображаемом грифе.';
+          btn.addEventListener('click', ()=>{ state.arpeggioForm=form.id; render(); });
+          arpeggioFormRow.appendChild(btn);
+        });
+        const note=document.createElement('span');
+        note.className='hint'; note.style.margin='6px 0 0 10px';
+        note.textContent=blockedForms.length
+          ? `Формы ${blockedForms.map(form=>form.name).join(' и ')} скрыты: после удаления септимы в них остаётся разрыв между струнами.`
+          : stringSkipForms.length
+            ? `Формы ${stringSkipForms.map(form=>form.name).join(' и ')} сохраняют исходный пропуск струны; сыграйте их со string skip.`
+          : 'Проверенные на гитаре формы E/D/C/A/G на основе системы Попова.';
+        arpeggioFormRow.appendChild(note);
+        currentCuratedForm=arpeggioRealizations.find(entry=>entry.form.id===state.arpeggioForm)?.result||null;
+      }else{
+        const message=document.createElement('span');
+        message.className='hint'; message.style.margin='6px 0 0';
+        message.textContent='Для этого типа аккорда проверенные формы пока не добавлены.';
+        arpeggioFormRow.appendChild(message);
+      }
+    }
+  }
+
+  // ---- Curated scale/arpeggio path ----
+  let activePath = [];
+  const formWarning = document.getElementById('formWarning');
+  formWarning.style.display = 'none';
+  if(state.viewMode === 'scaleShape'){
+    const shapeResult=currentScaleForm||{complete:false,positions:[],playbackMidi:[],reason:'missing'};
+    activePath=shapeResult.positions;
+    currentPlayableMidi=shapeResult.playbackMidi;
+    if(!shapeResult.complete){
+      formWarning.style.display='block';
+      formWarning.textContent=shapeResult.reason==='outside'
+        ? 'Эта форма гаммы выходит за пределы отображаемого грифа.'
+        : 'Для этой гаммы проверенная форма пока не добавлена.';
+    }
+  } else if(state.viewMode === 'arpeggioShape' && arpeggioMode){
+    const shapeResult=currentCuratedForm||{complete:false,path:[],reason:'missing'};
+    activePath=shapeResult.path;
+    currentPlayableMidi = activePath.map(p => p.midi);
+    if(shapeResult.complete){
+      const features=arpeggioRouteFeatures(activePath);
+      const strings=[...new Set(activePath.map(p=>p.stringIdx+1))];
+      arpeggioRouteInfo.style.display='block';
+      arpeggioRouteInfo.innerHTML=`<strong>Форма ${shapeResult.form.name}</strong> · ${activePath.length} нот · диапазон: ${features.fretSpan} ладов · струны: ${strings.join(', ')}`;
+    }
+    if(!shapeResult.complete){
+      formWarning.style.display='block';
+      formWarning.textContent=shapeResult.reason==='outside'
+        ? 'Эта аккордовая форма выходит за пределы отображаемого грифа.'
+        : 'Для этого аккорда проверенная аппликатура пока не добавлена.';
+    }
+  }
+
+  // ---- Inside/Outside overlay data ----
+  let overlayInfo = null;
+  let outsideActivePath = [];
+  if(state.overlayEnabled){
+    const outRootObj = ROOTS[state.outsideRoot];
+    let outsideScale = [];
+    let outsideError = null;
+    try{ outsideScale = buildScale(outRootObj.pc, outRootObj.letter, state.outsideFormula); }
+    catch(e){ outsideError = e.message; }
+    const outsidePcMap = new Map();
+    outsideScale.forEach(n => { if(!outsidePcMap.has(n.pc)) outsidePcMap.set(n.pc, n); });
+    const insidePcs = new Set(pcMap.keys());
+    const outsidePcs = new Set(outsidePcMap.keys());
+    const commonPcs = [...insidePcs].filter(pc => outsidePcs.has(pc));
+    const insideOnlyPcs = [...insidePcs].filter(pc => !outsidePcs.has(pc));
+    const outsideOnlyPcs = [...outsidePcs].filter(pc => !insidePcs.has(pc));
+    overlayInfo = outsideError ? null : { insidePcMap: pcMap, outsidePcMap, insideRootPc: rootObj.pc, outsideRootPc: outRootObj.pc, commonPcs, insideOnlyPcs, outsideOnlyPcs, outsideError };
+    const outsideOrderedPcs = [...outsidePcMap.values()].sort((a,b)=>a.semitone-b.semitone).map(n=>n.pc);
+    outsidePlayableMidi = outsideOrderedPcs.length ? ascendingMidiFromPcs(outsideOrderedPcs, lowestFretboardMidiForPc(outsideOrderedPcs[0])) : [];
+    playOutsideBtn.disabled = Boolean(outsideError) || outsidePlayableMidi.length === 0;
+
+    const listsEl = document.getElementById('overlayLists');
+    const nameFor = (pc, map) => map.has(pc) ? map.get(pc).noteName : '';
+    listsEl.innerHTML = outsideError
+      ? `<div style="color:var(--danger)"><strong>Ошибка в формуле аутсайд-лада</strong><br>${outsideError}</div>`
+      : `
+        <div><strong>Общие ноты</strong><br>${commonPcs.length ? commonPcs.map(pc=>nameFor(pc,pcMap)).join(' ') : '—'}</div>
+        <div><strong>Ноты аутсайд-лада</strong><br>${outsideOnlyPcs.length ? outsideOnlyPcs.map(pc=>nameFor(pc,outsidePcMap)).join(' ') : '—'}</div>
+      `;
+  }
+
+  // ---- Board ----
+  const board = document.getElementById('board');
+  board.innerHTML = '';
+  board.style.gridTemplateColumns = `40px repeat(${FRET_COUNT + 1}, 1fr)`;
+
+  board.appendChild(document.createElement('div'));
+  for(let f=0; f<=FRET_COUNT; f++){
+    const lbl = document.createElement('div');
+    lbl.className = 'fret-label';
+    lbl.textContent = f;
+    board.appendChild(lbl);
+  }
+
+  const rangeActive = state.viewMode === 'range';
+  const pathActive = state.viewMode === 'scaleShape' || state.viewMode === 'arpeggioShape';
+
+  OPEN_STRINGS_TOP_TO_BOTTOM.forEach(str => {
+    const openLbl = document.createElement('div');
+    openLbl.className = 'open-label';
+    openLbl.textContent = str.label;
+    board.appendChild(openLbl);
+
+    for(let f=0; f<=FRET_COUNT; f++){
+      const cell = document.createElement('div');
+      cell.className = 'cell' + (f === 0 ? ' nut' : '');
+      const line = document.createElement('div');
+      line.className = 'string-line';
+      cell.appendChild(line);
+
+      if(f>0 && MARKER_FRETS.has(f) && str.label === 'D'){
+        const dot = document.createElement('div');
+        dot.className = 'marker-dot';
+        cell.appendChild(dot);
+        if(DOUBLE_MARKER_FRETS.has(f)){
+          const dot2 = dot.cloneNode();
+          dot2.style.bottom = '18px';
+          cell.appendChild(dot2);
+        }
+      }
+
+      const pc = (str.pc + f) % 12;
+      const inRange = !rangeActive || (f >= state.rangeFrom && f <= state.rangeTo);
+      const inInsidePath = !pathActive || activePath.some(p => p.str === str && p.fret === f);
+      const inOutsidePath = !pathActive || outsideActivePath.some(p => p.str === str && p.fret === f);
+      const areaOk = inRange && inInsidePath;
+      let overlayAreaOk = inRange;
+      if(pathActive){
+        if(state.overlayPathMode === 'main') overlayAreaOk = inInsidePath;
+        else if(state.overlayPathMode === 'tension') overlayAreaOk = inOutsidePath;
+        else overlayAreaOk = inInsidePath || inOutsidePath;
+      }
+
+      if(state.overlayEnabled && overlayInfo){
+        const inInside = overlayInfo.insidePcMap.has(pc);
+        const inOutside = overlayInfo.outsidePcMap.has(pc);
+        const belongsToSelectedPath = !pathActive ||
+          (state.overlayPathMode === 'main' ? (inInside && inInsidePath) :
+           state.overlayPathMode === 'tension' ? (inOutside && inOutsidePath) :
+           ((inInside && inInsidePath) || (inOutside && inOutsidePath)));
+        if(overlayAreaOk && belongsToSelectedPath && (inInside || inOutside)){
+          const isRootMark = pc === overlayInfo.insideRootPc || pc === overlayInfo.outsideRootPc;
+          let ovClass = inInside && inOutside ? 'ov-common' : (inInside ? 'ov-inside' : 'ov-outside');
+          const insideInfo = inInside ? overlayInfo.insidePcMap.get(pc) : null;
+          const outsideInfo = inOutside ? overlayInfo.outsidePcMap.get(pc) : null;
+          const insideLabel = insideInfo ? (state.mode === 'notes' ? insideInfo.noteName : insideInfo.degreeLabel) : '';
+          const outsideLabel = outsideInfo ? (state.mode === 'notes' ? outsideInfo.noteName : outsideInfo.degreeLabel) : '';
+          const label = insideLabel && outsideLabel && insideLabel !== outsideLabel
+            ? `${insideLabel}/${outsideLabel}`
+            : (insideLabel || outsideLabel);
+          const noteEl = document.createElement('button');
+          noteEl.type = 'button';
+          noteEl.className = 'note ' + ovClass + (isRootMark ? ' ov-is-root' : '') + (label.includes('/') ? ' dual-label' : '');
+          noteEl.textContent = label;
+          const midiHere = str.midi + f;
+          noteEl.setAttribute('aria-label', `${label}, лад ${f}, струна ${str.label}. Воспроизвести ноту.`);
+          noteEl.addEventListener('click', (e)=>{ e.stopPropagation(); playMidi(midiHere); });
+          cell.appendChild(noteEl);
+        }
+      } else if(pcMap.has(pc) && areaOk && (!state.selectedChordPcs || state.selectedChordPcs.includes(pc))){
+        const info = pcMap.get(pc);
+        const isChordRoot = state.selectedChordPcs ? pc === state.selectedChordPcs[0] : info.isRoot;
+        const routePosition = state.viewMode === 'arpeggioShape' || state.viewMode === 'scaleShape'
+          ? activePath.find(p => p.str === str && p.fret === f)
+          : null;
+        const noteEl = document.createElement('button');
+        noteEl.type = 'button';
+        noteEl.className = 'note' + (isChordRoot ? ' root' : '') + (routePosition ? ' route-note' : '');
+        if(routePosition) noteEl.dataset.order = routePosition.order;
+        const label = state.mode === 'notes'
+          ? info.noteName
+          : (state.selectedChordPcs
+            ? chordIntervalLabel(pc,state.selectedChordPcs[0])
+            : info.degreeLabel);
+        noteEl.textContent = label;
+        const midiHere = str.midi + f;
+        noteEl.setAttribute('aria-label', `${info.noteName}, лад ${f}, струна ${str.label}. Воспроизвести ноту.`);
+        noteEl.addEventListener('click', (e)=>{ e.stopPropagation(); playMidi(midiHere); });
+        cell.appendChild(noteEl);
+      }
+      const cellIsActive = state.overlayEnabled && overlayInfo ? overlayAreaOk : areaOk;
+      if(!cellIsActive) cell.classList.add('dimmed');
+      board.appendChild(cell);
+    }
+  });
+}
+
+function updatePillHighlights(){
+  const activeTokensBySemitone = new Map();
+  state.formula.split(/[\s,\-]+/).filter(Boolean).forEach(token=>{
+    const semitone=tokenSemitoneMod12(token);
+    if(semitone!==null&&!activeTokensBySemitone.has(semitone))activeTokensBySemitone.set(semitone,token);
+  });
+  document.querySelectorAll('#pillRow .pill').forEach(p=>{
+    const s = parseInt(p.dataset.semitone, 10);
+    const activeToken=activeTokensBySemitone.get(s);
+    if(activeToken)p.dataset.preferredToken=activeToken;
+    const shownToken=activeToken||p.dataset.preferredToken||p.dataset.defaultToken;
+    p.textContent=shownToken;
+    p.setAttribute('aria-label', `Toggle degree ${shownToken}`);
+    p.classList.toggle('active', activeToken!==undefined);
+    p.setAttribute('aria-pressed', activeToken!==undefined?'true':'false');
+  });
+}
+
+function init(){
+  const rootSel = document.getElementById('root');
+  ROOTS.forEach((r,i)=>{
+    const opt = document.createElement('option');
+    opt.value = i; opt.textContent = r.name;
+    if(i === state.root) opt.selected = true;
+    rootSel.appendChild(opt);
+  });
+  rootSel.addEventListener('change', e=>{ state.root = parseInt(e.target.value); clearSelectedChord(); render(); });
+
+  const formulaInput = document.getElementById('formula');
+  const mainScalePreset = document.getElementById('mainScalePreset');
+  populateScaleSelect(mainScalePreset);
+  syncScaleSelect(mainScalePreset, state.formula);
+  mainScalePreset.addEventListener('change', ()=>{
+    if(mainScalePreset.value === 'custom') return;
+    const preset = SCALE_PRESET_OPTIONS.find(p => p.id === mainScalePreset.value);
+    if(!preset) return;
+    formulaInput.value = preset.formula; state.formula = preset.formula;
+    clearSelectedChord(); render();
+  });
+  formulaInput.addEventListener('input', e=>{
+    state.formula = e.target.value; syncScaleSelect(mainScalePreset, state.formula);
+    clearSelectedChord(); render();
+  });
+
+  const outsideRootSel = document.getElementById('outsideRoot');
+  ROOTS.forEach((r,i)=>{
+    const opt = document.createElement('option');
+    opt.value = i; opt.textContent = r.name;
+    if(i === state.outsideRoot) opt.selected = true;
+    outsideRootSel.appendChild(opt);
+  });
+  outsideRootSel.addEventListener('change', e=>{ state.outsideRoot = parseInt(e.target.value); render(); });
+  const outsideFormulaInput = document.getElementById('outsideFormula');
+  const outsideScalePreset = document.getElementById('outsideScalePreset');
+  populateScaleSelect(outsideScalePreset);
+  syncScaleSelect(outsideScalePreset, state.outsideFormula);
+  outsideScalePreset.addEventListener('change', ()=>{
+    if(outsideScalePreset.value === 'custom') return;
+    const preset = SCALE_PRESET_OPTIONS.find(p => p.id === outsideScalePreset.value);
+    if(!preset) return;
+    outsideFormulaInput.value = preset.formula; state.outsideFormula = preset.formula; render();
+  });
+  outsideFormulaInput.addEventListener('input', e=>{
+    state.outsideFormula = e.target.value; syncScaleSelect(outsideScalePreset, state.outsideFormula); render();
+  });
+
+  const overlayToggleBtn = document.getElementById('overlayToggleBtn');
+  overlayToggleBtn.addEventListener('click', ()=>{
+    state.overlayEnabled = !state.overlayEnabled;
+    overlayToggleBtn.classList.toggle('active', state.overlayEnabled);
+    overlayToggleBtn.setAttribute('aria-pressed', state.overlayEnabled ? 'true' : 'false');
+    overlayToggleBtn.textContent = state.overlayEnabled ? 'Убрать аутсайд-лад' : 'Добавить аутсайд-лад →';
+    document.getElementById('overlayPanel').classList.toggle('inactive', !state.overlayEnabled);
+    outsideRootSel.disabled = !state.overlayEnabled;
+    outsideScalePreset.disabled = !state.overlayEnabled;
+    outsideFormulaInput.disabled = !state.overlayEnabled;
+    document.getElementById('comparisonDetails').style.display = state.overlayEnabled ? 'block' : 'none';
+    document.getElementById('playBtn').style.display = state.overlayEnabled ? 'none' : 'inline-block';
+    document.getElementById('playInsideBtn').style.display = state.overlayEnabled ? 'inline-block' : 'none';
+    document.getElementById('playOutsideBtn').style.display = state.overlayEnabled ? 'inline-block' : 'none';
+    if(state.overlayEnabled) clearSelectedChord();
+    render();
+  });
+
+  document.querySelectorAll('#displayToggle button').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('#displayToggle button').forEach(b=>{ b.classList.remove('active'); b.setAttribute('aria-pressed','false'); });
+      btn.classList.add('active'); btn.setAttribute('aria-pressed','true');
+      state.mode = btn.dataset.mode;
+      render();
+    });
+  });
+
+  document.getElementById('playBtn').addEventListener('click', ()=>{ playSequence(currentPlayableMidi); });
+  document.getElementById('playInsideBtn').addEventListener('click', ()=>{ playSequence(insidePlayableMidi); });
+  document.getElementById('playOutsideBtn').addEventListener('click', ()=>{ playSequence(outsidePlayableMidi); });
+
+  const rangeFromInput = document.getElementById('rangeFromInput');
+  const rangeToInput = document.getElementById('rangeToInput');
+  function applyCustomRange(){
+    let from = parseInt(rangeFromInput.value, 10);
+    let to = parseInt(rangeToInput.value, 10);
+    if(!Number.isFinite(from)) from = 0;
+    if(!Number.isFinite(to)) to = FRET_COUNT;
+    from = Math.max(0, Math.min(FRET_COUNT, from));
+    to = Math.max(0, Math.min(FRET_COUNT, to));
+    if(from > to) to = from; // From can't exceed To
+    rangeFromInput.value = from; rangeToInput.value = to;
+    state.rangeFrom = from; state.rangeTo = to;
+    state.viewMode = 'range'; state.rangePreset = 'custom';
+    render();
+  }
+  rangeFromInput.addEventListener('change', applyCustomRange);
+  rangeToInput.addEventListener('change', applyCustomRange);
+
+  const BLACK_SEMITONES = new Set([1,3,6,8,10]);
+  const pillRow = document.getElementById('pillRow');
+  DEGREE_PILLS.forEach(({semitone, token})=>{
+    const p = document.createElement('button');
+    p.type = 'button';
+    p.className = 'pill' + (BLACK_SEMITONES.has(semitone) ? ' black' : '') + (semitone === 0 ? ' root-pill' : '');
+    p.dataset.semitone = semitone;
+    p.dataset.defaultToken = token;
+    p.dataset.preferredToken = token;
+    p.textContent = token;
+    p.setAttribute('aria-label', `Toggle degree ${token}`);
+    p.setAttribute('aria-pressed', 'false');
+    p.addEventListener('click', ()=>{
+      const tokens = state.formula.split(/[\s,\-]+/).filter(Boolean);
+      const existingIdx = tokens.findIndex(t => tokenSemitoneMod12(t) === semitone);
+      if(existingIdx >= 0){ tokens.splice(existingIdx, 1); }
+      else { tokens.push(p.dataset.preferredToken||token); }
+      tokens.sort((a,b) => tokenSemitoneMod12(a) - tokenSemitoneMod12(b));
+      state.formula = tokens.join(' ');
+      formulaInput.value = state.formula;
+      syncScaleSelect(mainScalePreset, state.formula);
+      clearSelectedChord();
+      render();
+    });
+    pillRow.appendChild(p);
+  });
+
+  render();
+}
+init();
+
+// ============================================================
+// v2 redesign — Learn tab. Additive only: calls the existing engine
+// functions/data above (realizeScaleForm, realizePopovForm, buildScale,
+// SCALE_FORM_LIBRARY, SCALE_CHORD_FORM_RELATIONSHIPS, playMidi,
+// playSequence) as the single source of truth. Does not redefine or
+// duplicate any of them, and does not modify render()/init() above.
+// ============================================================
+const V2_MODE_LIST = [
+  {id:'major', label:'Мажор (Ionian)', formula:'1 2 3 4 5 6 7'},
+  {id:'dorian', label:'Дорийский', formula:'1 2 b3 4 5 6 b7'},
+  {id:'phrygian', label:'Фригийский', formula:'1 b2 b3 4 5 b6 b7'},
+  {id:'lydian', label:'Лидийский', formula:'1 2 3 #4 5 6 7'},
+  {id:'mixolydian', label:'Миксолидийский', formula:'1 2 3 4 5 6 b7'},
+  {id:'naturalMinor', label:'Натуральный минор (Aeolian)', formula:'1 2 b3 4 5 b6 b7'},
+  {id:'locrian', label:'Локрийский', formula:'1 b2 b3 4 b5 b6 b7'}
+];
+const V2_MODE_BY_ID = Object.fromEntries(V2_MODE_LIST.map(m=>[m.id,m]));
+const V2_MODE_CHORD_QUALITY = {
+  major:{triad:'maj',seventh:'maj7'}, dorian:{triad:'min',seventh:'m7'}, phrygian:{triad:'min',seventh:'m7'},
+  lydian:{triad:'maj',seventh:'maj7'}, mixolydian:{triad:'maj',seventh:'7'}, naturalMinor:{triad:'min',seventh:'m7'},
+  locrian:{triad:'dim',seventh:'m7b5'}
+};
+const V2_CHORD_SUFFIX = {maj:'',min:'m',dim:'dim',maj7:'maj7',m7:'m7','7':'7',m7b5:'m7b5'};
+const V2_STRING_ORDINALS = ['первой струне','второй струне','третьей струне','четвёртой струне','пятой струне','шестой струне'];
+
+let v2State = { root: findRootIndex('C'), mode:'major', form:'E', content:'scale', display:'notes' };
+let v2PlaybackMidi = [];
+
+function v2DegreeSpelling(rootPc, rootLetter, formula){
+  const notes = buildScale(rootPc, rootLetter, formula);
+  const map = new Map();
+  notes.forEach(n => map.set(n.degreeLabel, n.noteName));
+  return map;
+}
+
+function v2RenderBoard(cellsMap){
+  const board = document.getElementById('learnBoard');
+  board.innerHTML = '';
+  board.style.display = 'grid';
+  board.style.gridTemplateColumns = `38px repeat(${FRET_COUNT + 1}, 1fr)`;
+  board.appendChild(document.createElement('div'));
+  for(let f=0; f<=FRET_COUNT; f++){
+    const lbl = document.createElement('div');
+    lbl.style.fontFamily = "'IBM Plex Mono',monospace"; lbl.style.fontSize='11px';
+    lbl.style.textAlign='center'; lbl.textContent = f;
+    board.appendChild(lbl);
+  }
+  OPEN_STRINGS_TOP_TO_BOTTOM.forEach((str, stringIdx) => {
+    const openLbl = document.createElement('div');
+    openLbl.style.display='flex'; openLbl.style.alignItems='center'; openLbl.style.justifyContent='center';
+    openLbl.style.fontFamily = "'IBM Plex Mono',monospace"; openLbl.style.fontWeight='600';
+    openLbl.textContent = str.label;
+    board.appendChild(openLbl);
+    for(let f=0; f<=FRET_COUNT; f++){
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      cell.style.position='relative'; cell.style.height='44px'; cell.style.display='flex';
+      cell.style.alignItems='center'; cell.style.justifyContent='center';
+      const key = `${stringIdx}:${f}`;
+      const info = cellsMap.get(key);
+      if(info){
+        const dot = document.createElement('button');
+        dot.type='button'; dot.className = 'note' + (info.tonic?' root':'') + (info.chord?' chord-tone':'');
+        dot.textContent = info.label;
+        dot.setAttribute('aria-label', `${info.label}, лад ${f}, ${str.label} струна`);
+        const midi = str.midi + f;
+        dot.addEventListener('click', ()=>playMidi(midi));
+        cell.appendChild(dot);
+      }
+      board.appendChild(cell);
+    }
+  });
+}
+
+function v2ComputeAvailability(rootPc, modeId){
+  return ['E','D','C','A','G'].map(id => ({ id, ok: realizeScaleForm(rootPc, modeId, id, FRET_COUNT).complete }));
+}
+function v2FindRelationship(scaleId, formId, chordQuality){
+  return SCALE_CHORD_FORM_RELATIONSHIPS.find(r=>r.scaleId===scaleId && r.formId===formId && r.chordQuality===chordQuality);
+}
+
+// Scale and Popov forms are stored relative to their own anchors. When both
+// realizers choose different octaves (for example Mixolydian C-form in C), a
+// verified literal subset can still appear twelve frets away. Align only by
+// whole octaves and only when every chord coordinate lands inside the scale.
+function v2AlignChordPathToScale(chordPath, scalePositions){
+  const scaleKeys = new Set(scalePositions.map(p=>`${p.stringIdx}:${p.fret}`));
+  const shifts = [0, 12, -12, 24, -24];
+  for(const shift of shifts){
+    const shifted = chordPath.map(p=>({...p, fret:p.fret+shift}));
+    const fits = shifted.every(p=>
+      p.fret>=0 && p.fret<=FRET_COUNT && scaleKeys.has(`${p.stringIdx}:${p.fret}`)
+    );
+    if(fits) return shifted;
+  }
+  return null;
+}
+
+function renderLearn(){
+  const rootObj = ROOTS[v2State.root];
+  const mode = V2_MODE_BY_ID[v2State.mode];
+
+  const availability = v2ComputeAvailability(rootObj.pc, v2State.mode);
+  if(!availability.find(a=>a.id===v2State.form && a.ok)){
+    const firstOk = availability.find(a=>a.ok);
+    if(firstOk) v2State.form = firstOk.id;
+  }
+  const formBtnRow = document.getElementById('learnFormBtns');
+  formBtnRow.innerHTML = '';
+  availability.forEach(a => {
+    const btn = document.createElement('button');
+    btn.type='button'; btn.className='v2-form-btn';
+    btn.setAttribute('aria-pressed', a.id===v2State.form ? 'true':'false');
+    btn.textContent = a.id; btn.disabled = !a.ok;
+    if(!a.ok) btn.title = 'Эта форма не помещается на грифе для выбранной тоники';
+    btn.addEventListener('click', ()=>{ v2State.form=a.id; renderLearn(); });
+    formBtnRow.appendChild(btn);
+  });
+
+  const contentRow = document.getElementById('contentToggle');
+  contentRow.innerHTML = '';
+  [['scale','Гамма'],['triad','Трезвучие'],['seventh','Септаккорд'],['together','Вместе']].forEach(([id,label])=>{
+    const btn = document.createElement('button');
+    btn.type='button'; btn.className='v2-content-btn';
+    btn.setAttribute('aria-pressed', v2State.content===id ? 'true':'false');
+    btn.textContent = label;
+    btn.addEventListener('click', ()=>{ v2State.content=id; renderLearn(); });
+    contentRow.appendChild(btn);
+  });
+
+  const result = realizeScaleForm(rootObj.pc, v2State.mode, v2State.form, FRET_COUNT);
+  const hintBanner = document.getElementById('learnHintBanner');
+  const explainEl = document.getElementById('learnExplain');
+  const detailGrid = document.getElementById('learnDetailGrid');
+  const detailsBox = document.getElementById('learnDetails');
+  hintBanner.innerHTML = '';
+
+  if(!result.complete){
+    document.getElementById('learnBoard').innerHTML = '';
+    explainEl.textContent = 'Эта форма не помещается на отображаемом грифе для выбранной тоники. Выберите другую форму слева.';
+    document.getElementById('learnLegend').innerHTML = '';
+    detailsBox.style.display = 'none';
+    v2PlaybackMidi = [];
+    return;
+  }
+
+  const spelling = v2DegreeSpelling(rootObj.pc, rootObj.letter, mode.formula);
+  const quality = V2_MODE_CHORD_QUALITY[v2State.mode];
+  const tonicName = spelling.get('1');
+  const cellsMap = new Map();
+  let legendCats = new Set();
+  let tail = '';
+  let tonicFrets = [];
+
+  if(v2State.content === 'scale'){
+    result.positions.forEach(p=>{
+      cellsMap.set(`${p.stringIdx}:${p.fret}`, { label: v2State.display==='notes'?spelling.get(p.degree):p.degree, tonic:p.degree==='1', chord:false });
+      if(p.degree==='1') tonicFrets.push(p.fret);
+    });
+    v2PlaybackMidi = result.playbackMidi.slice();
+    legendCats = new Set(['tonic','scale']);
+    tail = `Показана вся форма — ${result.positions.length} позиций, ${result.playbackMidi.length} различных высот.`;
+
+  } else if(v2State.content === 'triad' || v2State.content === 'seventh'){
+    const qualityId = v2State.content==='triad' ? quality.triad : quality.seventh;
+    const chordName = tonicName + V2_CHORD_SUFFIX[qualityId];
+    const chordResult = realizePopovForm(rootObj.pc, qualityId, v2State.form, FRET_COUNT);
+    if(chordResult.complete){
+      chordResult.path.forEach(p=>{
+        cellsMap.set(`${p.stringIdx}:${p.fret}`, { label: v2State.display==='notes'?spelling.get(p.degree):p.degree, tonic:p.degree==='1', chord:true });
+        if(p.degree==='1') tonicFrets.push(p.fret);
+      });
+      v2PlaybackMidi = chordResult.path.map(p=>p.midi);
+      legendCats = new Set(['tonic','chord']);
+      tail = `${chordName}: отдельно проверенная аппликатура Попова, ${chordResult.path.length} позиций.`;
+    } else {
+      v2PlaybackMidi = [];
+      tail = `Аппликатура ${chordName} не помещается на отображаемом грифе для этой тоники.`;
+    }
+
+  } else if(v2State.content === 'together'){
+    result.positions.forEach(p=>{
+      cellsMap.set(`${p.stringIdx}:${p.fret}`, { label: v2State.display==='notes'?spelling.get(p.degree):p.degree, tonic:p.degree==='1', chord:false });
+      if(p.degree==='1') tonicFrets.push(p.fret);
+    });
+    v2PlaybackMidi = result.playbackMidi.slice();
+    const seventhRel = v2FindRelationship(v2State.mode, v2State.form, quality.seventh);
+    const triadRel = v2FindRelationship(v2State.mode, v2State.form, quality.triad);
+    const chosen = (seventhRel && seventhRel.status==='verified') ? quality.seventh
+                 : ((triadRel && triadRel.status==='verified') ? quality.triad : null);
+    if(chosen){
+      const chordResult = realizePopovForm(rootObj.pc, chosen, v2State.form, FRET_COUNT);
+      if(chordResult.complete){
+        const alignedPath = v2AlignChordPathToScale(chordResult.path, result.positions);
+        (alignedPath || []).forEach(p=>{
+          const existing = cellsMap.get(`${p.stringIdx}:${p.fret}`);
+          if(existing) existing.chord = true;
+        });
+        if(alignedPath){
+          legendCats = new Set(['tonic','scale','chord']);
+          tail = `Тоника — выделена, тона ${tonicName}${V2_CHORD_SUFFIX[chosen]} — синим (точные координаты формы Попова), остальные ноты гаммы — обычным цветом.`;
+        } else {
+          legendCats = new Set(['tonic','scale']);
+          tail = 'Показана только гамма: отдельную аппликатуру аккорда нельзя честно наложить на эту позицию.';
+        }
+      } else {
+        legendCats = new Set(['tonic','scale']);
+        tail = 'Показана только гамма.';
+      }
+    } else {
+      legendCats = new Set(['tonic','scale']);
+      hintBanner.innerHTML = `<p class="hint" style="background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:10px 14px;">Аккорд этой формы использует отдельную аппликатуру — переключитесь на
+        <button type="button" id="v2SwitchTriad" style="background:none;border:none;color:var(--ink);text-decoration:underline;font-weight:700;cursor:pointer;">Трезвучие</button> или
+        <button type="button" id="v2SwitchSeventh" style="background:none;border:none;color:var(--ink);text-decoration:underline;font-weight:700;cursor:pointer;">Септаккорд</button>, чтобы её увидеть.</p>`;
+      document.getElementById('v2SwitchTriad').addEventListener('click', ()=>{ v2State.content='triad'; renderLearn(); });
+      document.getElementById('v2SwitchSeventh').addEventListener('click', ()=>{ v2State.content='seventh'; renderLearn(); });
+      tail = 'Показана только гамма — совместить с аккордом в одной геометрии здесь нельзя честно.';
+    }
+  }
+
+  v2RenderBoard(cellsMap);
+
+  const legend = document.getElementById('learnLegend');
+  const legendParts = [];
+  if(legendCats.has('tonic')) legendParts.push('<span class="legend-item"><span class="swatch sw-root"></span> Тоника</span>');
+  if(legendCats.has('scale')) legendParts.push('<span class="legend-item"><span class="swatch sw-inside"></span> Нота гаммы</span>');
+  if(legendCats.has('chord')) legendParts.push('<span class="legend-item"><span class="swatch sw-outside"></span> Тон аккорда</span>');
+  legend.innerHTML = legendParts.join('');
+
+  const rangeText = tonicFrets.length ? `Тоника на ладах: ${[...new Set(tonicFrets)].sort((a,b)=>a-b).join(', ')}.` : '';
+  explainEl.innerHTML = `<strong>${v2State.form}-форма ${tonicName} ${mode.label}.</strong> Якорная струна — ${V2_STRING_ORDINALS[result.form.anchorStringIdx]}. ${rangeText} ${tail}`;
+
+  const allFrets = [...cellsMap.keys()].map(k=>parseInt(k.split(':')[1],10));
+  if(allFrets.length){
+    detailsBox.style.display = 'block';
+    detailGrid.innerHTML = `
+      <div>Позиций на грифе: <strong>${cellsMap.size}</strong></div>
+      <div>Диапазон ладов: <strong>${Math.min(...allFrets)}–${Math.max(...allFrets)}</strong></div>
+      <div>Якорная струна: <strong>${V2_STRING_ORDINALS[result.form.anchorStringIdx]}</strong></div>
+    `;
+  } else {
+    detailsBox.style.display = 'none';
+  }
+}
+
+function v2InitTabs(){
+  const learnTab = document.getElementById('tab-learn');
+  const exploreTab = document.getElementById('tab-explore');
+  const tabs = [learnTab, exploreTab];
+  function activate(tab){
+    tabs.forEach(t=>{
+      const isActive = t===tab;
+      t.setAttribute('aria-selected', isActive?'true':'false');
+      t.tabIndex = isActive ? 0 : -1;
+      document.getElementById(t.getAttribute('aria-controls')).classList.toggle('v2-active', isActive);
+    });
+    tab.focus();
+  }
+  tabs.forEach((tab,i)=>{
+    tab.addEventListener('click', ()=>activate(tab));
+    tab.addEventListener('keydown', (e)=>{
+      if(e.key==='ArrowRight') activate(tabs[(i+1)%tabs.length]);
+      if(e.key==='ArrowLeft') activate(tabs[(i-1+tabs.length)%tabs.length]);
+    });
+  });
+}
+
+function v2Init(){
+  const rootSel = document.getElementById('learnRoot');
+  ROOTS.forEach((r,i)=>{
+    const opt = document.createElement('option'); opt.value=i; opt.textContent=r.name;
+    if(i===v2State.root) opt.selected = true;
+    rootSel.appendChild(opt);
+  });
+  rootSel.addEventListener('change', e=>{ v2State.root=parseInt(e.target.value,10); renderLearn(); });
+
+  const modeSel = document.getElementById('learnMode');
+  V2_MODE_LIST.forEach(m=>{
+    const opt = document.createElement('option'); opt.value=m.id; opt.textContent=m.label;
+    if(m.id===v2State.mode) opt.selected=true;
+    modeSel.appendChild(opt);
+  });
+  modeSel.addEventListener('change', e=>{ v2State.mode=e.target.value; renderLearn(); });
+
+  document.querySelectorAll('#learnDisplayToggle button').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('#learnDisplayToggle button').forEach(b=>{ b.classList.remove('active'); b.setAttribute('aria-pressed','false'); });
+      btn.classList.add('active'); btn.setAttribute('aria-pressed','true');
+      v2State.display=btn.dataset.mode; renderLearn();
+    });
+  });
+  document.getElementById('learnPlayBtn').addEventListener('click', ()=>playSequence(v2PlaybackMidi));
+
+  v2InitTabs();
+  renderLearn();
+}
+v2Init();
+
+</script>
+</body>
+</html>
