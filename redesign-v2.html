@@ -128,12 +128,26 @@
     font-size:13px; color:var(--muted);
   }
   .readout strong{color:var(--ink); font-weight:600;}
+  .degree-table-card{
+    margin:0 0 16px; padding:14px 16px; background:var(--panel);
+    border:1px solid var(--border); border-radius:10px;
+  }
+  .degree-table-card h2{margin:0 0 10px; font:600 16px 'Fraunces',serif;}
+  .degree-table-scroll{overflow-x:auto;}
+  .degree-table{width:100%; min-width:520px; border-collapse:separate; border-spacing:4px; table-layout:fixed;}
+  .degree-table th,.degree-table td{
+    min-width:54px; padding:9px 8px; text-align:center; border-radius:7px;
+    font-family:'IBM Plex Mono',monospace; font-size:13px;
+  }
+  .degree-table th[scope="row"]{width:92px; text-align:left; color:var(--muted); font-family:'IBM Plex Sans',sans-serif; font-weight:600;}
+  .degree-table td{background:var(--bg); border:1px solid var(--border); color:var(--ink); font-weight:600;}
+  .degree-table td.degree-root{background:var(--brass); color:#211408; border-color:var(--brass-dark);}
   .err{color:var(--danger); font-size:13px; margin-bottom:14px; font-family:'IBM Plex Mono',monospace; padding:10px 12px; border:1px solid var(--danger); border-radius:8px;}
   .warn{color:var(--warn); font-size:13px; margin-bottom:14px; font-family:'IBM Plex Mono',monospace; padding:10px 12px; border:1px solid var(--warn); background:var(--warn-bg); border-radius:8px;}
 
   .board-outer{
     background:var(--wood-dark); border-radius:10px; padding:20px 16px 26px;
-    overflow-x:auto;
+    overflow-x:auto; min-height:322px; contain:layout paint;
   }
   .board{
     display:grid; min-width:760px;
@@ -166,7 +180,11 @@
     display:flex; align-items:center; justify-content:center; cursor:pointer;
     font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:600;
     background:#EFE7D6; color:#241E19; border:1px solid rgba(0,0,0,.12);
+    animation:noteSwapIn .18s ease-out;
+    transition:background-color .18s ease, color .18s ease, box-shadow .18s ease, transform .14s ease;
   }
+  @keyframes noteSwapIn{from{opacity:0;transform:scale(.72)}to{opacity:1;transform:scale(1)}}
+  @media (prefers-reduced-motion:reduce){.note{animation:none;transition:none;}}
   .note:active{ transform: scale(0.88); }
   .note.root{ background:var(--brass); color:#211408; font-weight:700; box-shadow:0 0 0 2px rgba(0,0,0,.15); }
   .note.route-note::after{
@@ -246,6 +264,7 @@
     .v2-brand{font-size:15px; flex-basis:100%;}
     .v2-tabs{flex-basis:100%;}
     .v2-wrap{padding:12px;}
+    .degree-table-card{padding:12px;}
   }
 
 </style>
@@ -375,6 +394,15 @@
   <div id="warnBox" class="warn" style="display:none;" role="status"></div>
 
   <div class="readout" id="readout"></div>
+
+  <section class="degree-table-card" aria-labelledby="exploreDegreeTableTitle">
+    <h2 id="exploreDegreeTableTitle">Ступени выбранного лада</h2>
+    <div class="degree-table-scroll">
+      <table class="degree-table" id="exploreDegreeTable">
+        <tbody id="exploreDegreeTableBody" aria-live="polite"></tbody>
+      </table>
+    </div>
+  </section>
 
   <div class="study-picker" id="studyPicker">
     <div class="study-picker-title">Что хотите изучить?</div>
@@ -1488,7 +1516,34 @@ function setBoardDimmed(dimmed){
   document.getElementById('board').classList.toggle('dimmed-board', dimmed);
 }
 
+function renderExploreDegreeTable(scale, overlayEnabled){
+  const title = document.getElementById('exploreDegreeTableTitle');
+  const body = document.getElementById('exploreDegreeTableBody');
+  title.textContent = overlayEnabled ? 'Ступени основного лада' : 'Ступени выбранного лада';
+  body.innerHTML = '';
+  const ordered = [...scale].sort((a,b)=>a.semitone-b.semitone);
+  const rows = [
+    ['Ступень', note=>note.degreeLabel],
+    ['Нота', note=>note.noteName]
+  ];
+  rows.forEach(([label,valueFor])=>{
+    const row=document.createElement('tr');
+    const heading=document.createElement('th');
+    heading.scope='row'; heading.textContent=label; row.appendChild(heading);
+    ordered.forEach(note=>{
+      const cell=document.createElement('td');
+      cell.textContent=valueFor(note);
+      if(note.degreeLabel==='1') cell.classList.add('degree-root');
+      row.appendChild(cell);
+    });
+    body.appendChild(row);
+  });
+}
+
 function render(){
+  const stableBoardOuter = document.getElementById('board')?.parentElement;
+  const stableBoardRect = stableBoardOuter?.getBoundingClientRect();
+  const keepBoardInPlace = Boolean(stableBoardRect && stableBoardRect.bottom>0 && stableBoardRect.top<window.innerHeight);
   const rootObj = ROOTS[state.root];
   const errorBox = document.getElementById('errorBox');
   const warnBox = document.getElementById('warnBox');
@@ -1541,12 +1596,11 @@ function render(){
   const matchLabel = matches.length ? matches.join(', ') : (currentKey ? 'Своя формула / без названия' : '—');
 
   const arpeggioMode = Boolean(state.selectedChordPcs) && !state.overlayEnabled;
+  renderExploreDegreeTable(sortedBySemitone, state.overlayEnabled);
   const readout = document.getElementById('readout');
   readout.innerHTML = `${arpeggioMode ? `
     <div class="mode-banner"><span>Арпеджио: <strong>${state.selectedChordLabel}</strong></span><button type="button" class="chip clickable" id="backToScaleBtn">← Вернуться к ладу</button></div>` : ''}
     <div>${state.overlayEnabled ? 'Сравнение' : 'Гамма'}: <strong>${matchLabel}</strong></div>
-    <div>Ноты: <strong>${sortedBySemitone.map(n=>n.noteName).join(' ')}</strong></div>
-    <div>Ступени: <strong>${sortedBySemitone.map(n=>n.degreeLabel).join('-')}</strong></div>
     <div>Полутоновая структура: <strong>${pattern.join('-')}</strong></div>
   `;
   if(arpeggioMode) document.getElementById('backToScaleBtn').addEventListener('click',()=>{
@@ -1994,6 +2048,17 @@ function render(){
       board.appendChild(cell);
     }
   });
+
+  // Controls above the neck can gain or lose helper rows. If the neck is
+  // already visible, compensate that height change so the grid stays fixed
+  // in the viewport while only its notes appear to change.
+  if(keepBoardInPlace){
+    requestAnimationFrame(()=>{
+      const nextTop=stableBoardOuter.getBoundingClientRect().top;
+      const delta=nextTop-stableBoardRect.top;
+      if(Math.abs(delta)>.5) window.scrollBy(0,delta);
+    });
+  }
 }
 
 function updatePillHighlights(){

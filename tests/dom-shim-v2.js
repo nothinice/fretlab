@@ -62,7 +62,8 @@ function makeElement(tag){
 }
 const stubIds = ['learnRoot','learnMode','learnFormLabel','learnFormBtns','contentToggle','learnPlayBtn','learnDisplayToggle',
   'learnExplain','learnHintBanner','learnLegend','learnBoard','learnDetails','learnDetailGrid',
-  'tab-learn','tab-explore','panel-learn','panel-explore','v2SwitchTriad','v2SwitchSeventh'];
+  'tab-learn','tab-explore','panel-learn','panel-explore','v2SwitchTriad','v2SwitchSeventh',
+  'exploreDegreeTableTitle','exploreDegreeTableBody'];
 const byId = {};
 global.byId = byId;
 stubIds.forEach(id=>{ const el = makeElement('div'); el.id = id; byId[id]=el; });

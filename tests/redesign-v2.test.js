@@ -5,6 +5,8 @@ const path = require('path');
 const html = fs.readFileSync(path.join(__dirname, '..', 'redesign-v2.html'), 'utf8');
 const match = html.match(/<script>([\s\S]*)<\/script>/);
 if(!match) throw new Error('redesign-v2.html must contain one inline script');
+if(!html.includes('@keyframes noteSwapIn')) throw new Error('Explore note transitions are missing');
+if(!html.includes('keepBoardInPlace')) throw new Error('Explore board position compensation is missing');
 
 // The legacy Explore UI has its own DOM-heavy initializer. The redesign test
 // exercises the Learn layer against the real engine without booting that UI.
@@ -77,6 +79,15 @@ for(const id of ['learnExplain','learnHintBanner','learnLegend']){
   const el=document.getElementById(id);
   assert(!/verified|pending|mismatch/i.test((el.innerHTML||'')+(el.textContent||'')),id+' leaks internal status');
 }
+renderExploreDegreeTable([
+  {degreeLabel:'1',noteName:'C',semitone:0},
+  {degreeLabel:'2',noteName:'D',semitone:2},
+  {degreeLabel:'b3',noteName:'Eb',semitone:3}
+],false);
+const degreeRows=document.getElementById('exploreDegreeTableBody').children;
+assert(degreeRows.length===2,'Explore degree table must contain degree and note rows');
+assert(degreeRows[0].children.map(cell=>cell.textContent).join('|')==='Ступень|1|2|b3','Explore degree row is wrong');
+assert(degreeRows[1].children.map(cell=>cell.textContent).join('|')==='Нота|C|D|Eb','Explore note row is wrong');
 console.log('OK: '+directViews+' direct chord views and '+togetherViews+' combined views validated');
 `;
 
