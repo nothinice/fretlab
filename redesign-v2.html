@@ -79,14 +79,17 @@
 
   .pill-row{display:flex; gap:5px; margin-bottom:8px; flex-wrap:wrap;}
   .pill{
-    flex:1; min-width:38px; text-align:center; padding:10px 4px; border-radius:7px;
-    border:1px solid var(--border); background:var(--panel); color:var(--muted);
+    position:relative; flex:1; min-width:38px; text-align:center; padding:10px 4px; border-radius:7px;
+    border:1px solid var(--border); background:var(--bg); color:var(--muted); opacity:.72;
     font-family:'IBM Plex Mono',monospace; font-size:12px; font-weight:600; cursor:pointer;
-    user-select:none;
+    user-select:none; transition:background-color .16s ease,color .16s ease,border-color .16s ease,opacity .16s ease,transform .12s ease;
   }
-  .pill.black{background:var(--wood-dark); color:var(--wood);}
-  .pill.active{background:var(--teal); color:#fff; border-color:var(--teal);}
-  .pill.active.root-pill{background:var(--brass); border-color:var(--brass);}
+  .pill.black{background:var(--bg); color:var(--muted);}
+  .pill:hover{opacity:1; border-color:var(--teal);}
+  .pill:active{transform:scale(.96);}
+  .pill.active{background:var(--teal); color:#fff; border-color:var(--teal); opacity:1; padding-right:15px;}
+  .pill.active::after{content:'✓'; position:absolute; top:2px; right:4px; font-size:9px; line-height:1; color:currentColor;}
+  .pill.active.root-pill{background:var(--brass); border-color:var(--brass); color:#211408;}
   .hint{color:var(--muted); font-size:12px; margin:0 0 22px; line-height:1.5;}
   .board-degree-controls{
     margin:12px 0 8px; padding:12px 14px 10px; background:var(--panel);
@@ -462,7 +465,7 @@
   <section class="board-degree-controls" aria-labelledby="boardDegreeControlsTitle">
     <div class="board-degree-controls-head">
       <h2 id="boardDegreeControlsTitle">Ступени на грифе</h2>
-      <p class="hint">Нажмите на ступень, чтобы добавить или убрать её.</p>
+      <p class="hint">Цветная — включена, серая — выключена. Нажмите, чтобы изменить.</p>
     </div>
     <div class="pill-row" id="pillRow" role="group" aria-label="Добавить или убрать ступень на грифе"></div>
   </section>
