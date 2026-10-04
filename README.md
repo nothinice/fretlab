@@ -14,6 +14,8 @@ app is available at
 - `index.html` — the whole app. Single self-contained file, no build
   step or JavaScript dependencies. Open it directly in a browser or
   serve it via GitHub Pages.
+- `reel-lesson.html` — a standalone nine-scene vertical presentation for recording
+  the Russian one-minute lesson about semitones, scale formulas, and degrees.
 - `TASKS.md` — agreed priorities and review criteria for the next iteration.
 - `CHANGELOG.md` — concise history of delivered versions.
 

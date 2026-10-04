@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>FretLab — ступени за одну минуту</title>
+  <style>
+    :root{
+      color-scheme:dark;
+      --page:#12100e;
+      --panel:#211c18;
+      --paper:#f3eee3;
+      --ink:#241e19;
+      --muted:#a99f91;
+      --wood-dark:#422a1d;
+      --wood:#825333;
+      --wood-light:#b17a4c;
+      --gold:#f2c14e;
+      --teal:#4a9488;
+      --ivory:#f4ead5;
+      --coral:#ef785d;
+      --line:rgba(255,255,255,.14);
+      --ease:cubic-bezier(.22,.8,.24,1);
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;min-height:100%;background:var(--page);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+    body{color:var(--paper);overflow-x:hidden}
+    button{font:inherit}
+    .app{display:grid;grid-template-columns:minmax(330px,540px) minmax(310px,460px);gap:28px;justify-content:center;align-items:start;padding:24px}
+    .stage-shell{position:sticky;top:18px}
+    .stage{
+      position:relative;width:min(100%,calc(100vh * .5625 - 36px));max-width:540px;aspect-ratio:9/16;overflow:hidden;
+      border-radius:26px;background:
+        radial-gradient(circle at 75% 8%,rgba(242,193,78,.17),transparent 28%),
+        radial-gradient(circle at 15% 85%,rgba(74,148,136,.16),transparent 30%),
+        linear-gradient(155deg,#17130f 0%,#211914 54%,#15110e 100%);
+      box-shadow:0 28px 80px rgba(0,0,0,.45);isolation:isolate;cursor:pointer;
+    }
+    .stage::before{content:"";position:absolute;inset:0;opacity:.18;pointer-events:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='70' height='70' viewBox='0 0 70 70'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.55' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.17'/%3E%3C/svg%3E")}
+    .brand{position:absolute;z-index:10;top:4.2%;left:7%;display:flex;align-items:center;gap:9px;font-size:clamp(12px,2.4vw,17px);font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ivory)}
+    .brand-mark{width:24px;height:24px;border:2px solid var(--gold);border-radius:50%;position:relative}
+    .brand-mark::before,.brand-mark::after{content:"";position:absolute;left:4px;right:4px;height:2px;background:var(--gold)}
+    .brand-mark::before{top:7px}.brand-mark::after{bottom:7px}
+    .progress{position:absolute;z-index:10;top:4.7%;right:7%;display:flex;gap:5px}
+    .progress span{width:18px;height:3px;border-radius:3px;background:rgba(255,255,255,.19);transition:background .25s,transform .25s}
+    .progress span.on{background:var(--gold);transform:scaleY(1.5)}
+    .scene{position:absolute;inset:0;padding:16% 7% 8%;display:flex;flex-direction:column;opacity:0;transform:translateY(18px) scale(.985);pointer-events:none;transition:opacity .42s var(--ease),transform .55s var(--ease)}
+    .scene.active{opacity:1;transform:none;pointer-events:auto}
+    .eyebrow{margin:0 0 4%;font-size:clamp(12px,2.8vw,18px);line-height:1.2;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--teal)}
+    h1,h2,p{margin:0}
+    h1{font-size:clamp(40px,10vw,70px);line-height:.98;letter-spacing:-.055em;max-width:95%}
+    h2{font-size:clamp(31px,7.4vw,52px);line-height:1.03;letter-spacing:-.045em;max-width:95%}
+    .lead{margin-top:5%;font-size:clamp(17px,4vw,27px);line-height:1.25;color:var(--ivory);max-width:95%}
+    .gold{color:var(--gold)}.teal{color:#70c2b4}.coral{color:var(--coral)}
+    .visual{position:relative;flex:1;min-height:0;margin-top:5%;display:flex;flex-direction:column;justify-content:center}
+    .caption{margin-top:auto;padding-top:4%;font-size:clamp(14px,3.2vw,21px);line-height:1.25;color:var(--muted)}
+    .big-equation{display:flex;align-items:center;justify-content:center;gap:5%;font-weight:900;font-size:clamp(46px,12vw,82px);letter-spacing:-.06em}
+    .big-equation .equals{color:var(--muted);font-weight:400}
+    .fret-demo{position:relative;height:38%;min-height:170px;border-radius:18px;overflow:hidden;border:1px solid rgba(255,255,255,.15);background:linear-gradient(90deg,var(--wood-dark),var(--wood-light) 47%,var(--wood-dark))}
+    .fret-demo .wire{position:absolute;top:0;bottom:0;width:4px;background:linear-gradient(90deg,#7b746c,#eee3d0,#716b66);box-shadow:2px 0 4px rgba(0,0,0,.4)}
+    .fret-demo .string{position:absolute;left:0;right:0;top:50%;height:4px;transform:translateY(-50%);background:linear-gradient(#f1e7d6,#8f897f);box-shadow:0 2px 3px rgba(0,0,0,.45)}
+    .fret-demo .pulse{position:absolute;top:50%;width:52px;height:52px;border-radius:50%;transform:translate(-50%,-50%);background:var(--gold);border:4px solid white;box-shadow:0 0 0 0 rgba(242,193,78,.55);animation:pulse 1.4s infinite}
+    .fret-demo .distance{position:absolute;top:17%;height:6px;border-radius:10px;background:var(--gold)}
+    .fret-demo .distance::before,.fret-demo .distance::after{content:"";position:absolute;top:-6px;width:2px;height:18px;background:var(--gold)}
+    .fret-demo .distance::before{left:0}.fret-demo .distance::after{right:0}
+    .fret-demo .distance-label{position:absolute;top:3%;transform:translateX(-50%);font-weight:900;color:var(--gold);font-size:clamp(13px,3vw,19px)}
+    @keyframes pulse{60%{box-shadow:0 0 0 22px rgba(242,193,78,0)}}
+    .ruler{position:relative;width:100%;padding:46px 0 32px;display:grid;grid-template-columns:repeat(13,1fr)}
+    .ruler::before{content:"";position:absolute;left:3.85%;right:3.85%;top:55px;height:4px;background:linear-gradient(90deg,var(--gold),var(--teal));border-radius:4px}
+    .tick{position:relative;text-align:center;min-width:0}
+    .tick::before{content:"";display:block;width:2px;height:22px;margin:0 auto 9px;background:rgba(255,255,255,.68)}
+    .tick-num{font-size:clamp(10px,2.4vw,15px);font-weight:800;color:var(--muted)}
+    .tick-dot{position:absolute;z-index:2;top:0;left:50%;width:30px;height:30px;display:grid;place-items:center;transform:translate(-50%,2px) scale(.42);border-radius:50%;background:var(--ivory);color:var(--ink);font-weight:900;font-size:14px;opacity:0;transition:opacity .28s,transform .5s var(--ease),background .25s}
+    .active .tick-dot.chosen{opacity:1;transform:translate(-50%,2px) scale(1)}
+    .tick-dot.root{background:var(--gold);border:2px solid white}
+    .ruler-labels{display:grid;grid-template-columns:repeat(13,1fr);margin-top:-18px}
+    .ruler-labels span{text-align:center;font-size:clamp(11px,2.5vw,16px);font-weight:900;color:var(--ivory)}
+    .formula-card{padding:5% 4%;border:1px solid rgba(255,255,255,.13);border-radius:18px;background:rgba(255,255,255,.045)}
+    .steps{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:18px}
+    .step{border-radius:10px;padding:10px 2px;text-align:center;background:rgba(74,148,136,.18);color:#99d8cd;font-weight:900;font-size:clamp(13px,3vw,19px)}
+    .degree-row{display:flex;align-items:center;justify-content:space-between;gap:4px}
+    .degree{width:clamp(31px,7.4vw,48px);aspect-ratio:1;border-radius:50%;display:grid;place-items:center;background:var(--ivory);color:var(--ink);font-weight:950;font-size:clamp(15px,3.6vw,23px);box-shadow:0 5px 14px rgba(0,0,0,.25)}
+    .degree.root{background:var(--gold);outline:3px solid rgba(255,255,255,.88)}
+    .arrow{color:var(--muted);font-weight:900}
+    .definition{display:grid;gap:12px}
+    .definition-row{display:grid;grid-template-columns:72px 1fr;gap:15px;align-items:center;padding:15px;border-radius:16px;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.1)}
+    .definition-row strong{font-size:clamp(26px,6vw,40px);text-align:center;color:var(--gold)}
+    .definition-row span{font-size:clamp(15px,3.5vw,23px);line-height:1.2;color:var(--ivory)}
+    .comparison{display:grid;gap:13px}
+    .scale-strip{padding:14px;border-radius:16px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1)}
+    .scale-name{font-size:clamp(13px,3vw,18px);font-weight:800;color:var(--muted);margin-bottom:11px}
+    .scale-degrees{display:flex;justify-content:space-between;gap:4px;font-size:clamp(18px,4.5vw,28px);font-weight:900}
+    .scale-degrees i{font-style:normal;min-width:29px;text-align:center}
+    .scale-degrees .changed{color:var(--coral);transform:translateY(4px)}
+    .shift-note{text-align:center;color:var(--coral);font-size:clamp(14px,3.3vw,21px);font-weight:850}
+    .note-names{display:grid;grid-template-columns:repeat(13,1fr);margin-top:15px;color:var(--muted);font-size:clamp(10px,2.3vw,15px);font-weight:750;text-align:center}
+    .board-wrap{padding:4%;border-radius:18px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12)}
+    .board-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;font-size:clamp(12px,2.6vw,17px);font-weight:800;color:var(--muted)}
+    .board{position:relative;height:300px;border-radius:12px;overflow:hidden;background:linear-gradient(90deg,var(--wood-dark),var(--wood-light) 50%,var(--wood-dark));border-left:7px solid #e8ddc7}
+    .board .fret-wire{position:absolute;top:0;bottom:0;width:3px;background:linear-gradient(90deg,#777,#efe7dc,#6d6861)}
+    .board .guitar-string{position:absolute;left:0;right:0;background:linear-gradient(#eee7dc,#77716b);box-shadow:0 2px 3px rgba(0,0,0,.4)}
+    .board .board-note{position:absolute;width:42px;height:42px;margin:-21px;border-radius:50%;display:grid;place-items:center;background:var(--ivory);color:var(--ink);font-size:17px;font-weight:950;box-shadow:0 5px 12px rgba(0,0,0,.35);animation:noteIn .5s var(--ease) both}
+    .board .board-note.root{background:var(--gold);outline:3px solid white}
+    @keyframes noteIn{from{opacity:0;transform:scale(.4)}to{opacity:1;transform:scale(1)}}
+    .final-stack{display:grid;gap:14px}
+    .final-chip{padding:15px 18px;border-radius:16px;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.1);font-size:clamp(17px,4vw,26px);font-weight:850;transform:translateX(-20px);opacity:0}
+    .active .final-chip{animation:chipIn .5s var(--ease) forwards}.active .final-chip:nth-child(2){animation-delay:.16s}.active .final-chip:nth-child(3){animation-delay:.32s}
+    @keyframes chipIn{to{transform:none;opacity:1}}
+    .end-brand{margin-top:8%;font-size:clamp(43px,10vw,68px);font-weight:950;letter-spacing:-.055em;color:var(--gold)}
+    .tap-hint{position:absolute;z-index:10;bottom:2.4%;left:50%;transform:translateX(-50%);font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:rgba(255,255,255,.34);white-space:nowrap}
+    .control-panel{padding:24px;border-radius:22px;background:var(--panel);border:1px solid var(--line);box-shadow:0 20px 60px rgba(0,0,0,.25)}
+    .panel-top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px}
+    .panel-top h3{margin:0;font-size:21px}.timecode{color:var(--gold);font-weight:800}
+    .controls{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:18px}
+    .controls button,.scene-list button{border:0;cursor:pointer}
+    .controls button{padding:12px;border-radius:12px;background:#342c26;color:var(--paper);font-weight:800}
+    .controls .primary{background:var(--gold);color:var(--ink)}
+    .controls button:disabled{opacity:.4;cursor:not-allowed}
+    .speaker{padding:17px;border-radius:15px;background:#171411;border-left:4px solid var(--teal);font-size:17px;line-height:1.45;color:var(--ivory);min-height:162px}
+    .speaker-label{display:block;margin-bottom:8px;color:var(--muted);font-size:12px;font-weight:850;letter-spacing:.09em;text-transform:uppercase}
+    .scene-list{display:grid;gap:7px;margin-top:18px}
+    .scene-list button{display:grid;grid-template-columns:34px 1fr auto;gap:10px;align-items:center;padding:10px;border-radius:11px;text-align:left;background:transparent;color:var(--muted)}
+    .scene-list button:hover{background:rgba(255,255,255,.05)}.scene-list button.current{background:rgba(242,193,78,.1);color:var(--paper)}
+    .scene-number{display:grid;place-items:center;width:29px;height:29px;border-radius:50%;background:#352e28;font-weight:900}.current .scene-number{background:var(--gold);color:var(--ink)}
+    .scene-time{font-size:12px;color:var(--muted)}
+    .keyboard-help{margin-top:16px;color:var(--muted);font-size:13px;line-height:1.45}
+    .recording .app{display:block;padding:0}.recording .stage-shell{position:static}.recording .stage{width:100vw;height:100vh;max-width:none;aspect-ratio:auto;border-radius:0}.recording .control-panel{display:none}.recording .tap-hint{display:none}
+    @media(max-width:820px){.app{grid-template-columns:1fr;padding:12px}.stage-shell{position:static}.stage{margin:auto}.control-panel{max-width:540px;margin:auto}}
+    @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+  </style>
+</head>
+<body>
+  <main class="app">
+    <div class="stage-shell">
+      <div class="stage" id="stage" aria-live="polite" aria-label="Кадр ролика. Нажмите, чтобы перейти дальше">
+        <div class="brand"><span class="brand-mark"></span>FretLab</div>
+        <div class="progress" id="progress" aria-hidden="true"></div>
+
+        <section class="scene" data-scene="0">
+          <p class="eyebrow">Просто о сложном</p>
+          <h1>Как понять <span class="gold">ступени</span> за одну минуту?</h1>
+          <div class="visual">
+            <div class="big-equation"><span>12</span><span class="equals">→</span><span class="gold">7</span></div>
+            <p class="lead" style="text-align:center">полутонов → нот гаммы</p>
+          </div>
+          <p class="caption">Начнём с самого маленького музыкального расстояния.</p>
+        </section>
+
+        <section class="scene" data-scene="1">
+          <p class="eyebrow">Шаг 1</p>
+          <h2>Соседние лады — это <span class="gold">полутон</span></h2>
+          <div class="visual">
+            <div class="fret-demo" id="fretDemo"></div>
+          </div>
+          <p class="caption">Каждый следующий лад повышает звук ровно на один полутон.</p>
+        </section>
+
+        <section class="scene" data-scene="2">
+          <p class="eyebrow">Шаг 2</p>
+          <h2>Октава — это линейка из <span class="gold">12 полутонов</span></h2>
+          <div class="visual">
+            <div class="ruler" data-ruler="chromatic"></div>
+            <p class="lead" style="text-align:center">0 — тоника<br>12 — та же нота выше</p>
+          </div>
+          <p class="caption">На грифе эта линейка уже размечена ладами.</p>
+        </section>
+
+        <section class="scene" data-scene="3">
+          <p class="eyebrow">Шаг 3 · мажор</p>
+          <h2>Формула выбирает точки на этой линейке</h2>
+          <div class="visual">
+            <div class="ruler" data-ruler="major"></div>
+            <div class="formula-card">
+              <div class="steps"><span class="step">2</span><span class="step">2</span><span class="step">1</span><span class="step">2</span><span class="step">2</span><span class="step">2</span><span class="step">1</span></div>
+              <div class="degree-row" data-degrees="major"></div>
+            </div>
+          </div>
+          <p class="caption">2–2–1–2–2–2–1 — расстояния между нотами мажора.</p>
+        </section>
+
+        <section class="scene" data-scene="4">
+          <p class="eyebrow">Что такое ступени?</p>
+          <h2>Это ноты гаммы, пронумерованные <span class="gold">от тоники</span></h2>
+          <div class="visual">
+            <div class="definition">
+              <div class="definition-row"><strong>1</strong><span>точка отсчёта — тоника</span></div>
+              <div class="definition-row"><strong>2–7</strong><span>остальные ноты выбранной гаммы</span></div>
+              <div class="definition-row"><strong>♭ / ♯</strong><span>точное расстояние от тоники</span></div>
+            </div>
+          </div>
+          <p class="caption">Номер показывает функцию, знак — положение ноты.</p>
+        </section>
+
+        <section class="scene" data-scene="5">
+          <p class="eyebrow">Шаг 4 · минор</p>
+          <h2>Сдвинем три ступени на <span class="coral">полтона вниз</span></h2>
+          <div class="visual">
+            <div class="comparison">
+              <div class="scale-strip"><div class="scale-name">МАЖОР</div><div class="scale-degrees"><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i><i>7</i></div></div>
+              <div class="shift-note">3 ↓ &nbsp;&nbsp; 6 ↓ &nbsp;&nbsp; 7 ↓</div>
+              <div class="scale-strip"><div class="scale-name">НАТУРАЛЬНЫЙ МИНОР</div><div class="scale-degrees"><i>1</i><i>2</i><i class="changed">♭3</i><i>4</i><i>5</i><i class="changed">♭6</i><i class="changed">♭7</i></div></div>
+            </div>
+            <div class="formula-card" style="margin-top:15px"><div class="steps"><span class="step">2</span><span class="step">1</span><span class="step">2</span><span class="step">2</span><span class="step">1</span><span class="step">2</span><span class="step">2</span></div></div>
+          </div>
+          <p class="caption">Минор: 1 2 ♭3 4 5 ♭6 ♭7. Ступеней всё равно семь.</p>
+        </section>
+
+        <section class="scene" data-scene="6">
+          <p class="eyebrow">На одной струне</p>
+          <h2>Каждая точка — реальный лад и реальная ступень</h2>
+          <div class="visual">
+            <div class="ruler" data-ruler="major-notes"></div>
+            <div class="note-names" id="noteNames"></div>
+            <p class="lead" style="text-align:center"><span class="gold">C major</span> от C до C</p>
+          </div>
+          <p class="caption">Формула больше не абстракция: её можно сыграть по одной струне.</p>
+        </section>
+
+        <section class="scene" data-scene="7">
+          <p class="eyebrow">Та же формула · 6 струн</p>
+          <h2>Теперь «сложим» гамму в удобную позицию</h2>
+          <div class="visual">
+            <div class="board-wrap">
+              <div class="board-title"><span>C Major · E-форма</span><span>лады 7–10</span></div>
+              <div class="board" id="scaleBoard"></div>
+            </div>
+          </div>
+          <p class="caption">Ноты и ступени те же. Изменилась только геометрия на грифе.</p>
+        </section>
+
+        <section class="scene" data-scene="8">
+          <p class="eyebrow">Главная мысль</p>
+          <h2>Не заучивай точки. <span class="gold">Понимай расстояния.</span></h2>
+          <div class="visual">
+            <div class="final-stack">
+              <div class="final-chip"><span class="gold">Полутона</span> измеряют расстояние</div>
+              <div class="final-chip"><span class="teal">Формула</span> выбирает ноты</div>
+              <div class="final-chip"><span class="coral">Ступени</span> объясняют их роль</div>
+            </div>
+            <div class="end-brand">FretLab</div>
+            <p class="lead">Видеть музыку на грифе.</p>
+          </div>
+          <p class="caption">Сохрани, чтобы не потерять.</p>
+        </section>
+        <div class="tap-hint">Нажми для следующего кадра</div>
+      </div>
+    </div>
+
+    <aside class="control-panel">
+      <div class="panel-top"><h3>Пульт ролика</h3><span class="timecode" id="timecode">0–4 сек.</span></div>
+      <div class="controls">
+        <button id="prev">← Назад</button><button class="primary" id="next">Дальше →</button>
+        <button id="auto">▶ Автопоказ</button><button id="record">⛶ Чистый режим</button>
+      </div>
+      <div class="speaker"><span class="speaker-label">Текст озвучки</span><span id="speakerText"></span></div>
+      <div class="scene-list" id="sceneList"></div>
+      <p class="keyboard-help">Клавиши: ←/→ — сцены, пробел — дальше, A — автопоказ, F — чистый режим, Esc — выйти из него. Клик по самому ролику переключает сцену.</p>
+    </aside>
+  </main>
+
+  <script>
+    const scenes = [
+      {title:'Крючок',time:'0–4 сек.',duration:4000,text:'Сейчас за одну минуту разберём основу, на понимание которой у многих уходят годы: что такое ступени и как увидеть их прямо на грифе.'},
+      {title:'Один полутон',time:'4–10 сек.',duration:6000,text:'Расстояние между соседними ладами — один полутон. Это самый маленький шаг в нашей привычной музыкальной системе.'},
+      {title:'Линейка',time:'10–16 сек.',duration:6000,text:'Если отсчитать двенадцать таких шагов, мы придём к той же ноте через октаву. Получается универсальная линейка расстояний.'},
+      {title:'Формула мажора',time:'16–26 сек.',duration:10000,text:'Но для гаммы нужны не все двенадцать звуков. Формула мажора выбирает семь: два, два, один, два, два, два, один полутон.'},
+      {title:'Ступени',time:'26–32 сек.',duration:6000,text:'Выбранные ноты мы нумеруем от тоники. Эти номера и называются ступенями. Первая — тоника, затем вторая, третья и так до седьмой.'},
+      {title:'Формула минора',time:'32–42 сек.',duration:10000,text:'В натуральном миноре тоже семь ступеней. Но относительно одноимённого мажора третья, шестая и седьмая ниже на полтона — поэтому пишем бемоль три, бемоль шесть и бемоль семь.'},
+      {title:'Одна струна',time:'42–48 сек.',duration:6000,text:'На одной струне всё видно буквально: двигаемся по ладам и берём только точки, которые выбрала формула.'},
+      {title:'Позиция',time:'48–55 сек.',duration:7000,text:'А теперь переносим те же ноты на соседние струны и получаем удобную позицию. Формула и ступени не изменились — изменилась только геометрия.'},
+      {title:'Вывод',time:'55–60 сек.',duration:5000,text:'Полутона измеряют расстояния, формула выбирает ноты, а ступени объясняют их роль. Так гриф превращается из набора точек в понятную систему.'}
+    ];
+    let current=0, autoTimer=null, autoPlaying=false;
+    const stage=document.getElementById('stage');
+    const sceneEls=[...document.querySelectorAll('.scene')];
+    const progress=document.getElementById('progress');
+    const list=document.getElementById('sceneList');
+    const speaker=document.getElementById('speakerText');
+    const timecode=document.getElementById('timecode');
+
+    function makeRuler(el,type){
+      const chosen=type==='chromatic'?[0,12]:[0,2,4,5,7,9,11,12];
+      const degrees={0:'1',2:'2',4:'3',5:'4',7:'5',9:'6',11:'7',12:'1'};
+      el.innerHTML=Array.from({length:13},(_,i)=>`<div class="tick"><span class="tick-dot ${chosen.includes(i)?'chosen':''} ${i===0||i===12?'root':''}">${type==='chromatic'?(i===0||i===12?'C':''):degrees[i]||''}</span><span class="tick-num">${i}</span></div>`).join('');
+    }
+    document.querySelectorAll('[data-ruler]').forEach(el=>makeRuler(el,el.dataset.ruler));
+
+    const fretDemo=document.getElementById('fretDemo');
+    fretDemo.innerHTML='<span class="string"></span>'+[0,20,40,60,80,100].map((x,i)=>`<span class="wire" style="left:${x}%"></span>`).join('')+'<span class="distance" style="left:40%;width:20%"></span><span class="distance-label" style="left:50%">1 полутон</span><span class="pulse" style="left:40%"></span><span class="pulse" style="left:60%;animation-delay:.25s"></span>';
+
+    document.querySelector('[data-degrees="major"]').innerHTML=['1','2','3','4','5','6','7','1'].map((d,i)=>`<span class="degree ${i===0||i===7?'root':''}">${d}</span>${i<7?'<span class="arrow">›</span>':''}`).join('');
+    document.getElementById('noteNames').innerHTML=['C','','D','','E','F','','G','','A','','B','C'].map(n=>`<span>${n}</span>`).join('');
+
+    const majorE=[
+      [0,-1,'7'],[0,0,'1'],[0,2,'2'],[1,0,'5'],[1,2,'6'],[2,-1,'2'],[2,1,'3'],[2,2,'4'],
+      [3,-1,'6'],[3,1,'7'],[3,2,'1'],[4,-1,'3'],[4,0,'4'],[4,2,'5'],[5,0,'1'],[5,2,'2']
+    ];
+    function makeBoard(){
+      const board=document.getElementById('scaleBoard');
+      const wires=[25,50,75,100].map(x=>`<span class="fret-wire" style="left:${x}%"></span>`).join('');
+      const strings=[0,1,2,3,4,5].map(i=>`<span class="guitar-string" style="top:${9+i*16.4}%;height:${1+i*.45}px"></span>`).join('');
+      const notes=majorE.map(([string,offset,degree],i)=>{
+        const col=offset+1;
+        return `<span class="board-note ${degree==='1'?'root':''}" style="left:${12.5+col*25}%;top:${9+string*16.4}%;animation-delay:${i*35}ms">${degree}</span>`;
+      }).join('');
+      board.innerHTML=wires+strings+notes;
+    }
+    makeBoard();
+
+    progress.innerHTML=scenes.map(()=>'<span></span>').join('');
+    list.innerHTML=scenes.map((s,i)=>`<button data-jump="${i}"><span class="scene-number">${i+1}</span><span>${s.title}</span><span class="scene-time">${s.time}</span></button>`).join('');
+
+    function show(index){
+      current=Math.max(0,Math.min(scenes.length-1,index));
+      sceneEls.forEach((el,i)=>{
+        el.classList.toggle('active',i===current);
+        el.setAttribute('aria-hidden',i===current?'false':'true');
+      });
+      [...progress.children].forEach((el,i)=>el.classList.toggle('on',i<=current));
+      [...list.children].forEach((el,i)=>el.classList.toggle('current',i===current));
+      speaker.textContent=scenes[current].text;
+      timecode.textContent=scenes[current].time;
+      document.getElementById('prev').disabled=current===0;
+      document.getElementById('next').textContent=current===scenes.length-1?'Сначала ↺':'Дальше →';
+      if(autoPlaying) scheduleAuto();
+    }
+    function next(){show(current===scenes.length-1?0:current+1)}
+    function prev(){show(current-1)}
+    function scheduleAuto(){clearTimeout(autoTimer);autoTimer=setTimeout(()=>{if(current===scenes.length-1){stopAuto();return}show(current+1)},scenes[current].duration)}
+    function toggleAuto(){
+      autoPlaying=!autoPlaying;
+      document.getElementById('auto').textContent=autoPlaying?'Ⅱ Пауза':'▶ Автопоказ';
+      if(autoPlaying)scheduleAuto();else clearTimeout(autoTimer);
+    }
+    function stopAuto(){autoPlaying=false;clearTimeout(autoTimer);document.getElementById('auto').textContent='▶ Автопоказ'}
+    function toggleRecording(force){
+      const nextState=typeof force==='boolean'?force:!document.body.classList.contains('recording');
+      document.body.classList.toggle('recording',nextState);
+      const url=new URL(location.href);
+      if(nextState)url.searchParams.set('record','1');else url.searchParams.delete('record');
+      history.replaceState({},'',url);
+    }
+    document.getElementById('next').addEventListener('click',next);
+    document.getElementById('prev').addEventListener('click',prev);
+    document.getElementById('auto').addEventListener('click',toggleAuto);
+    document.getElementById('record').addEventListener('click',()=>toggleRecording());
+    list.addEventListener('click',e=>{const button=e.target.closest('[data-jump]');if(button){stopAuto();show(Number(button.dataset.jump))}});
+    stage.addEventListener('click',()=>{stopAuto();next()});
+    window.addEventListener('keydown',e=>{
+      if(e.key==='ArrowRight'||e.key===' '){e.preventDefault();stopAuto();next()}
+      if(e.key==='ArrowLeft'){e.preventDefault();stopAuto();prev()}
+      if(e.key.toLowerCase()==='a')toggleAuto();
+      if(e.key.toLowerCase()==='f')toggleRecording();
+      if(e.key==='Escape')toggleRecording(false);
+    });
+    if(new URLSearchParams(location.search).get('record')==='1')toggleRecording(true);
+    show(0);
+  </script>
+</body>
+</html>
