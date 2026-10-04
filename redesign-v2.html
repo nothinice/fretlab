@@ -88,6 +88,21 @@
   .pill.active{background:var(--teal); color:#fff; border-color:var(--teal);}
   .pill.active.root-pill{background:var(--brass); border-color:var(--brass);}
   .hint{color:var(--muted); font-size:12px; margin:0 0 22px; line-height:1.5;}
+  .board-degree-controls{
+    margin:12px 0 8px; padding:12px 14px 10px; background:var(--panel);
+    border:1px solid var(--border); border-radius:10px;
+  }
+  .board-degree-controls-head{
+    display:flex; align-items:baseline; justify-content:space-between; gap:12px;
+    margin-bottom:9px;
+  }
+  .board-degree-controls h2{margin:0; font:600 16px 'Fraunces',serif;}
+  .board-degree-controls .hint{margin:0;}
+  .board-degree-controls .pill-row{margin-bottom:0;}
+  @media (max-width:620px){
+    .board-degree-controls-head{display:block;}
+    .board-degree-controls-head .hint{margin-top:3px;}
+  }
 
   .toggles{display:flex; gap:18px; align-items:center; flex-wrap:wrap; margin-bottom:18px;}
   .toggle-group{
@@ -382,9 +397,6 @@
     </section>
   </div>
 
-  <div class="pill-row" id="pillRow" role="group" aria-label="Выбор хроматических ступеней"></div>
-  <p class="hint">Нажмите на ступень, чтобы добавить или убрать её. Формулу также можно вводить вручную через пробелы, дефисы или запятые.</p>
-
   <div class="toggles">
     <div class="toggle-group" id="displayToggle" role="group" aria-label="Ноты или ступени">
       <button data-mode="notes" class="active" aria-pressed="true">Ноты</button>
@@ -446,6 +458,14 @@
     <input type="number" id="rangeToInput" min="0" max="16" value="4">
   </div>
   <p class="hint" id="formWarning" style="display:none;"></p>
+
+  <section class="board-degree-controls" aria-labelledby="boardDegreeControlsTitle">
+    <div class="board-degree-controls-head">
+      <h2 id="boardDegreeControlsTitle">Ступени на грифе</h2>
+      <p class="hint">Нажмите на ступень, чтобы добавить или убрать её.</p>
+    </div>
+    <div class="pill-row" id="pillRow" role="group" aria-label="Добавить или убрать ступень на грифе"></div>
+  </section>
 
   <div class="board-outer">
     <div class="board" id="board"></div>
