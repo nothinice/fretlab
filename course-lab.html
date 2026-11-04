@@ -291,9 +291,9 @@
   <div class="v2-brand">FretLab</div>
   <nav class="v2-tabs" role="tablist" aria-label="Разделы">
     <button class="v2-tab-btn" id="tab-block" role="tab" aria-selected="true" aria-controls="panel-block" tabindex="0">Курс</button>
-    <button class="v2-tab-btn" id="tab-sandbox" role="tab" aria-selected="false" aria-controls="panel-sandbox" tabindex="-1">Свободный гриф</button>
-    <button class="v2-tab-btn" id="tab-learn" role="tab" aria-selected="false" aria-controls="panel-learn" tabindex="-1">Изучать</button>
-    <button class="v2-tab-btn" id="tab-explore" role="tab" aria-selected="false" aria-controls="panel-explore" tabindex="-1">Исследовать</button>
+    <button class="v2-tab-btn" id="tab-sandbox" role="tab" aria-selected="false" aria-controls="panel-sandbox" tabindex="-1">Гриф</button>
+    <button class="v2-tab-btn" id="tab-learn" role="tab" aria-selected="false" aria-controls="panel-learn" tabindex="-1">Формы</button>
+    <button class="v2-tab-btn" id="tab-explore" role="tab" aria-selected="false" aria-controls="panel-explore" tabindex="-1">Теория</button>
   </nav>
   <button type="button" id="tabsMore" class="play-btn tabs-more" aria-label="Прокрутить разделы вправо" hidden>→</button>
 </div>
@@ -304,16 +304,17 @@
     <p class="hint">Блок 1 · Расстояния и мажорная гамма</p>
     <h1>От первого шага до своей фразы</h1>
     <p class="lesson-copy">Научитесь отмерять тон и полутон, строить C major и использовать несколько её нот в музыке. Здесь есть объяснения, самостоятельная практика, слух, ритм и итоговая проверка.</p>
-    <details class="block-plan"><summary>Как заниматься: маршрут на 3–4 занятия</summary>
-      <ol><li>Тон и полутон: первый урок, поиск расстояний, затем повторение на гитаре.</li><li>C major: второй урок, восстановление формулы и гаммы. Вернитесь к расстояниям без подсказок.</li><li>Слух, ритм и своя фраза из C, D, E. Повторите построение гаммы перед игрой.</li><li>На следующем занятии пройдите итоговую проверку. При затруднениях вернитесь к соответствующему упражнению.</li></ol>
-      <p>Ориентир на занятие: 5 минут повторения, 5 минут объяснения, 10 минут игры, 5 минут слуха/ритма и 5 минут своей музыки. Двигайтесь в удобном темпе и возвращайтесь к трудным заданиям.</p>
-    </details>
-    <details class="block-plan"><summary>Как это работает</summary><p>Ответы на экране проверяет приложение. Игра и пение — ваша самопроверка или работа с преподавателем.</p><p id="blockStorage" class="hint"></p></details>
+    <section id="blockCelebration" class="course-celebration" hidden aria-labelledby="blockCelebrationTitle"><span class="reward-seal" aria-hidden="true">✦</span><h2 id="blockCelebrationTitle">Первый блок пройден!</h2><p>От полутона до своей фразы: все 10 заданий завершены. Практика на гитаре отмечена вами отдельно.</p><p>Следующий шаг — ступени и позиция.</p></section>
     <p id="blockSummary" class="sandbox-readout" role="status" aria-live="polite"></p>
     <progress id="blockProgress" max="10" value="0" aria-label="Завершённые части блока"></progress>
     <p>Для практики вам понадобится гитара. Занимайтесь в удобном темпе.</p>
     <p><button type="button" class="play-btn primary-btn" id="blockResume"></button></p>
     <div id="blockActivities" class="block-activities" aria-label="Уроки и практика блока"></div>
+    <details class="block-plan"><summary>Как заниматься: маршрут на 3–4 занятия</summary>
+      <ol><li>Тон и полутон: первый урок, поиск расстояний, затем повторение на гитаре.</li><li>C major: второй урок, восстановление формулы и гаммы. Вернитесь к расстояниям без подсказок.</li><li>Слух, ритм и своя фраза из C, D, E. Повторите построение гаммы перед игрой.</li><li>На следующем занятии пройдите итоговую проверку. При затруднениях вернитесь к соответствующему упражнению.</li></ol>
+      <p>Ориентир на занятие: 5 минут повторения, 5 минут объяснения, 10 минут игры, 5 минут слуха/ритма и 5 минут своей музыки. Двигайтесь в удобном темпе и возвращайтесь к трудным заданиям.</p>
+    </details>
+    <details class="block-plan"><summary>Как это работает</summary><p>Ответы на экране проверяет приложение. Игра и пение — ваша самопроверка или работа с преподавателем.</p><p id="blockStorage" class="hint"></p></details>
     <p><button type="button" class="play-btn text-btn" id="blockNextLesson">Дальше: Блок 2 · Ступени и позиция →</button></p>
     </div>
     <section id="blockWorkspace" class="block-workspace" aria-labelledby="blockTaskTitle" hidden>
@@ -325,7 +326,7 @@
       <p id="blockTaskFeedback" class="sandbox-readout" role="status" aria-live="polite"></p>
       <div class="sandbox-controls" id="blockTaskActions"></div>
     </section>
-    <p class="hint">Приложение проверяет экранные ответы и устройство вашей фразы. Чистота звука, ритм и исполнение на гитаре проверяются вами или преподавателем.</p>
+
   </div>
 <section id="panel-lesson" role="region" aria-labelledby="lessonTitle" hidden>
   <div class="v2-wrap lesson-wrap">
@@ -337,9 +338,10 @@
     <p id="lessonExplanation" class="lesson-copy"></p>
     <details id="lessonAlternative" class="lesson-purpose" hidden><summary>Если верхние лады недоступны</summary><p id="lessonAlternativeText"></p></details>
     </div><div class="lesson-work">
-    <p id="lessonInstruction" class="task-card"></p>
+    <p id="lessonInstruction" class="task-card" data-label="Послушайте"></p>
     <div id="lessonFormula" class="lesson-formula" aria-label="Формула и текущий шаг"></div>
     <div class="board-outer"><div class="board" id="lessonBoard" aria-label="Учебный гриф, первая струна сверху"></div></div>
+    <p class="board-legend"><span class="legend-start">●</span> исходный звук · <span class="legend-answer">●</span> показанные ноты / ваш выбор</p>
     <p id="lessonFeedback" class="sandbox-readout" role="status" aria-live="polite"></p>
     <label id="lessonPracticeLabel" class="lesson-practice"><input type="checkbox" id="lessonPractice"> Я сыграл упражнение на гитаре и проверил себя по критериям выше</label>
     <nav class="sandbox-controls" aria-label="Шаги урока">
@@ -2108,7 +2110,8 @@ function render(){
   OPEN_STRINGS_TOP_TO_BOTTOM.forEach((str, stringIdx) => {
     const openLbl = document.createElement('div');
     openLbl.className = 'open-label';
-    openLbl.textContent = str.label;
+    openLbl.textContent = `${stringIdx+1} ${str.label}`;
+    openLbl.dataset.string=String(stringIdx);
     board.appendChild(openLbl);
 
     for(let f=0; f<=FRET_COUNT; f++){
@@ -2405,7 +2408,8 @@ function v2RenderBoard(cellsMap, boardId = 'learnBoard'){
   OPEN_STRINGS_TOP_TO_BOTTOM.forEach((str, stringIdx) => {
     const openLbl = document.createElement('div');
     openLbl.className = 'open-label';
-    openLbl.textContent = str.label;
+    openLbl.textContent = `${stringIdx+1} ${str.label}`;
+    openLbl.dataset.string=String(stringIdx);
     board.appendChild(openLbl);
     for(let f=0; f<=FRET_COUNT; f++){
       const cell = document.createElement('div');

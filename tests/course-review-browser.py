@@ -27,7 +27,9 @@ with sync_playwright() as p:
     page.locator('#lessonRestart').click();page.reload();page.locator('#blockResume').click()
     expect(page.locator('#lessonPosition')).to_have_text('Шаг 1 из 9')
     page.locator('#lessonRoute').click()
-    page.locator('#blockNextLesson').click();page.locator('#lessonNext').click()
+    page.locator('#blockActivities article').nth(0).get_by_role('button').click()
+    page.locator('details').filter(has=page.locator('#lessonSelect')).locator('summary').click()
+    page.locator('#lessonSelect').select_option('2');page.locator('#lessonNext').click()
     # Same MIDI, two positions: only the intended string lights up each time.
     page.locator('#lessonListen').click()
     expect(page.locator('#lessonListen')).to_have_text('■ Стоп')
@@ -53,14 +55,9 @@ with sync_playwright() as p:
     page.locator('#blockTaskBody').get_by_role('button',name='Проверить',exact=True).click()
     assert 'выполнено' in page.locator('#blockTaskFeedback').inner_text()
     page.set_viewport_size({'width':390,'height':844})
-    expect(page.locator('#tabsMore')).to_be_visible()
+    expect(page.locator('#tabsMore')).to_be_hidden()
     assert page.locator('.v2-topbar').bounding_box()['height']<=65
-    for _ in range(3):
-        if page.locator('#tabsMore').inner_text()=='←':break
-        page.locator('#tabsMore').click();page.wait_for_timeout(100)
-    expect(page.locator('#tabsMore')).to_have_text('←')
-    page.locator('#tabsMore').click();page.wait_for_timeout(100)
-    assert page.locator('.v2-tabs').evaluate('e=>e.scrollLeft')==0
+    assert page.locator('.v2-tabs').evaluate('e=>e.scrollWidth<=e.clientWidth+1')
     page.locator('#tab-block').click();page.locator('#blockResume').click()
     page.locator('#lessonNext').click();page.locator('#lessonNext').click()
     assert page.locator('#lessonNextHelp').evaluate('e=>parseFloat(getComputedStyle(e).fontSize)')>=15
@@ -85,7 +82,6 @@ with sync_playwright() as p:
     page.wait_for_timeout(100)
     count=page.evaluate('_rafCount');page.wait_for_timeout(100)
     assert page.evaluate('_rafCount')==count
-    assert page.locator('#tabsMore').bounding_box()['width']>=44
     # Migrate old saved lessons; completed lessons must not hijack Continue.
     page.evaluate("""() => {
       const raw=JSON.parse(localStorage.getItem('fretlab-lessons-v1'));

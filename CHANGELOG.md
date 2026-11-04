@@ -1,5 +1,13 @@
 # Changelog
 
+## Task rewards and course UX — 2026-11-04
+
+- Added persistent named task badges, specific animated success feedback and a block-completion celebration; hints do not reduce rewards.
+- Simplified the entry screen, highlighted the current route card, numbered strings and clarified task labels and scale steps.
+- Added large phrase-duration controls and an eight-beat meter; showed Stop only during example playback and moved tempo into sound settings.
+- Corrected the final repair diagram and guaranteed both directions and interval sizes in the final assessment.
+- Added reward/persistence/browser regressions and checked desktop/mobile layouts.
+
 ## Review follow-up — 2026-11-04
 
 - Limited lesson-return links to interval, formula, scale and repair activities.

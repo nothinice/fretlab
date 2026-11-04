@@ -146,7 +146,7 @@ with sync_playwright() as p:
     body_button('Добавить паузу')
     for f in [7,5]:
         fret(f)
-    page.locator('select[aria-label="Длительность следующего события"]').select_option('2')
+    body_button('Половинная · 2 доли')
     fret(3)
     page.locator('#blockTaskBody input[type=checkbox]').nth(0).check()
     page.locator('#blockTaskBody input[type=checkbox]').nth(1).check()
@@ -158,7 +158,10 @@ with sync_playwright() as p:
         checkbox.check()
     body_button('Завершить проверку')
     assert 'Выполнено 10 из 10' in page.locator('#blockSummary').inner_text()
+    assert 'Первый блок пройден' in page.locator('#blockTaskFeedback').inner_text()
     page.locator('#blockClose').click()
+    expect(page.locator('#blockCelebration')).to_be_visible()
+    expect(page.locator('#blockNextLesson')).to_be_enabled()
     page.evaluate('scrollTo(0,0)')
     page.screenshot(path='/tmp/fretlab-block1-desktop.png', full_page=True)
     page.reload()
@@ -192,7 +195,7 @@ with sync_playwright() as p:
 
     mobile.locator('#lessonRoute').click()
     mobile.emulate_media(color_scheme='dark')
-    assert mobile.locator('.block-card').first.evaluate("e => getComputedStyle(e).borderTopColor") == 'rgb(58, 49, 40)'
+    assert mobile.locator('.block-card:not(.route-current)').first.evaluate("e => getComputedStyle(e).borderTopColor") == 'rgb(58, 49, 40)'
     mobile.screenshot(path='/tmp/fretlab-review-dark-mobile.png',full_page=True)
     mobile.emulate_media(color_scheme='light')
     mobile.screenshot(path='/tmp/fretlab-block1-mobile.png',full_page=True)

@@ -119,6 +119,7 @@ const CourseLesson = (() => {
       el('lessonAlternativeText').textContent=s.alternative||'';
       el('lessonExplanation').textContent=s.explanation;
       el('lessonInstruction').textContent=s.instruction;
+      el('lessonInstruction').dataset.label=s.finish?'Итог':s.practice?'Сыграйте на гитаре':isTask(s)?'Задание':'Послушайте';
       el('lessonProgress').value=current+1;
       el('lessonProgress').max=steps.length;
       el('lessonSelect').value=String(activeLesson);
@@ -143,7 +144,10 @@ const CourseLesson = (() => {
       el('lessonBoard').parentElement && (el('lessonBoard').parentElement.hidden=!!s.finish);
       if(s.finish)el('lessonFormula').hidden=true;
       el('lessonPractice').checked=practiced;
-      el('lessonFeedback').textContent=isTask(s) ? solved.has(current) ? 'Верно. Можно переходить дальше.' : 'Выберите ответ на указанной струне. Можно пробовать снова: ошибка не закрывает задание.' : s.finish ? `✓ Ответы: ${solved.size} из ${steps.filter(isTask).length} · ◇ Подсказки: ${hints.size} · ♫ Гитара: ${practiced ? 'сыграно (самооценка)' : 'ещё не отмечено'}` : 'Нажмите «Послушать пример» или на отмеченную точку.';
+      el('lessonFeedback').textContent=isTask(s) ? solved.has(current) ? (s.target?'✓ Верно — нужная ступень найдена.':`✓ Верно — вы нашли ${Math.abs(s.delta)===1?'полутон':'тон'} ${s.delta>0?'вверх':'вниз'}.`) : 'Выберите ответ на указанной струне. Можно пробовать снова: ошибка не закрывает задание.' : s.finish ? `✓ Ответы: ${solved.size} из ${steps.filter(isTask).length} · ◇ Подсказки: ${hints.size} · ♫ Гитара: ${practiced ? 'сыграно (самооценка)' : 'ещё не отмечено'}` : 'Нажмите «Послушать пример» или на отмеченную точку.';
+      el('lessonFeedback').classList.toggle('answer-success',!!s.finish||solved.has(current));
+      el('lessonFeedback').classList.toggle('task-reward',!!s.finish);
+      if(s.finish)el('lessonFeedback').textContent=['✦ Линейка звуков — урок завершён. ','✦ Мажор собран на экране — урок завершён. ','✦ Ступени найдены на экране — урок завершён. '][activeLesson]+el('lessonFeedback').textContent;
       if(s.practice) el('lessonFeedback').textContent='Отметьте практику после игры и самопроверки. Нажатия на грифе не заменяют это задание.';
       if(s.finish && document.dispatchEvent && typeof CustomEvent!=='undefined') document.dispatchEvent(new CustomEvent('course-lesson-progress',{detail:{lessonId:activeLesson,complete:solved.size===steps.filter(isTask).length&&practiced,assisted:hints.size>0,practice:practiced}}));
       v2RenderBoard(new Map(), 'lessonBoard');
@@ -152,7 +156,7 @@ const CourseLesson = (() => {
         const stringIdx=Math.floor(index/(FRET_COUNT+1)), fret=index%(FRET_COUNT+1);
         const point=(s.path||[]).find(p=>p.stringIdx===stringIdx&&p.fret===fret);
         const active=s.multi?!!point:stringIdx===s.str;
-        if(!active)cell.classList.add('lesson-muted');
+        if(!active)cell.classList.add('lesson-muted');else cell.classList.add('active-string');
         const midi=OPEN_STRINGS_TOP_TO_BOTTOM[stringIdx].midi+fret;
         const selected=active && choices.get(current)===fret;
         const isStart=!s.target && stringIdx===s.str && fret===s.start;
@@ -189,7 +193,8 @@ const CourseLesson = (() => {
       const points=s.path?[...s.path]:[{stringIdx:s.str,fret:s.start}];
       const endpoint=s.demo!==undefined?s.demo:solved.has(current)&&s.delta!==undefined?s.start+s.delta:null;
       if(endpoint!==null)points.push({stringIdx:s.str,fret:endpoint});
-      sandbox.drawDistances(el('lessonBoard'),points);
+      if(!s.showDegrees)sandbox.drawDistances(el('lessonBoard'),points);
+      el('lessonBoard').querySelectorAll('.open-label').forEach((label,i)=>label.classList.toggle('active-string-label',!s.multi&&i===s.str));
       if(boardOuter)boardOuter.scrollLeft=boardScroll;
     }
     el('lessonListen').addEventListener('click',()=>{
@@ -202,7 +207,7 @@ const CourseLesson = (() => {
       playSequence(notes,{step:.55,duration:.5,positions,onend:finishListening});
     });
     el('lessonHint').addEventListener('click',()=>{
-      hints.add(current);save();
+      hints.add(current);save();el('lessonFeedback').classList.remove('answer-success');
       const s=steps[current];
       el('lessonFeedback').textContent=s.targetHint || `Начните с ${s.start}-го лада. ${Math.abs(s.delta)===1?'Сделайте один переход':'Сделайте два перехода'} к ${s.delta>0?'большим':'меньшим'} номерам. Исходный лад не считается переходом.`;
     });
