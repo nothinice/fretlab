@@ -1,5 +1,11 @@
 # Changelog
 
+## Claude review copy — 2026-11-04
+
+- Removed the repeated “Why do this?” disclosure from lesson and practice screens.
+  Kept block goals, task instructions and internal methodological/source notes.
+- Built a single portable HTML review copy with the course styles and scripts embedded.
+
 ## Course audio refinement — 2026-11-04
 
 - Replaced the plain triangle oscillator with a rounded synthetic tone containing

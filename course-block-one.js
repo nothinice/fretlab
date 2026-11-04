@@ -151,7 +151,7 @@ const CourseBlockOne = (() => {
       session=makeSession(a.kind);heard=false;boardScroll=null;
       if(a.kind==='compose'&&records[a.id]?.phrase)session.events=records[a.id].phrase.map(e=>({...e}));
       el('blockWorkspace').hidden=false;el('blockOverview').hidden=true;
-      el('blockTaskTitle').textContent=a.title;el('blockTaskPurpose').textContent=a.why;
+      el('blockTaskTitle').textContent=a.title;
       draw();el('blockTaskTitle').focus();
     }
     function board(str,marks,onClick,{all=false}={}){

@@ -69,7 +69,6 @@ const CourseLesson = (() => {
       el('lessonAlternative').hidden=!s.alternative;
       el('lessonAlternativeText').textContent=s.alternative||'';
       el('lessonExplanation').textContent=s.explanation;
-      el('lessonPurpose').textContent=s.purpose;
       el('lessonInstruction').textContent=s.instruction;
       el('lessonProgress').value=current+1;
       el('lessonProgress').max=steps.length;
