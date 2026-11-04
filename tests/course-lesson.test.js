@@ -2,7 +2,7 @@
 require('./course-sandbox.test.js');
 const assert=require('node:assert/strict');
 const lesson=require('../course-lesson.js');
-for(const id of ['lessonSelect','lessonContinue','lessonFormula','lessonTitle','lessonExplanation','lessonPurpose','lessonInstruction','lessonProgress','lessonPosition','lessonBack','lessonNext','lessonListen','lessonHint','lessonPracticeLabel','lessonPractice','lessonFeedback','lessonBoard','lessonRestart']){
+for(const id of ['lessonBreadcrumb','lessonAlternative','lessonAlternativeText','lessonNextHelp','lessonRoute','lessonSelect','lessonContinue','lessonFormula','lessonTitle','lessonExplanation','lessonPurpose','lessonInstruction','lessonProgress','lessonPosition','lessonBack','lessonNext','lessonListen','lessonHint','lessonPracticeLabel','lessonPractice','lessonFeedback','lessonBoard','lessonRestart']){
   const node=document.createElement('div');node.id=id;byId[id]=node;
 }
 lesson.boot();
@@ -15,7 +15,7 @@ click('lessonListen');assert.equal(played.at(-1),48);
 click('lessonNext');click('lessonListen');assert.deepEqual(played.slice(-2),[48,49]);
 click('lessonNext');assert.equal(byId.lessonNext.disabled,true);
 click('lessonNext');assert.equal(byId.lessonPosition.textContent,'Шаг 3 из 9');
-hit(5);assert.equal(byId.lessonNext.disabled,true);assert.match(byId.lessonFeedback.textContent,/два? переход|один переход/);
+hit(5);assert.equal(byId.lessonNext.disabled,true);assert.match(byId.lessonFeedback.textContent,/два лада|один лад/);
 click('lessonHint');assert.match(byId.lessonFeedback.textContent,/один переход/);
 hit(4);assert.equal(byId.lessonNext.disabled,false);
 click('lessonNext');click('lessonListen');assert.deepEqual(played.slice(-5),[48,49,50,48,50]);
@@ -27,7 +27,7 @@ click('lessonNext');assert.equal(byId.lessonNext.disabled,true);
 assert.equal(byId.lessonPracticeLabel.hidden,false);
 byId.lessonPractice.dispatch('change',{target:{checked:true}});
 click('lessonNext');assert.match(byId.lessonFeedback.textContent,/4 из 4/);
-assert.match(byId.lessonFeedback.textContent,/Заданий с подсказкой: 1/);
+assert.match(byId.lessonFeedback.textContent,/Подсказки: 1/);
 assert.match(byId.lessonInstruction.textContent,/самооценка/);
 assert.equal(byId.lessonNext.disabled,true);
 click('lessonRestart');assert.equal(byId.lessonPosition.textContent,'Шаг 1 из 9');
@@ -60,7 +60,8 @@ click('lessonListen');assert.deepEqual(played.slice(-15),[48,50,52,53,55,57,59,6
 click('lessonNext');assert.equal(byId.lessonNext.disabled,true);
 byId.lessonPractice.dispatch('change',{target:{checked:true}});click('lessonNext');
 assert.match(byId.lessonFeedback.textContent,/7 из 7/);
-assert.equal(byId.lessonContinue.hidden,false);click('lessonContinue');
+assert.equal(byId.lessonContinue.hidden,false);
+byId.lessonSelect.dispatch('change',{target:{value:'2'}});
 assert.match(byId.lessonTitle.textContent,/Ступень/);
 click('lessonNext');click('lessonListen');assert.deepEqual(played.slice(-2),[48,48]);
 click('lessonNext');click('lessonListen');assert.deepEqual(played.slice(-8),[48,50,52,53,55,57,59,60]);
@@ -70,7 +71,7 @@ hit(8);assert.equal(byId.lessonNext.disabled,true);
 hit(7);assert.equal(byId.lessonNext.disabled,false);assert.deepEqual(played.slice(-2),[48,52]);
 click('lessonNext');hit(10);assert.equal(byId.lessonNext.disabled,false);
 click('lessonNext');byId.lessonPractice.dispatch('change',{target:{checked:true}});click('lessonNext');
-assert.match(byId.lessonFeedback.textContent,/2 из 2/);assert.equal(byId.lessonContinue.hidden,true);
+assert.match(byId.lessonFeedback.textContent,/2 из 2/);assert.equal(byId.lessonContinue.hidden,false);
 byId.lessonSelect.dispatch('change',{target:{value:'1'}});
 assert.match(byId.lessonFeedback.textContent,/7 из 7/); // switching preserves progress
 byId.lessonSelect.dispatch('change',{target:{value:'0'}});

@@ -142,7 +142,7 @@
   }
   .degree-table th[scope="row"]{width:92px; text-align:left; color:var(--muted); font-family:'IBM Plex Sans',sans-serif; font-weight:600;}
   .degree-table td{background:var(--bg); border:1px solid var(--border); color:var(--ink); font-weight:600;}
-  .degree-table td.degree-root{background:var(--brass); color:#211408; border-color:var(--brass-dark);}
+  .degree-table td.degree-root{background:var(--brass); color:#211408; border-color:var(--brass);}
   .err{color:var(--danger); font-size:13px; margin-bottom:14px; font-family:'IBM Plex Mono',monospace; padding:10px 12px; border:1px solid var(--danger); border-radius:8px;}
   .warn{color:var(--warn); font-size:13px; margin-bottom:14px; font-family:'IBM Plex Mono',monospace; padding:10px 12px; border:1px solid var(--warn); background:var(--warn-bg); border-radius:8px;}
 
@@ -290,8 +290,8 @@
 <div class="v2-topbar">
   <div class="v2-brand">FretLab</div>
   <nav class="v2-tabs" role="tablist" aria-label="Разделы">
-    <button class="v2-tab-btn" id="tab-block" role="tab" aria-selected="true" aria-controls="panel-block" tabindex="0">Блок 1</button>
-    <button class="v2-tab-btn" id="tab-lesson" role="tab" aria-selected="false" aria-controls="panel-lesson" tabindex="-1">Уроки</button>
+    <button class="v2-tab-btn" id="tab-block" role="tab" aria-selected="true" aria-controls="panel-block" tabindex="0">Курс</button>
+    <button class="v2-tab-btn" id="tab-lesson" hidden role="tab" aria-selected="false" aria-controls="panel-lesson" tabindex="-1">Уроки</button>
     <button class="v2-tab-btn" id="tab-sandbox" role="tab" aria-selected="false" aria-controls="panel-sandbox" tabindex="-1">Свободный гриф</button>
     <button class="v2-tab-btn" id="tab-learn" role="tab" aria-selected="false" aria-controls="panel-learn" tabindex="-1">Изучать</button>
     <button class="v2-tab-btn" id="tab-explore" role="tab" aria-selected="false" aria-controls="panel-explore" tabindex="-1">Исследовать</button>
@@ -300,22 +300,27 @@
 
 <section id="panel-block" role="tabpanel" aria-labelledby="tab-block" class="v2-active">
   <div class="v2-wrap block-wrap">
+    <div id="blockOverview">
     <p class="hint">Блок 1 · Расстояния и мажорная гамма</p>
     <h1>От первого шага до своей фразы</h1>
     <p class="lesson-copy">Научитесь отмерять тон и полутон, строить C major и использовать несколько её нот в музыке. Здесь есть объяснения, самостоятельная практика, слух, ритм и итоговая проверка.</p>
     <details class="block-plan"><summary>Как заниматься: маршрут на 3–4 занятия</summary>
       <ol><li>Тон и полутон: первый урок, поиск расстояний, затем повторение на гитаре.</li><li>C major: второй урок, восстановление формулы и гаммы. Вернитесь к расстояниям без подсказок.</li><li>Слух, ритм и своя фраза из C, D, E. Повторите построение гаммы перед игрой.</li><li>На следующем занятии пройдите итоговую проверку. При затруднениях вернитесь к соответствующему упражнению.</li></ol>
-      <p>Ориентир на занятие: 5 минут повторения, 5 минут объяснения, 10 минут игры, 5 минут слуха/ритма и 5 минут своей музыки. Это план, а не таймер допуска. Не нужно проходить всё за один день или ждать до завтра, если материал уже освоен.</p>
+      <p>Ориентир на занятие: 5 минут повторения, 5 минут объяснения, 10 минут игры, 5 минут слуха/ритма и 5 минут своей музыки. Двигайтесь в удобном темпе и возвращайтесь к трудным заданиям.</p>
     </details>
-    <p id="blockStorage" class="hint"></p>
+    <details class="block-plan"><summary>Как это работает</summary><p>Ответы на экране проверяет приложение. Игра и пение — ваша самопроверка или работа с преподавателем.</p><p id="blockStorage" class="hint"></p></details>
     <p id="blockSummary" class="sandbox-readout" role="status" aria-live="polite"></p>
+    <progress id="blockProgress" max="10" value="0" aria-label="Завершённые части блока"></progress>
+    <p><button type="button" class="play-btn primary-btn" id="blockResume"></button></p>
     <div id="blockActivities" class="block-activities" aria-label="Уроки и практика блока"></div>
+    <p><button type="button" class="play-btn text-btn" id="blockNextLesson">Блок 2 · Ступени и позиция →</button></p>
+    </div>
     <section id="blockWorkspace" class="block-workspace" aria-labelledby="blockTaskTitle" hidden>
-      <button type="button" class="play-btn" id="blockClose">← К маршруту блока</button>
+      <button type="button" class="play-btn text-btn" id="blockClose">← К маршруту блока</button>
       <h2 id="blockTaskTitle" tabindex="-1"></h2>
       <p id="blockTaskExplanation" class="lesson-copy"></p>
-      <div class="lesson-purpose"><strong>Зачем это делать</strong><p id="blockTaskPurpose"></p></div>
-      <p id="blockTaskInstruction" class="lesson-copy"></p>
+      <details class="lesson-purpose"><summary>Зачем это делать</summary><p id="blockTaskPurpose"></p></details>
+      <p id="blockTaskInstruction" class="task-card"></p>
       <div id="blockTaskBody"></div>
       <p id="blockTaskFeedback" class="sandbox-readout" role="status" aria-live="polite"></p>
       <div class="sandbox-controls" id="blockTaskActions"></div>
@@ -323,32 +328,38 @@
     <p class="hint">Приложение проверяет экранные ответы и устройство вашей фразы. Чистота звука, ритм и исполнение на гитаре проверяются вами или преподавателем.</p>
   </div>
 </section>
-<section id="panel-lesson" role="tabpanel" aria-labelledby="tab-lesson">
+<section id="panel-lesson" role="tabpanel" aria-labelledby="tab-block">
   <div class="v2-wrap lesson-wrap">
-    <label class="lesson-picker">Основы · Выберите урок
-      <select id="lessonSelect"><option value="0">1. Тон и полутон</option><option value="1">2. Построение C major</option><option value="2">3. Ступени и удобная позиция</option></select>
-    </label>
+    <p class="course-breadcrumb"><button type="button" class="play-btn text-btn" id="lessonRoute">← К маршруту</button><span id="lessonBreadcrumb"></span></p>
     <progress id="lessonProgress" max="9" value="1" aria-label="Шаг урока"></progress>
     <p id="lessonPosition" class="hint"></p>
-    <h1 id="lessonTitle"></h1>
+    <div class="lesson-layout"><div class="lesson-text">
+    <h1 id="lessonTitle" tabindex="-1"></h1>
     <p id="lessonExplanation" class="lesson-copy"></p>
-    <div class="lesson-purpose"><strong>Зачем это делать</strong><p id="lessonPurpose"></p></div>
-    <p id="lessonInstruction" class="lesson-copy"></p>
+    <details class="lesson-purpose"><summary>Зачем это делать</summary><p id="lessonPurpose"></p></details>
+    <details id="lessonAlternative" class="lesson-purpose" hidden><summary>Если верхние лады недоступны</summary><p id="lessonAlternativeText"></p></details>
+    </div><div class="lesson-work">
+    <p id="lessonInstruction" class="task-card"></p>
     <div id="lessonFormula" class="lesson-formula" aria-label="Формула и текущий шаг"></div>
     <div class="board-outer"><div class="board" id="lessonBoard" aria-label="Учебный гриф, первая струна сверху"></div></div>
-    <div class="sandbox-controls">
-      <button type="button" class="play-btn" id="lessonListen">▶ Послушать пример</button>
-      <button type="button" class="play-btn" id="lessonHint">Подсказка</button>
-    </div>
     <p id="lessonFeedback" class="sandbox-readout" role="status" aria-live="polite"></p>
     <label id="lessonPracticeLabel" class="lesson-practice"><input type="checkbox" id="lessonPractice"> Я сыграл упражнение на гитаре и проверил себя по критериям выше</label>
+    <p id="lessonNextHelp" class="hint" role="status"></p>
     <nav class="sandbox-controls" aria-label="Шаги урока">
-      <button type="button" class="play-btn" id="lessonBack">← Назад</button>
-      <button type="button" class="play-btn" id="lessonNext">Далее →</button>
-      <button type="button" class="play-btn" id="lessonRestart">Начать заново</button>
-      <button type="button" class="play-btn" id="lessonContinue" hidden>Следующий урок →</button>
+      <button type="button" class="play-btn" id="lessonListen">▶ Послушать пример</button>
+      <button type="button" class="play-btn text-btn" id="lessonHint">Подсказка</button>
+
+      <button type="button" class="play-btn text-btn" id="lessonBack">← Назад</button>
+      <button type="button" class="play-btn primary-btn" id="lessonNext" aria-describedby="lessonNextHelp">Далее →</button>
+      <button type="button" class="play-btn text-btn" id="lessonRestart">Начать заново</button>
+      <button type="button" class="play-btn primary-btn" id="lessonContinue" hidden>Следующий урок →</button>
     </nav>
+    </div></div>
     <p class="hint">Номер струны считаем от тонкой: первая E сверху, шестая E снизу. Номера ладов указаны над грифом. Ноты звучат после нажатия.</p>
+    <details class="lesson-purpose"><summary>Другие объяснения</summary>    <label class="lesson-picker">Перейти к объяснению
+      <select id="lessonSelect"><option value="0">Блок 1 · Тон и полутон</option><option value="1">Блок 1 · Построение C major</option><option value="2">Блок 2 · Ступени и позиция</option></select>
+    </label>
+</details>
     <p class="hint">Прогресс сохраняется при переключении уроков в открытой странице. После перезагрузки задания начинаются заново.</p>
   </div>
 </section>
@@ -359,9 +370,9 @@
     <div class="sandbox-controls">
       <label>Действие <select id="sandboxAction"><option value="mark">Ставить и убирать ноты</option><option value="listen">Только слушать</option><option value="measure">Измерить интервал</option></select></label>
       <label>Названия <select id="sandboxSpelling"><option value="sharp">С диезами ♯</option><option value="flat">С бемолями ♭</option></select></label>
-      <button type="button" class="play-btn" id="sandboxClear">Очистить гриф</button>
+      <button type="button" class="play-btn text-btn" id="sandboxClear">Очистить гриф</button>
     </div>
-    <p class="hint" id="sandboxHelp">Отмечайте любые ноты на всех шести струнах.</p>
+    <p class="hint" id="sandboxHelp">Отмечайте любые ноты на всех шести струнах. С клавиатуры: Tab — вход на гриф, стрелки — выбор лада и струны, Enter — нота.</p>
     <div class="board-outer"><div class="board" id="sandboxBoard" aria-label="Интерактивный гриф, первая струна сверху"></div></div>
     <div class="sandbox-readout" id="sandboxReadout" role="status" aria-live="polite"></div>
     <div class="sandbox-controls">
@@ -737,13 +748,17 @@ function playMidi(midi, when, dur, peak = 0.22){
   gain.gain.exponentialRampToValueAtTime(0.0001, t + d);
   osc.connect(gain); gain.connect(ctx.destination);
   osc.start(t); osc.stop(t + d + 0.05);
+  if(typeof CourseSandbox!=='undefined')CourseSandbox.trackVoice(osc,midi,t,d,ctx);
   return osc;
 }
+let sequenceVoices=[];
+function stopSequence(){sequenceVoices.forEach(v=>{try{v?.stop();}catch{}});sequenceVoices=[];}
 function playSequence(midiList){
+  stopSequence();
   if(!midiList || !midiList.length) return;
   const ctx = getAudioCtx();
   let t = ctx.currentTime + 0.03;
-  midiList.forEach(midi => { playMidi(midi, t, 0.5); t += 0.32; });
+  midiList.forEach(midi => { sequenceVoices.push(playMidi(midi, t, 0.28)); t += 0.32; });
 }
 function ascendingMidiFromPcs(pcsOrdered, firstMidi){
   if(!pcsOrdered || !pcsOrdered.length || !Number.isFinite(firstMidi)) return [];
@@ -2062,6 +2077,7 @@ function render(){
     for(let f=0; f<=FRET_COUNT; f++){
       const cell = document.createElement('div');
       cell.className = 'cell' + (f === 0 ? ' nut' : '');
+      cell.dataset.midi=String(str.midi+f);
       cell.style['--string-thickness'] = `${[1,1.15,1.35,1.7,2.1,2.55][stringIdx]}px`;
       const line = document.createElement('div');
       line.className = 'string-line';
@@ -2357,6 +2373,7 @@ function v2RenderBoard(cellsMap, boardId = 'learnBoard'){
     for(let f=0; f<=FRET_COUNT; f++){
       const cell = document.createElement('div');
       cell.className = 'cell' + (f === 0 ? ' nut' : '');
+      cell.dataset.midi=String(str.midi+f);
       cell.style.position='relative'; cell.style.height='44px'; cell.style.display='flex';
       cell.style.alignItems='center'; cell.style.justifyContent='center';
       cell.style['--string-thickness'] = `${[1,1.15,1.35,1.7,2.1,2.55][stringIdx]}px`;
@@ -2566,19 +2583,24 @@ function v2InitTabs(){
   const exploreTab = document.getElementById('tab-explore');
   const tabs = [document.getElementById('tab-block'), document.getElementById('tab-lesson'), document.getElementById('tab-sandbox'), learnTab, exploreTab];
   function activate(tab){
+    stopSequence();
     tabs.forEach(t=>{
       const isActive = t===tab;
-      t.setAttribute('aria-selected', isActive?'true':'false');
-      t.tabIndex = isActive ? 0 : -1;
-      document.getElementById(t.getAttribute('aria-controls')).classList.toggle('v2-active', isActive);
+      const selected = (t.id==='tab-block' && tab.id==='tab-lesson') || (isActive && t.id!=='tab-lesson');
+      t.setAttribute('aria-selected', selected?'true':'false');
+      t.tabIndex = selected ? 0 : -1;
+      document.getElementById('panel-'+t.id.slice(4)).classList.toggle('v2-active', isActive);
     });
-    tab.focus();
+    document.getElementById('tab-block').setAttribute('aria-controls',tab.id==='tab-lesson'?'panel-lesson':'panel-block');
+    (tab.id==='tab-lesson' ? document.getElementById('lessonTitle') : tab).focus();
   }
-  tabs.forEach((tab,i)=>{
+  const visibleTabs=tabs.filter(t=>t.id!=='tab-lesson');
+  tabs.forEach(tab=>{
+    const i=visibleTabs.indexOf(tab);
     tab.addEventListener('click', ()=>activate(tab));
     tab.addEventListener('keydown', (e)=>{
-      if(e.key==='ArrowRight') { e.preventDefault(); activate(tabs[(i+1)%tabs.length]); }
-      if(e.key==='ArrowLeft') { e.preventDefault(); activate(tabs[(i-1+tabs.length)%tabs.length]); }
+      if(e.key==='ArrowRight') { e.preventDefault(); visibleTabs[(i+1)%visibleTabs.length].click(); }
+      if(e.key==='ArrowLeft') { e.preventDefault(); visibleTabs[(i-1+visibleTabs.length)%visibleTabs.length].click(); }
     });
   });
 }

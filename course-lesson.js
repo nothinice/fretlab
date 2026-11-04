@@ -61,29 +61,41 @@ const CourseLesson = (() => {
     const isTask=s=>s.delta!==undefined || !!s.target;
     function ready() {const s=steps[current]; return isTask(s) ? solved.has(current) : s.practice ? practiced : true;}
     function render() {
+      stopSequence();
+      const boardOuter=el('lessonBoard').parentElement, boardScroll=boardOuter?.scrollLeft||0;
       const s = steps[current];
       el('lessonTitle').textContent=s.title;
+      el('lessonBreadcrumb').textContent=activeLesson===2?'Блок 2 · Ступени и позиция':`Блок 1 · ${activeLesson===0?'1. Тон и полутон':'3. Построение C major'}`;
+      el('lessonAlternative').hidden=!s.alternative;
+      el('lessonAlternativeText').textContent=s.alternative||'';
       el('lessonExplanation').textContent=s.explanation;
       el('lessonPurpose').textContent=s.purpose;
       el('lessonInstruction').textContent=s.instruction;
       el('lessonProgress').value=current+1;
       el('lessonProgress').max=steps.length;
       el('lessonSelect').value=String(activeLesson);
-      el('lessonContinue').hidden=!s.finish || activeLesson===lessons.length-1;
+      el('lessonContinue').hidden=!s.finish;
+      el('lessonContinue').textContent=activeLesson<2?'Продолжить по маршруту →':'К маршруту →';
       el('lessonFormula').innerHTML='';
       el('lessonFormula').hidden=!s.formula;
       if(s.formula){
-        const parts=s.formulaIndex===undefined?[s.formula]:content.majorSteps.map(n=>n===1?'Полутон':'Тон');
-        parts.forEach((text,i)=>{const span=document.createElement('span');span.textContent=text;if(i===s.formulaIndex){span.className='current-step';span.setAttribute('aria-current','step');}el('lessonFormula').appendChild(span);});
+        const parts=s.showDegrees?[s.formula]:content.majorSteps.map(n=>n===1?'½ · Полутон':'1 · Тон');
+        parts.forEach((text,i)=>{const span=document.createElement('span');span.textContent=text;if(!s.showDegrees)span.className=content.majorSteps[i]===1?'step-half':'step-whole';if(i===s.formulaIndex){span.classList.add('current-step');span.setAttribute('aria-current','step');}el('lessonFormula').appendChild(span);});
       }
       el('lessonPosition').textContent=`Шаг ${current+1} из ${steps.length}`;
       el('lessonBack').disabled=current===0;
       el('lessonNext').disabled=!ready() || !!s.finish;
+      el('lessonNext').hidden=!!s.finish;
+      el('lessonNextHelp').textContent=!ready()?(s.practice?'Сначала сыграйте на гитаре и отметьте самопроверку.':'Сначала выберите нужную ноту на грифе.') : '';
+      el('lessonBack').hidden=!!s.finish;
       el('lessonListen').hidden=isTask(s) || !!s.practice || !!s.finish;
       el('lessonHint').hidden=!isTask(s);
       el('lessonPracticeLabel').hidden=!s.practice;
+      el('lessonFeedback').hidden=!isTask(s)&&!s.finish&&!s.practice;
+      el('lessonBoard').parentElement && (el('lessonBoard').parentElement.hidden=!!s.finish);
+      if(s.finish)el('lessonFormula').hidden=true;
       el('lessonPractice').checked=practiced;
-      el('lessonFeedback').textContent=isTask(s) ? solved.has(current) ? 'Верно. Можно переходить дальше.' : 'Выберите ответ на указанной струне. Можно пробовать снова: ошибка не закрывает задание.' : s.finish ? `Экранных заданий выполнено: ${solved.size} из ${steps.filter(isTask).length}. Заданий с подсказкой: ${hints.size}. Практика на гитаре отмечена вами: ${practiced ? 'да' : 'нет'}.` : 'Нажмите «Послушать пример» или на отмеченную точку.';
+      el('lessonFeedback').textContent=isTask(s) ? solved.has(current) ? 'Верно. Можно переходить дальше.' : 'Выберите ответ на указанной струне. Можно пробовать снова: ошибка не закрывает задание.' : s.finish ? `✓ Ответы: ${solved.size} из ${steps.filter(isTask).length} · ◇ Подсказки: ${hints.size} · ♫ Гитара: ${practiced ? 'сыграно (самооценка)' : 'ещё не отмечено'}` : 'Нажмите «Послушать пример» или на отмеченную точку.';
       if(s.practice) el('lessonFeedback').textContent='Отметьте практику после игры и самопроверки. Нажатия на грифе не заменяют это задание.';
       if(s.finish && document.dispatchEvent && typeof CustomEvent!=='undefined') document.dispatchEvent(new CustomEvent('course-lesson-progress',{detail:{lessonId:activeLesson,complete:solved.size===steps.filter(isTask).length&&practiced,assisted:hints.size>0,practice:practiced}}));
       v2RenderBoard(new Map(), 'lessonBoard');
@@ -117,12 +129,17 @@ const CourseLesson = (() => {
             el('lessonFeedback').textContent='Пока не та ступень. Отсчитайте нужный номер от C. Можно воспользоваться подсказкой и попробовать снова.';
           }else if(!solved.has(current)){
             const difference=fret-s.start;
-            el('lessonFeedback').textContent=difference===0 ? 'Это исходный звук: пока ни одного перехода. Выберите другой лад.' : `Число выбранных переходов: ${Math.abs(difference)}, направление — ${difference>0?'вверх':'вниз'}. Нужно ${Math.abs(s.delta)===1?'один переход':'два перехода'} ${s.delta>0?'вверх':'вниз'}. Считайте промежутки между ладами на той же струне.`;
+            el('lessonFeedback').textContent=difference===0 ? 'Это исходный звук: пока ни одного перехода. Выберите другой лад.' : `Вы отложили ${Math.abs(difference)} ${Math.abs(difference)===1?'лад':Math.abs(difference)<5?'лада':'ладов'} ${difference>0?'вверх':'вниз'}, а нужно ${Math.abs(s.delta)===1?'один лад':'два лада'} ${s.delta>0?'вверх':'вниз'}.`;
           }else playSequence([s.target?48:OPEN_STRINGS_TOP_TO_BOTTOM[s.str].midi+s.start,OPEN_STRINGS_TOP_TO_BOTTOM[s.str].midi+fret]);
           el('lessonBoard').querySelectorAll('.sandbox-hit')[fret].focus({preventScroll:true});
         });
         cell.appendChild(button);
       });
+      const points=s.path?[...s.path]:[{stringIdx:s.str,fret:s.start}];
+      const endpoint=s.demo!==undefined?s.demo:solved.has(current)&&s.delta!==undefined?s.start+s.delta:null;
+      if(endpoint!==null)points.push({stringIdx:s.str,fret:endpoint});
+      sandbox.drawDistances(el('lessonBoard'),points);
+      if(boardOuter)boardOuter.scrollLeft=boardScroll;
     }
     el('lessonListen').addEventListener('click',()=>{
       const s=steps[current],open=OPEN_STRINGS_TOP_TO_BOTTOM[s.str].midi;
@@ -134,11 +151,24 @@ const CourseLesson = (() => {
       el('lessonFeedback').textContent=s.targetHint || `Начните с ${s.start}-го лада. ${Math.abs(s.delta)===1?'Сделайте один переход':'Сделайте два перехода'} к ${s.delta>0?'большим':'меньшим'} номерам. Исходный лад не считается переходом.`;
     });
     el('lessonPractice').addEventListener('change',e=>{practiced=e.target.checked;render();});
-    el('lessonBack').addEventListener('click',()=>{if(current>0){current--;render();}});
-    el('lessonNext').addEventListener('click',()=>{if(ready()&&current<steps.length-1){current++;render();el('lessonTitle').setAttribute('tabindex','-1');el('lessonTitle').focus();}});
-    el('lessonRestart').addEventListener('click',()=>{current=0;solved.clear();choices.clear();hints.clear();practiced=false;render();});
+    function moveStep(direction){
+      if(direction>0&&(!ready()||current===steps.length-1)||direction<0&&current===0)return;
+      const view=document.defaultView, panel=el('panel-lesson');
+      const top=view?.scrollY, left=view?.scrollX;
+      // Keep a shorter next step from clamping the viewport to the new page bottom.
+      // Reserve only this lesson's already displayed height; reset for another lesson.
+      if(view)panel.style.minHeight=panel.getBoundingClientRect().height+'px';
+      current+=direction;render();
+      el('lessonTitle').focus({preventScroll:true});
+      if(view)view.scrollTo({top,left,behavior:'instant'});
+    }
+    document.defaultView?.addEventListener('resize',()=>{el('panel-lesson').style.minHeight='';});
+    el('lessonBack').addEventListener('click',()=>moveStep(-1));
+    el('lessonNext').addEventListener('click',()=>moveStep(1));
+    el('lessonRestart').addEventListener('click',()=>{el('panel-lesson').style.minHeight='';current=0;solved.clear();choices.clear();hints.clear();practiced=false;render();});
     function switchLesson(index){
       if(!Number.isInteger(index)||!lessons[index])return;
+      el('panel-lesson').style.minHeight='';
       sessions.set(activeLesson,{current,solved,choices,hints,practiced});
       activeLesson=index;steps=lessons[index];
       const saved=sessions.get(index);
@@ -146,7 +176,12 @@ const CourseLesson = (() => {
       render();
     }
     el('lessonSelect').addEventListener('change',e=>switchLesson(Number(e.target.value)));
-    el('lessonContinue').addEventListener('click',()=>{if(steps[current].finish)switchLesson(activeLesson+1);});
+    el('lessonRoute').addEventListener('click',()=>el('tab-block').click());
+    el('lessonContinue').addEventListener('click',()=>{
+      if(!steps[current].finish)return;
+      el('tab-block').click();
+      if(activeLesson<2)window.courseBlockOne.open(window.courseBlockOne.activities[activeLesson===0?1:3]);
+    });
     render();
     return {open:switchLesson};
   }

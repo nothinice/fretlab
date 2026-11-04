@@ -1,10 +1,16 @@
 .sandbox-controls{display:flex;align-items:end;flex-wrap:wrap;gap:12px;margin:16px 0}
 .sandbox-controls label{display:grid;gap:6px;font-size:14px}
 .sandbox-controls select{max-width:100%;min-height:44px}
-.sandbox-readout{min-height:64px;padding:16px;background:var(--panel);border:1px solid var(--line,#d8cdbb);border-radius:12px;margin:14px 0;line-height:1.7}
+.sandbox-readout{min-height:64px;padding:16px;background:var(--panel);border:1px solid var(--border);border-radius:12px;margin:14px 0;line-height:1.7}
 .board .sandbox-hit{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;width:100%;height:100%;padding:0;border:0;border-radius:0;background:transparent;cursor:pointer;z-index:2}
-.board .sandbox-hit:hover{background:rgba(255,255,255,.15)}
-.board .sandbox-hit:focus-visible{outline:3px solid var(--ink);outline-offset:-3px}
+.board .sandbox-hit::before{content:'';position:absolute;left:50%;top:50%;width:36px;height:36px;border:2px solid rgba(255,247,225,.85);border-radius:50%;background:rgba(255,247,225,.1);box-shadow:0 0 12px rgba(242,193,78,.25);opacity:0;transform:translate(-50%,-50%) scale(.8);transition:opacity .18s ease,transform .18s ease;pointer-events:none}
+.board .sandbox-hit:focus-visible{outline:none}
+.board .sandbox-hit:focus-visible::before{opacity:1;transform:translate(-50%,-50%) scale(1);border-color:#fff7e1;box-shadow:0 0 0 2px #49301e}
+@media(hover:hover) and (pointer:fine){
+  .board .sandbox-hit:hover::before{opacity:1;transform:translate(-50%,-50%) scale(1)}
+  .board .sandbox-hit:hover .note{transform:scale(1.08)}
+}
+.board .sandbox-hit:active .note{transform:scale(.96)}
 .board .sandbox-hit .note{pointer-events:none;animation:none;flex-shrink:0}
 .lesson-copy{max-width:760px;font-size:18px;line-height:1.65;white-space:pre-line}
 .lesson-purpose{border-left:4px solid var(--chord-note);padding:12px 18px;background:var(--panel);margin:18px 0;max-width:760px}
@@ -23,17 +29,72 @@
 .block-plan{max-width:860px;padding:16px;background:var(--panel);border-radius:12px;line-height:1.7}
 .block-plan summary{cursor:pointer;font-weight:600}
 .block-activities{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;margin:22px 0}
-.block-card{padding:18px;background:var(--panel);border:1px solid #d8cdbb;border-radius:12px;line-height:1.6}
+.block-card{padding:18px;background:var(--panel);border:1px solid var(--border);border-radius:12px;line-height:1.6}
 .block-card h2{font-size:19px;margin-top:0}
-.block-workspace{margin:22px 0;padding:20px 0;border-top:1px solid #d8cdbb}
+.block-workspace{margin:22px 0;padding:20px 0;border-top:1px solid var(--border)}
 .block-workspace button,.block-card button{min-height:44px}
-.rhythm-option{border:1px solid #d8cdbb;border-radius:10px;padding:12px;margin:12px 0;overflow-wrap:anywhere}
+.rhythm-option{border:1px solid var(--border);border-radius:10px;padding:12px;margin:12px 0;overflow-wrap:anywhere}
 .rhythm-option p:last-of-type{font-family:'IBM Plex Mono',monospace;font-size:13px}
 .phrase-timeline{display:flex;gap:8px;flex-wrap:wrap;list-style:none;padding:0}
-.phrase-timeline li{padding:10px;background:var(--panel);border-radius:8px;border:1px solid #d8cdbb}
+.phrase-timeline li{padding:10px;background:var(--panel);border-radius:8px;border:1px solid var(--border)}
 .block-workspace input[type=number]{max-width:100px;min-height:44px}
 .block-workspace .lesson-practice{margin:14px 0}
 #blockTaskTitle,#lessonTitle{scroll-margin-top:175px}
 .mobile-board-tip{display:none}
 @media(max-width:600px){.mobile-board-tip{display:block}}
 @media(max-width:600px){.sandbox-controls label{width:100%}.sandbox-controls select{width:100%}.sandbox-controls button{min-height:44px}.v2-tabs{flex-wrap:wrap}}
+
+/* Course presentation: one primary action, compact navigation and task-first lessons. */
+.play-btn{background:var(--panel);border-color:var(--border);color:var(--ink);min-height:44px}
+.play-btn.primary-btn{background:var(--brass);border-color:var(--brass);color:#211408}
+.play-btn.text-btn{background:transparent;border-color:transparent;color:var(--teal)}
+[hidden]{display:none!important}
+.v2-tabs{flex-wrap:nowrap;overflow-x:auto;min-width:0;max-width:100%}
+.v2-tab-btn{white-space:nowrap;flex-shrink:0}
+#tab-sandbox{border-left:1px solid var(--border);border-radius:0 8px 8px 0;margin-left:12px}
+.v2-topbar{flex-wrap:nowrap}
+.v2-wrap{min-width:0}
+.lesson-copy{font-size:16px;line-height:1.55;margin:12px 0}
+.lesson-picker{max-width:420px;margin:8px 0}
+.lesson-picker select{font-size:14px}
+.lesson-purpose{margin:12px 0;padding:10px 12px;font-size:14px}
+.lesson-purpose summary{cursor:pointer;font-weight:600}
+.task-card{font-size:16px;line-height:1.5;font-weight:500;border-left:4px solid var(--teal);background:var(--panel);padding:14px 16px;margin:0 0 12px;white-space:pre-line}
+.task-card::before{content:'Задание';display:block;font-size:12px;color:var(--teal);font-weight:600;margin-bottom:4px}
+.lesson-layout{display:grid;grid-template-columns:minmax(220px,1fr) minmax(0,2.5fr);gap:24px;align-items:start}
+.lesson-text h1{font-size:25px}
+.lesson-work{min-width:0}
+.lesson-work .board{min-width:700px}
+.lesson-work .sandbox-readout{min-height:0;margin:10px 0;padding:12px}
+.lesson-work .sandbox-controls{margin:10px 0}
+.course-breadcrumb{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0;font-size:13px;color:var(--muted)}
+.block-plan{margin:12px 0;padding:12px 16px}
+#blockSummary{min-height:0;background:none;border:0;padding:0;margin:16px 0 8px}
+#blockProgress{width:100%;accent-color:var(--teal)}
+.block-activities{display:block}
+.block-stage{margin:24px 0}
+.block-stage h2{font-size:20px}
+.block-stage-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.block-card{padding:16px}
+.block-card h3{font-size:17px;margin:0}
+.block-card p{margin:8px 0;font-size:14px}
+.block-status{display:flex;gap:6px;flex-wrap:wrap}
+.block-status span{background:var(--bg);border-radius:12px;padding:2px 8px;font-size:12px}
+.block-workspace{margin:0;border:0;padding:0}
+#blockTaskTitle,#lessonTitle{scroll-margin-top:80px}
+@media(max-width:850px){.lesson-layout{grid-template-columns:1fr;gap:12px}.lesson-text h1{font-size:23px}}
+@media(max-width:600px){.v2-topbar{padding:6px 10px;gap:8px}.v2-brand{flex-basis:auto;font-size:15px}.v2-tabs{flex-basis:auto;flex-wrap:nowrap}.v2-tab-btn{padding:8px 12px}.lesson-copy{font-size:15px}.course-breadcrumb{gap:4px}.board-outer{padding-left:8px;padding-right:8px}}
+
+.step-half{--step-color:var(--brass)}
+.step-whole{--step-color:var(--teal)}
+.lesson-formula span{border:2px solid var(--step-color,var(--border));font-size:12px;padding:4px 7px}
+.lesson-formula .current-step{background:var(--step-color,var(--teal));color:var(--panel);outline:2px solid var(--ink)}
+.interval-arc{position:absolute;left:50%;top:-10px;height:20px;border-top:3px solid var(--step-color);border-radius:50% 50% 0 0;z-index:4;pointer-events:none;text-align:center;color:var(--step-color);font:700 12px/14px 'IBM Plex Mono',monospace;text-shadow:0 0 3px var(--panel);background:var(--panel)}
+.cell.sounding::before{content:'';position:absolute;left:50%;top:50%;width:38px;height:38px;border-radius:50%;background:rgba(242,193,78,.24);box-shadow:0 0 14px rgba(242,193,78,.5);transform:translate(-50%,-50%);pointer-events:none;z-index:1}
+.cell.sounding .note{outline:3px solid var(--tonic-note);outline-offset:3px;transform:scale(1.12)}
+
+body{padding:0 0 40px}
+.lesson-work .hint:empty{display:none}
+.lesson-work .sandbox-controls{gap:8px}
+
+@media(prefers-reduced-motion:reduce){.board .sandbox-hit::before,.board .sandbox-hit .note{transition:none}.board .sandbox-hit:hover .note,.board .sandbox-hit:active .note,.cell.sounding .note{transform:none}}

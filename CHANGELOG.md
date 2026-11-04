@@ -1,5 +1,29 @@
 # Changelog
 
+## Course presentation review — 2026-11-04
+
+- Follow-up: replaced rectangular fret hover/focus/playback fills with circular halos
+  and gentle note scaling; reduced-motion preferences disable the scaling.
+- Lesson Next/Back preserve viewport and horizontal fretboard scroll. A per-lesson
+  minimum height prevents shorter content from pulling the page upward; it resets
+  on restart, lesson change or viewport resize. Verified mobile scroll regression,
+  hover appearance, reduced motion and the full browser flow.
+
+- Applied the owner-provided Claude source review to the course entry only: grouped
+  Block 1 route, resume action, shared Course navigation and lesson return/continuation.
+- Separated primary, secondary and text actions; moved purpose/alternate E-major
+  explanation into disclosures and placed instructions directly above the board.
+- Added tone/semitone brackets and matching formula colours, audio-clock-driven note
+  highlighting, and arrow-key navigation with one tab stop on the free fretboard.
+- Fixed theme-aware borders, the undefined tonic-border variable and beat inflection.
+- Verified all Node test suites and the complete browser flow against both the source
+  page and portable HTML, including 1366×768 and emulated 390px layouts, dark theme,
+  keyboard focus, audio highlighting, storage failure and saved-result reload.
+- Screenshots were inspected in Chromium; no physical-phone or new guitar-performance
+  validation is claimed. Source-derived musical material and self-assessment remain distinct.
+- Publication uses the separate course-preview repository; original FretLab `main`
+  and `redesign-v2.html` remain unchanged.
+
 ## 0.9.1-preview — 2026-09-23
 
 - Recorded completed hands-on guitar review of all current Major, Natural Minor, triad,

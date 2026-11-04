@@ -2,13 +2,13 @@
 import re
 import os
 from pathlib import Path
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import sync_playwright, expect
 
 APP = Path(os.environ.get('FRETLAB_PREVIEW_PATH',Path(__file__).resolve().parents[1] / 'course-lab.html'))
 
 with sync_playwright() as p:
     browser = p.chromium.launch(args=['--no-sandbox'])
-    page = browser.new_page(viewport={'width': 1365, 'height': 1000})
+    page = browser.new_page(viewport={'width': 1366, 'height': 768})
     errors = []
     page.on('pageerror', lambda e: errors.append(str(e)))
     page.goto(APP.as_uri())
@@ -47,6 +47,48 @@ with sync_playwright() as p:
             fret(f)
         body_button('Проверить')
 
+    # Review regressions: single course entry, task visible, audio clock and keyboard access.
+    assert page.locator('#tab-lesson').is_hidden()
+    assert page.locator('.block-stage').count() == 4
+    page.locator('#blockResume').click()
+    page.evaluate('scrollTo(0,0)')
+    board_box=page.locator('#lessonBoard').bounding_box()
+    assert board_box['y']+board_box['height'] <= 768, board_box
+    assert page.locator('#tab-block').get_attribute('aria-selected') == 'true'
+    page.screenshot(path='/tmp/fretlab-review-lesson-desktop.png')
+    tonic=page.locator('#lessonBoard .sandbox-hit').nth(3)
+    tonic.hover()
+    page.wait_for_timeout(220)
+    hover_style=tonic.evaluate("e => ({background:getComputedStyle(e).backgroundColor, radius:getComputedStyle(e,'::before').borderRadius, opacity:getComputedStyle(e,'::before').opacity})")
+    assert hover_style == {'background':'rgba(0, 0, 0, 0)','radius':'50%','opacity':'1'}, hover_style
+    page.locator('#lessonBoard').screenshot(path='/tmp/fretlab-note-hover.png')
+    page.emulate_media(reduced_motion='reduce')
+    assert tonic.locator('.note').evaluate("e => getComputedStyle(e).transform") == 'none'
+    page.emulate_media(reduced_motion='no-preference')
+
+    page.locator('#lessonNext').click()
+    assert page.locator('#lessonBoard .interval-arc').inner_text() == '½'
+    page.locator('#lessonListen').click()
+    page.wait_for_function("document.querySelectorAll('#lessonBoard .sounding').length > 0")
+    page.locator('#lessonNext').click()
+    expect(page.locator('#lessonBoard .sounding')).to_have_count(0)
+    assert page.locator('#lessonNext').is_disabled()
+    assert 'Сначала выберите' in page.locator('#lessonNextHelp').inner_text()
+    page.locator('#lessonRestart').click()
+    page.locator('#lessonRoute').click()
+    assert page.locator('#blockOverview').is_visible()
+    page.locator('#tab-sandbox').click()
+    hits=page.locator('#sandboxBoard .sandbox-hit')
+    assert page.locator('#sandboxBoard [tabindex="0"]').count() == 1
+    hits.first.focus()
+    page.keyboard.press('ArrowRight');page.keyboard.press('ArrowDown')
+    expect(hits.nth(18)).to_be_focused()
+    page.keyboard.press('Enter')
+    expect(hits.nth(18)).to_be_focused()
+    assert page.locator('#sandboxBoard [tabindex="0"]').count() == 1
+    page.keyboard.press('Tab')
+    expect(page.locator('#sandboxSequence')).to_be_focused()
+
     # Complete the guided lessons through the real UI, including guitar self-reports.
     for index, lesson in [(0,0),(2,1)]:
         activity(index)
@@ -60,7 +102,10 @@ with sync_playwright() as p:
                 page.locator('#lessonPractice').check()
             if not step.get('finish'):
                 page.locator('#lessonNext').click()
-        assert 'Экранных заданий выполнено' in page.locator('#lessonFeedback').inner_text()
+        assert '✓ Ответы:' in page.locator('#lessonFeedback').inner_text()
+        page.locator('#lessonContinue').click()
+        assert page.locator('#blockWorkspace').is_visible()
+        assert ('2.' if lesson==0 else '4.') in page.locator('#blockTaskTitle').inner_text()
 
     activity(1); solve_intervals(8)
     assert 'Упражнение выполнено' in page.locator('#blockTaskFeedback').inner_text()
@@ -127,6 +172,28 @@ with sync_playwright() as p:
     mobile.goto(APP.as_uri())
     mobile.wait_for_selector('#blockActivities article')
     assert mobile.evaluate('document.documentElement.scrollWidth <= innerWidth+1')
+    assert mobile.locator('.v2-topbar').bounding_box()['height'] <= 65
+    mobile.locator('#blockResume').click()
+    assert mobile.evaluate('document.documentElement.scrollWidth <= innerWidth+1')
+    mobile.screenshot(path='/tmp/fretlab-review-lesson-mobile.png',full_page=True)
+    # Next must not jump to the title or to a shorter page's bottom on mobile.
+    for _ in range(2):
+        mobile.locator('#lessonNext').scroll_into_view_if_needed()
+        before=mobile.evaluate('scrollY')
+        mobile.locator('#lessonNext').click()
+        mobile.wait_for_timeout(100)
+        assert abs(mobile.evaluate('scrollY')-before) <= 1
+    mobile.locator('#lessonBack').scroll_into_view_if_needed()
+    before=mobile.evaluate('scrollY')
+    mobile.locator('#lessonBack').click()
+    mobile.wait_for_timeout(100)
+    assert abs(mobile.evaluate('scrollY')-before) <= 1
+
+    mobile.locator('#lessonRoute').click()
+    mobile.emulate_media(color_scheme='dark')
+    assert mobile.locator('.block-card').first.evaluate("e => getComputedStyle(e).borderTopColor") == 'rgb(58, 49, 40)'
+    mobile.screenshot(path='/tmp/fretlab-review-dark-mobile.png',full_page=True)
+    mobile.emulate_media(color_scheme='light')
     mobile.screenshot(path='/tmp/fretlab-block1-mobile.png',full_page=True)
     mobile.locator('#blockActivities article').nth(4).get_by_role('button').click()
     mobile.locator('#blockPracticeBoard button[aria-label="Струна 5, лад 5"]').click()
