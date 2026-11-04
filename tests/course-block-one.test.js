@@ -44,3 +44,5 @@ assert(records.formula.assisted);assert(!records.final.practice);
 assert.deepEqual(b.cleanRecords({version:1,records:{compose:{done:true,phrase}}}).compose.phrase,phrase);
 assert(!b.cleanRecords({version:1,records:{compose:{done:true,phrase:[null]}}}).compose.phrase);
 console.log('OK: block generation, interval and ear retries, formula, scale, error repair, rhythm durations, composition and record validation');
+assert.deepEqual(require('../course-block-one.js').LESSON_FOR_ACTIVITY,{interval:0,formula:1,scale:1,repair:1});
+console.log('OK: only activities with relevant explanations have lesson links');

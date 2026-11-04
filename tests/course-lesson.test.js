@@ -86,3 +86,9 @@ saved=lesson.cleanSession({current:8,choices:[[2,5],[4,99],["5",5],null],practic
 assert.equal(saved.current,2);assert.equal(saved.solved.size,0);assert.equal(saved.practiced,false);
 assert.equal(lesson.cleanSession({current:-1},lesson.steps).current,0);
 console.log('OK: persisted lesson validation and prerequisite gates');
+assert.equal(lesson.positionFor(44,{str:4}),null);
+assert.equal(lesson.positionFor(62,{str:4}),null);
+assert.equal(lesson.positionFor(48,{str:99}),null);
+assert.equal(lesson.positionFor(48,{str:4,path:[]}),null);
+assert.deepEqual(lesson.positionFor(61,{str:4}),{boardId:'lessonBoard',index:84});
+console.log('OK: position fallback validates string/fret bounds and does not reveal hidden answers');

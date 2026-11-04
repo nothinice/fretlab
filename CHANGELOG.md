@@ -1,5 +1,12 @@
 # Changelog
 
+## Review follow-up — 2026-11-04
+
+- Limited lesson-return links to interval, formula, scale and repair activities.
+- Updated only changed sounding cells, including replacement DOM nodes; retired stopped and expired voices even without ended events.
+- Validated fallback fret positions and resumed the most recently visited unfinished lesson, including migration of existing saved sessions.
+- Enlarged tab scrolling to a 44px target. Added Node and Chromium regression coverage.
+
 ## Second Claude review — 2026-11-04
 
 - Kept slow lesson playback explicit; restored the tools’ 0.32-second sequence spacing and 0.9-second single notes.

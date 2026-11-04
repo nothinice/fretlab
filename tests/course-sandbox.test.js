@@ -60,3 +60,22 @@ assert.equal(byId['panel-explore'].classList.contains('v2-active'),true);
 byId['tab-sandbox'].dispatch('click');
 assert.equal(byId['panel-sandbox'].classList.contains('v2-active'),true);
 console.log('OK: interval spelling, pitch accuracy, all fret targets, editing, listening, pairs, playback and tabs');
+
+// No ended event: stopped/future and expired voices must still retire the RAF loop.
+const frames=[];global.requestAnimationFrame=fn=>{frames.push(fn);return frames.length;};
+const tick=()=>{assert(frames.length);frames.shift()();};
+const ctx={currentTime:0}, voice={stopped:false,addEventListener(){}};
+const target={boardId:'sandboxBoard',index:3};
+let cell=byId.sandboxBoard.querySelectorAll('.cell')[3], writes=0;
+for(const method of ['add','remove','toggle']){const original=cell.classList[method];cell.classList[method]=(...args)=>{writes++;return original(...args);};}
+sandbox.trackVoice(voice,48,0,1,ctx,target);tick();assert.equal(writes,1);
+tick();assert.equal(writes,1); // unchanged target does not rewrite classes
+v2RenderBoard(new Map(),'sandboxBoard');tick();
+assert(byId.sandboxBoard.querySelectorAll('.cell')[3].classList.contains('sounding'));
+voice.stopped=true;tick();assert.equal(frames.length,0);
+assert(!byId.sandboxBoard.querySelectorAll('.cell')[3].classList.contains('sounding'));
+const future={stopped:false,addEventListener(){}};
+sandbox.trackVoice(future,48,10,1,ctx,target);future.stopped=true;tick();assert.equal(frames.length,0);
+sandbox.trackVoice({stopped:false,addEventListener(){}},48,0,1,ctx,target);
+ctx.currentTime=1.2;tick();assert.equal(frames.length,0);
+console.log('OK: unchanged highlight does not mutate DOM, rebuilt cells update, missing ended cannot keep RAF alive');

@@ -60,6 +60,17 @@ const CourseLesson = (() => {
     for(let i=0;i<current;i++)if((steps[i].delta!==undefined||steps[i].target)&&!solved.has(i)||steps[i].practice&&!practiced){current=i;break;}
     return {current,choices,solved,hints,practiced};
   }
+  function boardPosition(stringIdx,fret){
+    if(!Number.isInteger(stringIdx)||stringIdx<0||stringIdx>5||!Number.isInteger(fret)||fret<0||fret>FRET_COUNT)return null;
+    return {boardId:'lessonBoard',index:stringIdx*(FRET_COUNT+1)+fret};
+  }
+  function positionFor(midi,step,occurrence=0){
+      const points=(step.path||[]).filter(p=>p.midi===midi);
+      if(points.length){const p=points[occurrence%points.length];return boardPosition(p.stringIdx,p.fret);}
+      // Do not reveal unreached notes in a construction exercise.
+      if(step.path)return null;
+      return boardPosition(step.str,midi-OPEN_STRINGS_TOP_TO_BOTTOM[step.str]?.midi);
+    }
   function boot() {
     const el = id => document.getElementById(id);
     const content = typeof module !== 'undefined' && module.exports ? require('./course-lessons-content.js') : CourseLessonContent;
@@ -69,7 +80,7 @@ const CourseLesson = (() => {
     if(!form.complete)throw Error('Учебная позиция недоступна');
     const lessons=[originalSteps,content.majorLesson(),content.degreeLesson(form.positions)];
     let activeLesson=0, steps=lessons[0];
-    const sessions=new Map();
+    const sessions=new Map(), visited=new Set();
     let canStore=true, listening=false, returnToPractice=null, clickedVoice=null;
     try{
       const raw=JSON.parse(localStorage.getItem(SESSION_KEY)||'null');
@@ -77,6 +88,8 @@ const CourseLesson = (() => {
         lessons.forEach((list,i)=>sessions.set(i,cleanSession(raw.sessions[i],list)));
         if(Number.isInteger(raw.active)&&lessons[raw.active])activeLesson=raw.active;
         steps=lessons[activeLesson];
+        if(Array.isArray(raw.visited))raw.visited.forEach(i=>{if(Number.isInteger(i)&&lessons[i])visited.add(i);});
+        else visited.add(activeLesson); // migrate sessions saved before resume tracking
       }
     }catch{canStore=false;}
     let current = 0;
@@ -87,19 +100,12 @@ const CourseLesson = (() => {
     ({current,solved,choices,hints,practiced}=sessions.get(activeLesson)||cleanSession(null,steps));
     function save(){
       sessions.set(activeLesson,{current,solved,choices,hints,practiced});
-      try{localStorage.setItem(SESSION_KEY,JSON.stringify({version:1,active:activeLesson,sessions:lessons.map((_,i)=>{
+      try{localStorage.setItem(SESSION_KEY,JSON.stringify({version:1,active:activeLesson,visited:[...visited],sessions:lessons.map((_,i)=>{
         const state=sessions.get(i);return state?{current:state.current,choices:[...state.choices],hints:[...state.hints],practiced:state.practiced}:null;
       })}));canStore=true;}catch{canStore=false;}
       el('lessonStorage').textContent=canStore?'Шаг урока сохраняется в этом браузере. После перезагрузки откройте урок, чтобы продолжить.':'Хранилище браузера недоступно: шаг урока сохранится только до закрытия страницы.';
     }
     const at=(stringIdx,fret)=>({boardId:'lessonBoard',index:stringIdx*(FRET_COUNT+1)+fret});
-    function positionFor(midi,step,occurrence=0){
-      const points=(step.path||[]).filter(p=>p.midi===midi);
-      if(points.length){const p=points[occurrence%points.length];return at(p.stringIdx,p.fret);}
-      // Do not reveal unreached notes in a construction exercise.
-      if(step.path)return null;
-      return at(step.str,midi-OPEN_STRINGS_TOP_TO_BOTTOM[step.str].midi);
-    }
     function finishListening(){listening=false;el('lessonListen').textContent='▶ Послушать пример';el('lessonListen').setAttribute('aria-pressed','false');}
     const isTask=s=>s.delta!==undefined || !!s.target;
     function ready() {const s=steps[current]; return isTask(s) ? solved.has(current) : s.practice ? practiced : true;}
@@ -219,6 +225,7 @@ const CourseLesson = (() => {
     function switchLesson(index){
       if(!Number.isInteger(index)||!lessons[index])return;
       el('panel-lesson').style.minHeight='';
+      visited.delete(index);visited.add(index);
       sessions.set(activeLesson,{current,solved,choices,hints,practiced});
       activeLesson=index;steps=lessons[index];
       const saved=sessions.get(index);
@@ -245,9 +252,16 @@ const CourseLesson = (() => {
     }
     document.querySelectorAll('[role="tab"]').forEach(tab=>tab.addEventListener('click',()=>{clickedVoice?.stop();clickedVoice=null;}));
     render();
-    return {open};
+    function getResume(){
+      for(const index of [...visited].reverse()){
+        const state=sessions.get(index);
+        if(state&&!lessons[index][state.current].finish)return {index,step:state.current+1,total:lessons[index].length};
+      }
+      return null;
+    }
+    return {open,getResume};
   }
-  return {steps:firstSteps,answer,cleanSession,boot};
+  return {steps:firstSteps,answer,cleanSession,positionFor,boot};
 })();
 if(typeof module!=='undefined'&&module.exports)module.exports=CourseLesson;
 else window.courseLessons=CourseLesson.boot();

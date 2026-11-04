@@ -30,17 +30,20 @@ const CourseSandbox = (() => {
   }
   // Observe the shared audio clock; do not infer playing or singing from it.
   const voices=new Set();
-  let frame=null;
+  let frame=null, painted=new Set();
   function paintVoices(){
     const targets=new Set();
     voices.forEach(v=>{
+      if(v.osc.stopped||v.ctx.currentTime>v.end+.1){voices.delete(v);return;}
       if(v.position&&!v.osc.stopped&&v.ctx.currentTime>=v.start&&v.ctx.currentTime<v.end){
         const board=document.getElementById(v.position.boardId);
         const cell=board?.querySelectorAll('.cell')[v.position.index];
         if(cell)targets.add(cell);
       }
     });
-    document.querySelectorAll('.cell').forEach(cell=>cell.classList.toggle('sounding',targets.has(cell)));
+    painted.forEach(cell=>{if(!targets.has(cell))cell.classList.remove('sounding');});
+    targets.forEach(cell=>{if(!painted.has(cell))cell.classList.add('sounding');});
+    painted=targets;
     frame=voices.size?requestAnimationFrame(paintVoices):null;
   }
   function trackVoice(osc,midi,start,duration,ctx,position){

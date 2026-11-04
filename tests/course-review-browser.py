@@ -16,7 +16,9 @@ with sync_playwright() as p:
     page.wait_for_function("document.querySelectorAll('#lessonBoard .sounding').length===1 && document.querySelectorAll('#lessonBoard .cell')[71].classList.contains('sounding')")
     page.locator('#lessonNext').click()
     expect(page.locator('#lessonPosition')).to_have_text('Шаг 4 из 9')
-    page.reload();page.locator('#blockResume').click()
+    page.reload()
+    expect(page.locator('#blockResume')).to_have_text('Продолжить урок: шаг 4 из 9')
+    page.locator('#blockResume').click()
     expect(page.locator('#lessonPosition')).to_have_text('Шаг 4 из 9')
     page.locator('#lessonBack').click()
     expect(page.locator('#lessonNext')).to_be_enabled()
@@ -63,6 +65,46 @@ with sync_playwright() as p:
     page.locator('#lessonNext').click();page.locator('#lessonNext').click()
     assert page.locator('#lessonNextHelp').evaluate('e=>parseFloat(getComputedStyle(e).fontSize)')>=15
     page.screenshot(path='/tmp/fretlab-review2-mobile.png',full_page=True)
+    # An oscillator with no ended callback cannot keep the animation running.
+    page.evaluate("""() => {
+      stopSequence();window._rafCount=0;
+      const raf=window.requestAnimationFrame.bind(window);
+      window.requestAnimationFrame=fn=>raf(t=>{window._rafCount++;fn(t);});
+      const ctx={currentTime:0};
+      const voice={stopped:false,addEventListener(){}};
+      CourseSandbox.trackVoice(voice,48,10,1,ctx,null);voice.stopped=true;
+    }""")
+    page.wait_for_timeout(200)
+    count=page.evaluate('_rafCount')
+    page.wait_for_timeout(200)
+    assert page.evaluate('_rafCount')==count and count<=2
+    page.evaluate("""() => {
+      const ctx={currentTime:2};
+      CourseSandbox.trackVoice({stopped:false,addEventListener(){}},48,0,1,ctx,null);
+    }""")
+    page.wait_for_timeout(100)
+    count=page.evaluate('_rafCount');page.wait_for_timeout(100)
+    assert page.evaluate('_rafCount')==count
+    assert page.locator('#tabsMore').bounding_box()['width']>=44
+    # Migrate old saved lessons; completed lessons must not hijack Continue.
+    page.evaluate("""() => {
+      const raw=JSON.parse(localStorage.getItem('fretlab-lessons-v1'));
+      raw.active=0;raw.sessions[0]={current:2,choices:[],hints:[],practiced:false};delete raw.visited;localStorage.setItem('fretlab-lessons-v1',JSON.stringify(raw));
+    }""")
+    page.reload()
+    expect(page.locator('#blockResume')).to_have_text('Продолжить урок: шаг 3 из 9')
+    page.evaluate("""() => {
+      const raw=JSON.parse(localStorage.getItem('fretlab-lessons-v1'));
+      raw.visited=[0];raw.active=0;
+      raw.sessions[0]={current:8,choices:[[2,4],[4,5],[5,5],[6,7]],hints:[],practiced:true};
+      localStorage.setItem('fretlab-lessons-v1',JSON.stringify(raw));
+    }""")
+    page.reload()
+    assert 'Продолжить урок:' not in page.locator('#blockResume').inner_text()
+    for index in [6,7,8]:
+      page.locator('#tab-block').click()
+      page.locator('#blockActivities article').nth(index).get_by_role('button').click()
+      assert page.get_by_role('button',name='← К уроку',exact=True).count()==0
     assert not errors,errors
     browser.close()
     print('OK: lesson reload/restart, exact unison positions, listen/stop, stable ARIA, exercise return and mobile tab scrolling')

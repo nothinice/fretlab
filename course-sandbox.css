@@ -103,5 +103,5 @@ body{padding:0 0 40px}
 .lesson-next-action{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 #lessonNextHelp{font-size:15px;font-weight:500;line-height:1.4;color:var(--ink);margin:0;max-width:280px}
 #lessonNextHelp:empty{display:none}
-.tabs-more{flex:none;min-width:36px;padding:4px;color:var(--teal)}
+.tabs-more{flex:none;min-width:44px;min-height:44px;padding:4px;color:var(--teal)}
 .v2-tabs{scrollbar-width:thin}

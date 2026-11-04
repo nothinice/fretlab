@@ -90,6 +90,7 @@ const CourseBlockOne = (() => {
     }
     return records;
   }
+  const LESSON_FOR_ACTIVITY=Object.freeze({interval:0,formula:1,scale:1,repair:1});
   function boot(){
     const el=id=>document.getElementById(id), node=(tag,text)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;return n;};
     const pitchNames=typeof module!=='undefined'&&module.exports?require('./course-sandbox.js'):CourseSandbox;
@@ -125,8 +126,9 @@ const CourseBlockOne = (() => {
       el('blockSummary').textContent=`Выполнено ${count} из ${ACTIVITIES.length} частей${count===ACTIVITIES.length?' · Блок пройден':''}`;
       el('blockProgress').value=count;
       const next=ACTIVITIES.find(a=>!records[a.id]?.done);
-      el('blockResume').textContent=next?`Продолжить: ${next.title}`:'Повторить: 1. Тон и полутон';
-      el('blockResume').onclick=()=>open(next||ACTIVITIES[0]);
+      const resume=window.courseLessons?.getResume();
+      el('blockResume').textContent=resume?`Продолжить урок: шаг ${resume.step} из ${resume.total}`:next?`Продолжить: ${next.title}`:'Повторить: 1. Тон и полутон';
+      el('blockResume').onclick=()=>resume?window.courseLessons.open(resume.index):open(next||ACTIVITIES[0]);
       const list=el('blockActivities');list.innerHTML='';
       const groups=[['Расстояния',0,2],['Мажорная гамма',2,6],['Слух, ритм и своя фраза',6,9],['Проверка',9,10]];
       groups.forEach(([title,start,end])=>{
@@ -176,9 +178,9 @@ const CourseBlockOne = (() => {
     function controls(){const row=node('div');row.className='sandbox-controls';el('blockTaskBody').appendChild(row);return row;}
     function drawActions(done=false){
       const row=el('blockTaskActions');row.innerHTML='';button(row,'■ Остановить звук',stop);
-      if(activity.kind!=='final'&&!done)button(row,'← К уроку',()=>{
+      if(LESSON_FOR_ACTIVITY[activity.kind]!==undefined&&!done)button(row,'← К уроку',()=>{
         stop();
-        window.courseLessons.open(activity.kind==='interval'?0:1,{onReturn:()=>{
+        window.courseLessons.open(LESSON_FOR_ACTIVITY[activity.kind],{onReturn:()=>{
           el('panel-lesson').hidden=true;el('blockRoute').hidden=false;
           el('blockOverview').hidden=true;el('blockWorkspace').hidden=false;
           draw();
@@ -304,7 +306,7 @@ const CourseBlockOne = (() => {
     let offset=0;return rhythm.durations.map((beats,i)=>{const e={midi:rhythm.rests.includes(i)?null:48,beats,accent:Number.isInteger(offset)};offset+=beats;return e;});
   }
   function rhythmCells(rhythm){return rhythmEvents(rhythm).flatMap(e=>Array.from({length:e.beats*2},(_,i)=>e.midi===null?'·':i===0?'●':'─'));}
-  return {ACTIVITIES,RHYTHMS,MAJOR,FRETS,makeSession,matchFormula,matchScale,phraseCheck,submit,cleanRecords,rhythmEvents,rhythmCells,boot};
+  return {LESSON_FOR_ACTIVITY,ACTIVITIES,RHYTHMS,MAJOR,FRETS,makeSession,matchFormula,matchScale,phraseCheck,submit,cleanRecords,rhythmEvents,rhythmCells,boot};
 })();
 if(typeof module!=='undefined'&&module.exports)module.exports=CourseBlockOne;
 else window.courseBlockOne=CourseBlockOne.boot();
