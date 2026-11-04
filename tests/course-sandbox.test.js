@@ -23,13 +23,13 @@ for (const id of ['tab-block','panel-block','tab-lesson','panel-lesson','tab-san
 for (const section of ['block','lesson','sandbox','learn','explore']) byId['tab-'+section].setAttribute('aria-controls','panel-'+section);
 const html = fs.readFileSync(path.join(__dirname,'../course-lab.html'),'utf8');
 const core = html.match(/<script>([\s\S]*?)<\/script>/)[1].replace('\ninit();\n','\n');
-vm.runInThisContext(core + '\nplayMidi = midi => global.played.push(midi); playSequence = list => global.played.push(...list);', {filename:'course-core.js'});
+vm.runInThisContext(core + '\nplayMidi = midi => {global.played.push(midi);return {stop(){}};}; playSequence = list => global.played.push(...list);', {filename:'course-core.js'});
 global.played = [];
 global.v2RenderBoard = vm.runInThisContext('v2RenderBoard');
 global.FRET_COUNT = vm.runInThisContext('FRET_COUNT');
 global.OPEN_STRINGS_TOP_TO_BOTTOM = vm.runInThisContext('OPEN_STRINGS_TOP_TO_BOTTOM');
 global.realizeScaleForm = vm.runInThisContext('realizeScaleForm');
-global.playMidi = midi => played.push(midi);
+global.playMidi = midi => {played.push(midi);return {stop(){}};};
 global.playSequence = list => played.push(...list);
 global.getAudioCtx = () => ({currentTime:0});
 sandbox.boot();

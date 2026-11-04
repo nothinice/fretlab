@@ -98,3 +98,10 @@ body{padding:0 0 40px}
 .lesson-work .sandbox-controls{gap:8px}
 
 @media(prefers-reduced-motion:reduce){.board .sandbox-hit::before,.board .sandbox-hit .note{transition:none}.board .sandbox-hit:hover .note,.board .sandbox-hit:active .note,.cell.sounding .note{transform:none}}
+
+/* Keep the blocked action and its reason together, with readable contrast. */
+.lesson-next-action{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+#lessonNextHelp{font-size:15px;font-weight:500;line-height:1.4;color:var(--ink);margin:0;max-width:280px}
+#lessonNextHelp:empty{display:none}
+.tabs-more{flex:none;min-width:36px;padding:4px;color:var(--teal)}
+.v2-tabs{scrollbar-width:thin}

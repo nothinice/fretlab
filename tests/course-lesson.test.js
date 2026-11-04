@@ -2,7 +2,7 @@
 require('./course-sandbox.test.js');
 const assert=require('node:assert/strict');
 const lesson=require('../course-lesson.js');
-for(const id of ['lessonBreadcrumb','lessonAlternative','lessonAlternativeText','lessonNextHelp','lessonRoute','lessonSelect','lessonContinue','lessonFormula','lessonTitle','lessonExplanation','lessonPurpose','lessonInstruction','lessonProgress','lessonPosition','lessonBack','lessonNext','lessonListen','lessonHint','lessonPracticeLabel','lessonPractice','lessonFeedback','lessonBoard','lessonRestart']){
+for(const id of ['lessonReturn','lessonStorage','blockRoute','lessonBreadcrumb','lessonAlternative','lessonAlternativeText','lessonNextHelp','lessonRoute','lessonSelect','lessonContinue','lessonFormula','lessonTitle','lessonExplanation','lessonPurpose','lessonInstruction','lessonProgress','lessonPosition','lessonBack','lessonNext','lessonListen','lessonHint','lessonPracticeLabel','lessonPractice','lessonFeedback','lessonBoard','lessonRestart']){
   const node=document.createElement('div');node.id=id;byId[id]=node;
 }
 lesson.boot();
@@ -32,7 +32,7 @@ assert.match(byId.lessonInstruction.textContent,/самооценка/);
 assert.equal(byId.lessonNext.disabled,true);
 click('lessonRestart');assert.equal(byId.lessonPosition.textContent,'Шаг 1 из 9');
 click('lessonNext');click('lessonNext');assert.equal(byId.lessonNext.disabled,true);
-byId['tab-lesson'].dispatch('click');assert.equal(byId['panel-lesson'].classList.contains('v2-active'),true);
+assert.equal(byId['tab-block'].getAttribute('aria-controls'),'panel-block');
 console.log('OK: lesson progression, explanations, audio pitches, wrong answers, hints, direction, transfer, practice gate and restart');
 
 const content=require('../course-lessons-content.js');
@@ -78,3 +78,11 @@ byId.lessonSelect.dispatch('change',{target:{value:'0'}});
 assert.equal(byId.lessonPosition.textContent,'Шаг 3 из 9');
 byId.lessonSelect.dispatch('change',{target:{value:'99'}});assert.equal(byId.lessonSelect.value,'0');
 console.log('OK: major formula construction, seven answers, octave, identical position pitches, degrees, lesson switching and progress');
+
+// Stored choices are validated; claimed progress cannot bypass an unanswered task.
+let saved=lesson.cleanSession({current:8,choices:[[2,4],[4,5],[5,5],[6,7]],hints:[2,99,-1],practiced:true},lesson.steps);
+assert.equal(saved.current,8);assert.equal(saved.solved.size,4);assert.deepEqual([...saved.hints],[2]);
+saved=lesson.cleanSession({current:8,choices:[[2,5],[4,99],["5",5],null],practiced:"true"},lesson.steps);
+assert.equal(saved.current,2);assert.equal(saved.solved.size,0);assert.equal(saved.practiced,false);
+assert.equal(lesson.cleanSession({current:-1},lesson.steps).current,0);
+console.log('OK: persisted lesson validation and prerequisite gates');

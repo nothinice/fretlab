@@ -30,19 +30,21 @@ const CourseSandbox = (() => {
   }
   // Observe the shared audio clock; do not infer playing or singing from it.
   const voices=new Set();
-  let frame=null,lastNotes='';
+  let frame=null;
   function paintVoices(){
-    const notes=new Set();
-    voices.forEach(v=>{if(v.ctx.currentTime>=v.start&&v.ctx.currentTime<v.end)notes.add(v.midi);});
-    const key=[...notes].sort().join(',');
-    if(key!==lastNotes){
-      document.querySelectorAll('.cell').forEach(cell=>cell.classList.toggle('sounding',notes.has(Number(cell.dataset.midi))));
-      lastNotes=key;
-    }
+    const targets=new Set();
+    voices.forEach(v=>{
+      if(v.position&&!v.osc.stopped&&v.ctx.currentTime>=v.start&&v.ctx.currentTime<v.end){
+        const board=document.getElementById(v.position.boardId);
+        const cell=board?.querySelectorAll('.cell')[v.position.index];
+        if(cell)targets.add(cell);
+      }
+    });
+    document.querySelectorAll('.cell').forEach(cell=>cell.classList.toggle('sounding',targets.has(cell)));
     frame=voices.size?requestAnimationFrame(paintVoices):null;
   }
-  function trackVoice(osc,midi,start,duration,ctx){
-    const voice={midi,start,end:start+duration,ctx};voices.add(voice);
+  function trackVoice(osc,midi,start,duration,ctx,position){
+    const voice={osc,midi,start,end:start+duration,ctx,position};voices.add(voice);
     osc.addEventListener('ended',()=>{voices.delete(voice);});
     if(frame===null)frame=requestAnimationFrame(paintVoices);
   }
@@ -99,15 +101,15 @@ const CourseSandbox = (() => {
         button.addEventListener('click', () => {
           focusIndex=index;
           if (action === 'listen') {
-            playMidi(midi);
+            playMidi(midi,undefined,undefined,.22,{boardId:'sandboxBoard',index});
             readout.textContent = `${pitch(midi, spelling).label} · струна ${stringIdx + 1}, лад ${fret}`;
             return;
           }
           if (action === 'measure') {
             if (position >= 0) pair.splice(position, 1);
-            else { if (pair.length === 2) pair = []; pair.push(info); playMidi(midi); }
+            else { if (pair.length === 2) pair = []; pair.push(info); playMidi(midi,undefined,undefined,.22,{boardId:'sandboxBoard',index}); }
           } else if (marks.has(key)) marks.delete(key);
-          else { marks.set(key, info); playMidi(midi); }
+          else { marks.set(key, info); playMidi(midi,undefined,undefined,.22,{boardId:'sandboxBoard',index}); }
           render();
           // Preserve keyboard focus after rebuilding the fretboard.
           el('sandboxBoard').querySelectorAll('.sandbox-hit')[index].focus({preventScroll:true});
@@ -130,11 +132,11 @@ const CourseSandbox = (() => {
     });
     el('sandboxSpelling').addEventListener('change', e => {spelling = e.target.value; render();});
     el('sandboxClear').addEventListener('click', () => {marks.clear(); pair = []; render();});
-    el('sandboxSequence').addEventListener('click', () => playSequence(selected().map(n => n.midi)));
+    el('sandboxSequence').addEventListener('click', () => playSequence(selected().map(n => n.midi),{positions:selected().map(n=>({boardId:'sandboxBoard',index:n.stringIdx*(FRET_COUNT+1)+n.fret}))}));
     el('sandboxTogether').addEventListener('click', () => {
       const when = getAudioCtx().currentTime + 0.03;
       const unique = [...new Set(selected().map(n => n.midi))];
-      unique.forEach(midi => playMidi(midi, when, 0.9, 0.22 / Math.max(1, unique.length)));
+      unique.forEach(midi => playMidi(midi, when, 0.9, 0.22 / Math.max(1, unique.length),{boardId:'sandboxBoard',index:(()=>{const n=selected().find(n=>n.midi===midi);return n.stringIdx*(FRET_COUNT+1)+n.fret;})()} ));
     });
     render();
   }

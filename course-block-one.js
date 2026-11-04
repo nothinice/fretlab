@@ -101,7 +101,7 @@ const CourseBlockOne = (() => {
     function stop(){voices.forEach(v=>{try{v?.stop();}catch{}});voices=[];timers.forEach(clearTimeout);timers=[];}
     function audio(events,{countIn=false,click=false}={}){
       stop();const ctx=getAudioCtx(),beat=60/tempo,start=ctx.currentTime+.08,lead=countIn?4:0;
-      const add=(midi,time,dur,peak)=>{voices.push(playMidi(midi,time,dur,peak));};
+      const add=(midi,time,dur,peak)=>{voices.push(playMidi(midi,time,dur,peak,activity?.kind==='compose'&&[48,50,52].includes(midi)?{boardId:'blockPracticeBoard',index:4*(FRET_COUNT+1)+midi-45}:null));};
       if(countIn)for(let i=0;i<4;i++)add(i===0?88:81,start+i*beat,.06,.06);
       const length=events.reduce((n,e)=>n+e.beats,0);
       if(click)for(let i=0;i<length;i++)add(i%4===0?88:81,start+(lead+i)*beat,.05,.035);
@@ -143,10 +143,10 @@ const CourseBlockOne = (() => {
     }
 
     function open(a){
-      stop();activity=a;
+      stop();activity=a;el('panel-lesson').hidden=true;el('blockRoute').hidden=false;
       if(a.kind==='guided'){
         el('blockWorkspace').hidden=true;el('blockOverview').hidden=false;
-        window.courseLessons.open(a.lesson);el('tab-lesson').click();return;
+        window.courseLessons.open(a.lesson);return;
       }
       session=makeSession(a.kind);heard=false;boardScroll=null;
       if(a.kind==='compose'&&records[a.id]?.phrase)session.events=records[a.id].phrase.map(e=>({...e}));
@@ -176,6 +176,15 @@ const CourseBlockOne = (() => {
     function controls(){const row=node('div');row.className='sandbox-controls';el('blockTaskBody').appendChild(row);return row;}
     function drawActions(done=false){
       const row=el('blockTaskActions');row.innerHTML='';button(row,'■ Остановить звук',stop);
+      if(activity.kind!=='final'&&!done)button(row,'← К уроку',()=>{
+        stop();
+        window.courseLessons.open(activity.kind==='interval'?0:1,{onReturn:()=>{
+          el('panel-lesson').hidden=true;el('blockRoute').hidden=false;
+          el('blockOverview').hidden=true;el('blockWorkspace').hidden=false;
+          draw();
+          el('blockTaskTitle').focus();
+        }});
+      });
       if(activity.kind!=='final'&&!done)button(row,'Подсказка',()=>{
         session.assisted=true;
         const hints={interval:'Один полутон — один переход. Тон — два. Считайте от золотой точки в указанную сторону.',formula:'Формула мажора: 2–2–1–2–2–2–1.',scale:'Точка C на третьем ладу — начало. Последовательно прибавляйте 2–2–1–2–2–2–1.',repair:'Проверьте каждое соседнее расстояние по формуле 2–2–1–2–2–2–1. Изменена одна внутренняя нота.',ear:'Полутон — меньший шаг. Сейчас прозвучит эталон полутона, затем тона. После этого снова включите свой пример.',rhythm:'Считайте «1-и-2-и-3-и-4-и». ● — начало звука, ─ — его продолжение, · — пауза. Каждая клетка — половина доли.',compose:'Начните с короткого мотива из C, D, E, добавьте паузу и ответ. В задании два такта по четыре доли.'};
@@ -201,7 +210,7 @@ const CourseBlockOne = (() => {
         const q=s.questions[s.round];
         if(!final)el('blockTaskExplanation').textContent='Здесь меняются струна, исходный лад и направление. Это проверяет правило, а не запоминание одной точки.';
         el('blockTaskInstruction').textContent=`Задание ${s.round+1}/${s.questions.length}: на струне ${q.str+1} от лада ${q.start} найдите ${Math.abs(q.delta)===1?'полутон':'тон'} ${q.delta>0?'выше':'ниже'}.`;
-        board(q.str,[{str:q.str,fret:q.start,root:true}],(str,fret)=>{playMidi(OPEN_STRINGS_TOP_TO_BOTTOM[str].midi+fret);accepted(submit(s,{str,fret}));});
+        board(q.str,[{str:q.str,fret:q.start,root:true}],(str,fret)=>{playMidi(OPEN_STRINGS_TOP_TO_BOTTOM[str].midi+fret,undefined,1.35,.22,{boardId:'blockPracticeBoard',index:str*(FRET_COUNT+1)+fret});accepted(submit(s,{str,fret}));});
       }else if(s.kind==='formula'){
         if(!final)el('blockTaskExplanation').textContent='Восстановите семь расстояний между соседними звуками мажорной гаммы. Готовая последовательность скрыта.';
         el('blockTaskInstruction').textContent='Добавляйте тон (2) или полутон (1). Должно получиться семь шагов до следующей тоники.';
@@ -213,7 +222,7 @@ const CourseBlockOne = (() => {
         if(!final)el('blockTaskExplanation').textContent='Соберите C major от C3 до C4 на одной струне. Здесь нет подсвеченного следующего шага: примените всю формулу самостоятельно.';
         el('blockTaskInstruction').textContent='Начальная C — пятая струна, третий лад. Отметьте ещё семь звуков до C следующей октавы. Повторный клик убирает точку.';
         board(4,s.values.map(fret=>({str:4,fret,root:fret===3})),(str,fret)=>{
-          if(fret===3)return;playMidi(45+fret);s.values=s.values.includes(fret)?s.values.filter(f=>f!==fret):[...s.values,fret];draw();
+          if(fret===3)return;playMidi(45+fret,undefined,1.35,.22,{boardId:'blockPracticeBoard',index:4*(FRET_COUNT+1)+fret});s.values=s.values.includes(fret)?s.values.filter(f=>f!==fret):[...s.values,fret];draw();
         });
         body.appendChild(node('p',`Отмечено ${s.values.length} из 8 звуков.`));
         body.appendChild(node('p','На узком экране прокручивайте гриф вбок, чтобы добраться до верхних ладов.'));
@@ -225,7 +234,7 @@ const CourseBlockOne = (() => {
         el('blockTaskExplanation').textContent='В мажорной гамме изменена одна внутренняя нота. Найдите её по расстояниям и поставьте на правильный лад.';
         el('blockTaskInstruction').textContent=s.located?'Ошибка найдена. Теперь нажмите на лад, где должна стоять эта нота.':'Нажмите на неверную точку. Начало и конец гаммы оставлены правильными.';
         board(4,s.values.map((fret,i)=>({str:4,fret,root:i===0,label:s.located&&i===s.badIndex?'×':String(fret)})),(str,fret)=>{
-          const wasLocated=s.located,correct=submit(s,fret);playMidi(45+fret);
+          const wasLocated=s.located,correct=submit(s,fret);playMidi(45+fret,undefined,1.35,.22,{boardId:'blockPracticeBoard',index:4*(FRET_COUNT+1)+fret});
           if(correct&&s.done)complete();else{draw();feedback(correct&&!wasLocated?'Верно, эта нота нарушает формулу. Теперь исправьте её положение.':'Проверьте соседние интервалы вокруг выбранной ноты.');}
         });
       }else if(s.kind==='ear'){
@@ -263,7 +272,7 @@ const CourseBlockOne = (() => {
       const total=()=>s.events.reduce((n,e)=>n+e.beats,0);
       function append(midi){const beats=Number(select.value);if(total()+beats>8){feedback('Два такта уже заполнены. Уберите последнее событие или выберите меньшую длительность.');return;}s.events.push({midi,beats});draw();}
       button(row,'Добавить паузу',()=>append(null));
-      board(4,[{str:4,fret:3,label:'C',root:true},{str:4,fret:5,label:'D'},{str:4,fret:7,label:'E'}],(str,fret)=>{if(![3,5,7].includes(fret)){feedback('Для этой фразы используйте только отмеченные C, D и E.');return;}playMidi(45+fret);append(45+fret);});
+      board(4,[{str:4,fret:3,label:'C',root:true},{str:4,fret:5,label:'D'},{str:4,fret:7,label:'E'}],(str,fret)=>{if(![3,5,7].includes(fret)){feedback('Для этой фразы используйте только отмеченные C, D и E.');return;}playMidi(45+fret,undefined,1.35,.22,{boardId:'blockPracticeBoard',index:4*(FRET_COUNT+1)+fret});append(45+fret);});
       const timeline=node('ol');timeline.className='phrase-timeline';
       s.events.forEach((e,i)=>timeline.appendChild(node('li',`${i+1}. ${e.midi===null?'Пауза':pitchNames.pitch(e.midi).name} · ${e.beats===.5?'½ доли':e.beats===1?'1 доля':e.beats+' доли'}`)));body.appendChild(timeline);
       body.appendChild(node('p',`Заполнено ${total()}/8 долей.`));
@@ -280,8 +289,8 @@ const CourseBlockOne = (() => {
       const row=controls();button(row,'Завершить проверку',()=>{if(!session.checks.every(Boolean)){feedback('Отметьте только то, что получилось на гитаре. Остальные пункты — задачи для повторения, завершать сейчас необязательно.');return;}session.practice=true;complete();});drawActions();
     }
     el('blockClose').addEventListener('click',()=>{stop();el('blockWorkspace').hidden=true;el('blockOverview').hidden=false;overview();el('blockResume').focus();});
-    el('tab-block').addEventListener('click',()=>{stop();el('blockWorkspace').hidden=true;el('blockOverview').hidden=false;overview();});
-    el('blockNextLesson').addEventListener('click',()=>{window.courseLessons.open(2);el('tab-lesson').click();});
+    el('tab-block').addEventListener('click',()=>{stop();el('panel-lesson').hidden=true;el('blockRoute').hidden=false;el('blockWorkspace').hidden=true;el('blockOverview').hidden=false;overview();});
+    el('blockNextLesson').addEventListener('click',()=>{window.courseLessons.open(2);});
     document.addEventListener('course-lesson-progress',e=>{
       const d=e.detail;if(![0,1].includes(d.lessonId)||!d.complete)return;
       records['lesson'+d.lessonId]={done:true,practice:d.practice,assisted:d.assisted,at:new Date().toISOString()};save();overview();

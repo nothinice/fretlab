@@ -1,5 +1,16 @@
 # Changelog
 
+## Second Claude review — 2026-11-04
+
+- Kept slow lesson playback explicit; restored the tools’ 0.32-second sequence spacing and 0.9-second single notes.
+- Added a short release on stop, including cancellation of scheduled notes; examples toggle Listen/Stop.
+- Highlighted explicit fretboard positions, including sequential unisons; unreached scale answers stay hidden.
+- Stored validated lesson steps, answers, hints and guitar self-reports locally, with a storage-unavailable fallback.
+- Made Course a stable tab containing the lesson region; removed the hidden lesson tab and inconsistent breadcrumb numbers.
+- Added return-to-lesson/return-to-exercise navigation preserving the attempt, a mobile tab-scroll button, and clearer Next prerequisites.
+- Added a guitar reminder and labeled block 2 as the next stage; no untested completion-time promise.
+- Verified Node suites, complete desktop/mobile block flow, reload/navigation regressions, and offline audio release/timing.
+
 ## Claude review copy — 2026-11-04
 
 - Removed the repeated “Why do this?” disclosure from lesson and practice screens.

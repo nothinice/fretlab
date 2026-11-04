@@ -48,7 +48,8 @@ with sync_playwright() as p:
         body_button('Проверить')
 
     # Review regressions: single course entry, task visible, audio clock and keyboard access.
-    assert page.locator('#tab-lesson').is_hidden()
+    assert page.locator('#tab-lesson').count() == 0
+    assert page.locator('#panel-lesson').get_attribute('aria-labelledby') == 'lessonTitle'
     assert page.locator('.block-stage').count() == 4
     page.locator('#blockResume').click()
     page.evaluate('scrollTo(0,0)')

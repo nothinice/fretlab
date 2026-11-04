@@ -43,6 +43,23 @@ const CourseLesson = (() => {
     if (step.delta === undefined) return false;
     return stringIdx === step.str && fret === step.start + step.delta;
   }
+  const SESSION_KEY='fretlab-lessons-v1';
+  function cleanSession(raw,steps){
+    const choices=new Map(),hints=new Set();
+    if(raw&&Array.isArray(raw.choices))for(const item of raw.choices.slice(0,steps.length)){
+      if(!Array.isArray(item)||item.length!==2)continue;
+      const [i,fret]=item;
+      if(Number.isInteger(i)&&steps[i]&&Number.isInteger(fret)&&fret>=0&&fret<=16)choices.set(i,fret);
+    }
+    const solved=new Set([...choices].filter(([i,fret])=>answer(steps[i],steps[i].str,fret)).map(([i])=>i));
+    if(raw&&Array.isArray(raw.hints))for(const i of raw.hints.slice(0,steps.length)){
+      if(Number.isInteger(i)&&steps[i]&&(steps[i].delta!==undefined||steps[i].target))hints.add(i);
+    }
+    const practiced=raw?.practiced===true;
+    let current=Number.isInteger(raw?.current)?Math.max(0,Math.min(steps.length-1,raw.current)):0;
+    for(let i=0;i<current;i++)if((steps[i].delta!==undefined||steps[i].target)&&!solved.has(i)||steps[i].practice&&!practiced){current=i;break;}
+    return {current,choices,solved,hints,practiced};
+  }
   function boot() {
     const el = id => document.getElementById(id);
     const content = typeof module !== 'undefined' && module.exports ? require('./course-lessons-content.js') : CourseLessonContent;
@@ -53,19 +70,45 @@ const CourseLesson = (() => {
     const lessons=[originalSteps,content.majorLesson(),content.degreeLesson(form.positions)];
     let activeLesson=0, steps=lessons[0];
     const sessions=new Map();
+    let canStore=true, listening=false, returnToPractice=null, clickedVoice=null;
+    try{
+      const raw=JSON.parse(localStorage.getItem(SESSION_KEY)||'null');
+      if(raw?.version===1&&Array.isArray(raw.sessions)){
+        lessons.forEach((list,i)=>sessions.set(i,cleanSession(raw.sessions[i],list)));
+        if(Number.isInteger(raw.active)&&lessons[raw.active])activeLesson=raw.active;
+        steps=lessons[activeLesson];
+      }
+    }catch{canStore=false;}
     let current = 0;
     let solved = new Set();
     let choices = new Map();
     let hints = new Set();
     let practiced = false;
+    ({current,solved,choices,hints,practiced}=sessions.get(activeLesson)||cleanSession(null,steps));
+    function save(){
+      sessions.set(activeLesson,{current,solved,choices,hints,practiced});
+      try{localStorage.setItem(SESSION_KEY,JSON.stringify({version:1,active:activeLesson,sessions:lessons.map((_,i)=>{
+        const state=sessions.get(i);return state?{current:state.current,choices:[...state.choices],hints:[...state.hints],practiced:state.practiced}:null;
+      })}));canStore=true;}catch{canStore=false;}
+      el('lessonStorage').textContent=canStore?'Шаг урока сохраняется в этом браузере. После перезагрузки откройте урок, чтобы продолжить.':'Хранилище браузера недоступно: шаг урока сохранится только до закрытия страницы.';
+    }
+    const at=(stringIdx,fret)=>({boardId:'lessonBoard',index:stringIdx*(FRET_COUNT+1)+fret});
+    function positionFor(midi,step,occurrence=0){
+      const points=(step.path||[]).filter(p=>p.midi===midi);
+      if(points.length){const p=points[occurrence%points.length];return at(p.stringIdx,p.fret);}
+      // Do not reveal unreached notes in a construction exercise.
+      if(step.path)return null;
+      return at(step.str,midi-OPEN_STRINGS_TOP_TO_BOTTOM[step.str].midi);
+    }
+    function finishListening(){listening=false;el('lessonListen').textContent='▶ Послушать пример';el('lessonListen').setAttribute('aria-pressed','false');}
     const isTask=s=>s.delta!==undefined || !!s.target;
     function ready() {const s=steps[current]; return isTask(s) ? solved.has(current) : s.practice ? practiced : true;}
     function render() {
-      stopSequence();
+      stopSequence();clickedVoice?.stop();clickedVoice=null;finishListening();save();
       const boardOuter=el('lessonBoard').parentElement, boardScroll=boardOuter?.scrollLeft||0;
       const s = steps[current];
       el('lessonTitle').textContent=s.title;
-      el('lessonBreadcrumb').textContent=activeLesson===2?'Блок 2 · Ступени и позиция':`Блок 1 · ${activeLesson===0?'1. Тон и полутон':'3. Построение C major'}`;
+      el('lessonBreadcrumb').textContent=activeLesson===2?'Блок 2 · Ступени и позиция':`Блок 1 · ${activeLesson===0?'Тон и полутон':'Построение C major'}`;
       el('lessonAlternative').hidden=!s.alternative;
       el('lessonAlternativeText').textContent=s.alternative||'';
       el('lessonExplanation').textContent=s.explanation;
@@ -119,17 +162,20 @@ const CourseLesson = (() => {
         button.setAttribute('aria-label',`Струна ${stringIdx+1}, лад ${fret}${fret===s.start?', исходный звук':''}`);
         if(dot)button.appendChild(dot);
         button.addEventListener('click',()=>{
-          playMidi(OPEN_STRINGS_TOP_TO_BOTTOM[stringIdx].midi+fret);
-          if(!isTask(s))return;
+          if(!isTask(s)){
+            stopSequence();clickedVoice?.stop();
+            clickedVoice=playMidi(midi,undefined,1.35,.22,at(stringIdx,fret));return;
+          }
           choices.set(current,fret);
           if(answer(s,stringIdx,fret))solved.add(current); else solved.delete(current);
           render();
+          if(!solved.has(current))clickedVoice=playMidi(midi,undefined,1.35,.22,at(stringIdx,fret));
           if(!solved.has(current)&&s.target){
             el('lessonFeedback').textContent='Пока не та ступень. Отсчитайте нужный номер от C. Можно воспользоваться подсказкой и попробовать снова.';
           }else if(!solved.has(current)){
             const difference=fret-s.start;
             el('lessonFeedback').textContent=difference===0 ? 'Это исходный звук: пока ни одного перехода. Выберите другой лад.' : `Вы отложили ${Math.abs(difference)} ${Math.abs(difference)===1?'лад':Math.abs(difference)<5?'лада':'ладов'} ${difference>0?'вверх':'вниз'}, а нужно ${Math.abs(s.delta)===1?'один лад':'два лада'} ${s.delta>0?'вверх':'вниз'}.`;
-          }else playSequence([s.target?48:OPEN_STRINGS_TOP_TO_BOTTOM[s.str].midi+s.start,OPEN_STRINGS_TOP_TO_BOTTOM[s.str].midi+fret]);
+          }else playSequence([s.target?48:OPEN_STRINGS_TOP_TO_BOTTOM[s.str].midi+s.start,OPEN_STRINGS_TOP_TO_BOTTOM[s.str].midi+fret],{step:.55,positions:[s.target?positionFor(48,s):at(s.str,s.start),at(stringIdx,fret)]});
           el('lessonBoard').querySelectorAll('.sandbox-hit')[fret].focus({preventScroll:true});
         });
         cell.appendChild(button);
@@ -141,11 +187,16 @@ const CourseLesson = (() => {
       if(boardOuter)boardOuter.scrollLeft=boardScroll;
     }
     el('lessonListen').addEventListener('click',()=>{
+      if(listening){stopSequence();finishListening();return;}
       const s=steps[current],open=OPEN_STRINGS_TOP_TO_BOTTOM[s.str].midi;
-      playSequence(s.playback || (s.bridge!==undefined?[s.start,s.bridge,s.demo,s.start,s.demo]:s.demo!==undefined?[s.start,s.demo]:[s.start]).map(f=>open+f));
+      const notes=s.playback || (s.bridge!==undefined?[s.start,s.bridge,s.demo,s.start,s.demo]:s.demo!==undefined?[s.start,s.demo]:[s.start]).map(f=>open+f);
+      const seen=new Map();
+      const positions=notes.map(midi=>{const n=seen.get(midi)||0;seen.set(midi,n+1);return positionFor(midi,s,n);});
+      stopSequence();listening=true;el('lessonListen').textContent='■ Стоп';el('lessonListen').setAttribute('aria-pressed','true');
+      playSequence(notes,{step:.55,duration:.5,positions,onend:finishListening});
     });
     el('lessonHint').addEventListener('click',()=>{
-      hints.add(current);
+      hints.add(current);save();
       const s=steps[current];
       el('lessonFeedback').textContent=s.targetHint || `Начните с ${s.start}-го лада. ${Math.abs(s.delta)===1?'Сделайте один переход':'Сделайте два перехода'} к ${s.delta>0?'большим':'меньшим'} номерам. Исходный лад не считается переходом.`;
     });
@@ -181,10 +232,22 @@ const CourseLesson = (() => {
       el('tab-block').click();
       if(activeLesson<2)window.courseBlockOne.open(window.courseBlockOne.activities[activeLesson===0?1:3]);
     });
+    el('lessonReturn').addEventListener('click',()=>{
+      stopSequence();clickedVoice?.stop();clickedVoice=null;
+      const back=returnToPractice;returnToPractice=null;el('lessonReturn').hidden=true;back?.();
+    });
+    function open(index,{onReturn=null}={}){
+      el('tab-block').click();
+      switchLesson(index);
+      returnToPractice=onReturn;el('lessonReturn').hidden=!onReturn;
+      el('blockRoute').hidden=true;el('panel-lesson').hidden=false;
+      el('lessonTitle').focus();
+    }
+    document.querySelectorAll('[role="tab"]').forEach(tab=>tab.addEventListener('click',()=>{clickedVoice?.stop();clickedVoice=null;}));
     render();
-    return {open:switchLesson};
+    return {open};
   }
-  return {steps:firstSteps,answer,boot};
+  return {steps:firstSteps,answer,cleanSession,boot};
 })();
 if(typeof module!=='undefined'&&module.exports)module.exports=CourseLesson;
 else window.courseLessons=CourseLesson.boot();

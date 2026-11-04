@@ -291,15 +291,15 @@
   <div class="v2-brand">FretLab</div>
   <nav class="v2-tabs" role="tablist" aria-label="Разделы">
     <button class="v2-tab-btn" id="tab-block" role="tab" aria-selected="true" aria-controls="panel-block" tabindex="0">Курс</button>
-    <button class="v2-tab-btn" id="tab-lesson" hidden role="tab" aria-selected="false" aria-controls="panel-lesson" tabindex="-1">Уроки</button>
     <button class="v2-tab-btn" id="tab-sandbox" role="tab" aria-selected="false" aria-controls="panel-sandbox" tabindex="-1">Свободный гриф</button>
     <button class="v2-tab-btn" id="tab-learn" role="tab" aria-selected="false" aria-controls="panel-learn" tabindex="-1">Изучать</button>
     <button class="v2-tab-btn" id="tab-explore" role="tab" aria-selected="false" aria-controls="panel-explore" tabindex="-1">Исследовать</button>
   </nav>
+  <button type="button" id="tabsMore" class="play-btn tabs-more" aria-label="Прокрутить разделы вправо" hidden>→</button>
 </div>
 
 <section id="panel-block" role="tabpanel" aria-labelledby="tab-block" class="v2-active">
-  <div class="v2-wrap block-wrap">
+  <div class="v2-wrap block-wrap" id="blockRoute">
     <div id="blockOverview">
     <p class="hint">Блок 1 · Расстояния и мажорная гамма</p>
     <h1>От первого шага до своей фразы</h1>
@@ -311,9 +311,10 @@
     <details class="block-plan"><summary>Как это работает</summary><p>Ответы на экране проверяет приложение. Игра и пение — ваша самопроверка или работа с преподавателем.</p><p id="blockStorage" class="hint"></p></details>
     <p id="blockSummary" class="sandbox-readout" role="status" aria-live="polite"></p>
     <progress id="blockProgress" max="10" value="0" aria-label="Завершённые части блока"></progress>
+    <p>Для практики вам понадобится гитара. Занимайтесь в удобном темпе.</p>
     <p><button type="button" class="play-btn primary-btn" id="blockResume"></button></p>
     <div id="blockActivities" class="block-activities" aria-label="Уроки и практика блока"></div>
-    <p><button type="button" class="play-btn text-btn" id="blockNextLesson">Блок 2 · Ступени и позиция →</button></p>
+    <p><button type="button" class="play-btn text-btn" id="blockNextLesson">Дальше: Блок 2 · Ступени и позиция →</button></p>
     </div>
     <section id="blockWorkspace" class="block-workspace" aria-labelledby="blockTaskTitle" hidden>
       <button type="button" class="play-btn text-btn" id="blockClose">← К маршруту блока</button>
@@ -326,10 +327,9 @@
     </section>
     <p class="hint">Приложение проверяет экранные ответы и устройство вашей фразы. Чистота звука, ритм и исполнение на гитаре проверяются вами или преподавателем.</p>
   </div>
-</section>
-<section id="panel-lesson" role="tabpanel" aria-labelledby="tab-block">
+<section id="panel-lesson" role="region" aria-labelledby="lessonTitle" hidden>
   <div class="v2-wrap lesson-wrap">
-    <p class="course-breadcrumb"><button type="button" class="play-btn text-btn" id="lessonRoute">← К маршруту</button><span id="lessonBreadcrumb"></span></p>
+    <p class="course-breadcrumb"><button type="button" class="play-btn text-btn" id="lessonRoute">← К маршруту</button><span id="lessonBreadcrumb"></span><button type="button" id="lessonReturn" class="play-btn text-btn" hidden>Вернуться к упражнению →</button></p>
     <progress id="lessonProgress" max="9" value="1" aria-label="Шаг урока"></progress>
     <p id="lessonPosition" class="hint"></p>
     <div class="lesson-layout"><div class="lesson-text">
@@ -342,13 +342,12 @@
     <div class="board-outer"><div class="board" id="lessonBoard" aria-label="Учебный гриф, первая струна сверху"></div></div>
     <p id="lessonFeedback" class="sandbox-readout" role="status" aria-live="polite"></p>
     <label id="lessonPracticeLabel" class="lesson-practice"><input type="checkbox" id="lessonPractice"> Я сыграл упражнение на гитаре и проверил себя по критериям выше</label>
-    <p id="lessonNextHelp" class="hint" role="status"></p>
     <nav class="sandbox-controls" aria-label="Шаги урока">
       <button type="button" class="play-btn" id="lessonListen">▶ Послушать пример</button>
       <button type="button" class="play-btn text-btn" id="lessonHint">Подсказка</button>
 
       <button type="button" class="play-btn text-btn" id="lessonBack">← Назад</button>
-      <button type="button" class="play-btn primary-btn" id="lessonNext" aria-describedby="lessonNextHelp">Далее →</button>
+      <div class="lesson-next-action"><button type="button" class="play-btn primary-btn" id="lessonNext" aria-describedby="lessonNextHelp">Далее →</button><p id="lessonNextHelp" role="status"></p></div>
       <button type="button" class="play-btn text-btn" id="lessonRestart">Начать заново</button>
       <button type="button" class="play-btn primary-btn" id="lessonContinue" hidden>Следующий урок →</button>
     </nav>
@@ -358,8 +357,9 @@
       <select id="lessonSelect"><option value="0">Блок 1 · Тон и полутон</option><option value="1">Блок 1 · Построение C major</option><option value="2">Блок 2 · Ступени и позиция</option></select>
     </label>
 </details>
-    <p class="hint">Прогресс сохраняется при переключении уроков в открытой странице. После перезагрузки задания начинаются заново.</p>
+    <p id="lessonStorage" class="hint">Шаг урока сохраняется в этом браузере. После перезагрузки откройте урок, чтобы продолжить.</p>
   </div>
+</section>
 </section>
 <section id="panel-sandbox" role="tabpanel" aria-labelledby="tab-sandbox">
   <div class="v2-wrap">
@@ -730,11 +730,11 @@ function getAudioCtx(){
   if(audioCtx.state === 'suspended') audioCtx.resume();
   return audioCtx;
 }
-function playMidi(midi, when, dur, peak = 0.22){
+function playMidi(midi, when, dur, peak = 0.22, position = null){
   if(!Number.isFinite(midi)) return; // guard: never hand NaN/Infinity to Web Audio
   const ctx = getAudioCtx();
   const t = when !== undefined ? when : ctx.currentTime;
-  const d = dur !== undefined ? dur : 1.35;
+  const d = dur !== undefined ? dur : .9;
   const freq = 440 * Math.pow(2, (midi - 69) / 12);
   if(!Number.isFinite(freq) || freq <= 0) return;
   const osc = ctx.createOscillator();
@@ -756,17 +756,46 @@ function playMidi(midi, when, dur, peak = 0.22){
   osc.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
   osc.addEventListener('ended', ()=>{osc.disconnect();filter.disconnect();gain.disconnect();});
   osc.start(t); osc.stop(t + d + 0.05);
-  if(typeof CourseSandbox!=='undefined')CourseSandbox.trackVoice(osc,midi,t,d,ctx);
-  return osc;
+  // Release from the actual envelope level, including voices scheduled in the future.
+  let stopped=false;
+  const envelope=[[t,.0001],[t+attack,peak],[t+settle,peak*.65],[t+d*.68,peak*.45],[t+d,.0001]];
+  const voice={
+    get stopped(){return stopped;},
+    addEventListener:(...args)=>osc.addEventListener(...args),
+    stop(){
+      if(stopped)return;stopped=true;
+      const now=ctx.currentTime;
+      let level=.0001;
+      for(let i=1;i<envelope.length;i++){
+        const [a,x]=envelope[i-1],[b,y]=envelope[i];
+        if(now>=a&&now<b){level=x*Math.pow(y/x,(now-a)/(b-a));break;}
+      }
+      gain.gain.cancelScheduledValues(now);
+      gain.gain.setValueAtTime(now<t?0:level,now);
+      gain.gain.linearRampToValueAtTime(0,now+.025);
+      osc.stop(now+.03);
+    }
+  };
+  if(typeof CourseSandbox!=='undefined')CourseSandbox.trackVoice(voice,midi,t,d,ctx,position);
+  return voice;
 }
-let sequenceVoices=[];
-function stopSequence(){sequenceVoices.forEach(v=>{try{v?.stop();}catch{}});sequenceVoices=[];}
-function playSequence(midiList){
+let sequenceVoices=[], sequenceEnd=null;
+function stopSequence(){
+  sequenceVoices.forEach(v=>{try{v?.stop();}catch{}});sequenceVoices=[];
+  const finish=sequenceEnd;sequenceEnd=null;finish?.();
+}
+function playSequence(midiList,{step=.32,duration=.5,positions=[],onend=null}={}){
   stopSequence();
-  if(!midiList || !midiList.length) return;
+  if(!midiList || !midiList.length){onend?.();return;}
   const ctx = getAudioCtx();
   let t = ctx.currentTime + 0.03;
-  midiList.forEach(midi => { sequenceVoices.push(playMidi(midi, t, 0.5)); t += 0.55; });
+  sequenceEnd=onend;
+  midiList.forEach((midi,i) => { sequenceVoices.push(playMidi(midi, t, duration,.22,positions[i])); t += step; });
+  const last=sequenceVoices.at(-1);
+  last?.addEventListener('ended',()=>{
+    if(sequenceVoices.at(-1)!==last)return;
+    sequenceVoices=[];const finish=sequenceEnd;sequenceEnd=null;finish?.();
+  });
 }
 function ascendingMidiFromPcs(pcsOrdered, firstMidi){
   if(!pcsOrdered || !pcsOrdered.length || !Number.isFinite(firstMidi)) return [];
@@ -2138,7 +2167,7 @@ function render(){
           noteEl.textContent = label;
           const midiHere = str.midi + f;
           noteEl.setAttribute('aria-label', `${label}, лад ${f}, струна ${str.label}. Воспроизвести ноту.`);
-          noteEl.addEventListener('click', (e)=>{ e.stopPropagation(); playMidi(midiHere); });
+          noteEl.addEventListener('click', (e)=>{ e.stopPropagation(); playMidi(midiHere,undefined,undefined,.22,{boardId:'board',index:stringIdx*(FRET_COUNT+1)+f}); });
           cell.appendChild(noteEl);
         }
       } else if(pcMap.has(pc) && areaOk && (!state.selectedChordPcs || state.selectedChordPcs.includes(pc))){
@@ -2159,7 +2188,7 @@ function render(){
         noteEl.textContent = label;
         const midiHere = str.midi + f;
         noteEl.setAttribute('aria-label', `${info.noteName}, лад ${f}, струна ${str.label}. Воспроизвести ноту.`);
-        noteEl.addEventListener('click', (e)=>{ e.stopPropagation(); playMidi(midiHere); });
+        noteEl.addEventListener('click', (e)=>{ e.stopPropagation(); playMidi(midiHere,undefined,undefined,.22,{boardId:'board',index:stringIdx*(FRET_COUNT+1)+f}); });
         cell.appendChild(noteEl);
       }
       const cellIsActive = state.overlayEnabled && overlayInfo ? overlayAreaOk : areaOk;
@@ -2407,7 +2436,7 @@ function v2RenderBoard(cellsMap, boardId = 'learnBoard'){
         dot.textContent = info.label;
         dot.setAttribute('aria-label', `${info.label}, лад ${f}, ${str.label} струна`);
         const midi = str.midi + f;
-        dot.addEventListener('click', ()=>playMidi(midi));
+        dot.addEventListener('click', ()=>playMidi(midi,undefined,undefined,.22,{boardId:board.id,index:stringIdx*(FRET_COUNT+1)+f}));
         cell.appendChild(dot);
       }
       board.appendChild(cell);
@@ -2589,20 +2618,19 @@ function renderLearn(){
 function v2InitTabs(){
   const learnTab = document.getElementById('tab-learn');
   const exploreTab = document.getElementById('tab-explore');
-  const tabs = [document.getElementById('tab-block'), document.getElementById('tab-lesson'), document.getElementById('tab-sandbox'), learnTab, exploreTab];
+  const tabs = [document.getElementById('tab-block'), document.getElementById('tab-sandbox'), learnTab, exploreTab];
   function activate(tab){
     stopSequence();
     tabs.forEach(t=>{
       const isActive = t===tab;
-      const selected = (t.id==='tab-block' && tab.id==='tab-lesson') || (isActive && t.id!=='tab-lesson');
+      const selected = isActive;
       t.setAttribute('aria-selected', selected?'true':'false');
       t.tabIndex = selected ? 0 : -1;
       document.getElementById('panel-'+t.id.slice(4)).classList.toggle('v2-active', isActive);
     });
-    document.getElementById('tab-block').setAttribute('aria-controls',tab.id==='tab-lesson'?'panel-lesson':'panel-block');
-    (tab.id==='tab-lesson' ? document.getElementById('lessonTitle') : tab).focus();
+    tab.focus();
   }
-  const visibleTabs=tabs.filter(t=>t.id!=='tab-lesson');
+  const visibleTabs=tabs;
   tabs.forEach(tab=>{
     const i=visibleTabs.indexOf(tab);
     tab.addEventListener('click', ()=>activate(tab));
@@ -2611,6 +2639,22 @@ function v2InitTabs(){
       if(e.key==='ArrowLeft') { e.preventDefault(); visibleTabs[(i-1+visibleTabs.length)%visibleTabs.length].click(); }
     });
   });
+  if(document.defaultView){
+    const strip=document.querySelector('.v2-tabs'),more=document.getElementById('tabsMore');
+    function updateScroll(){
+      more.hidden=strip.scrollWidth<=strip.clientWidth+1;
+      const end=strip.scrollLeft+strip.clientWidth>=strip.scrollWidth-2;
+      more.textContent=end?'←':'→';more.setAttribute('aria-label',end?'Прокрутить разделы в начало':'Прокрутить разделы вправо');
+    }
+    more.addEventListener('click',()=>{
+      const end=strip.scrollLeft+strip.clientWidth>=strip.scrollWidth-2;
+      strip.scrollTo({left:end?0:strip.scrollLeft+strip.clientWidth*.7,behavior:'auto'});
+    });
+    strip.addEventListener('scroll',updateScroll);
+    document.defaultView.addEventListener('resize',updateScroll);
+    updateScroll();
+  }
+
 }
 
 function v2Init(){
