@@ -148,3 +148,10 @@ body{padding:0 0 40px}
 .rhythm-intro{max-width:720px}.rhythm-intro h3{margin-top:24px}.rhythm-intro .play-btn{min-height:44px}
 
 .rhythm-rest-label{grid-column:1/-1;text-align:center;font-size:14px}.rhythm-option p{font-family:inherit;white-space:normal;font-size:15px;line-height:1.5}
+
+/* Original rhythm notation: one rhythmic line, same pitch played throughout. */
+.rhythm-score{display:block;width:100%;max-width:640px;height:auto;color:var(--ink);background:var(--panel);border:1px solid var(--border);border-radius:10px;margin:12px 0}
+.rhythm-support summary{min-height:44px;padding:10px 0;cursor:pointer;font-size:14px}
+.rhythm-question{border:1px solid var(--border);border-radius:10px;padding:12px;margin:20px 0}.rhythm-question legend{font-weight:600}.rhythm-question button{margin:4px;min-height:44px}
+.study-pulse{display:flex;gap:12px;margin:16px 0}.study-pulse span{display:grid;place-items:center;width:52px;height:52px;border:2px solid var(--teal);border-radius:50%;font-size:22px}
+.rhythm-next-help{font-weight:600;font-size:14px;line-height:1.5}.rhythm-intro>p{font-size:15px;line-height:1.6}

@@ -1,5 +1,13 @@
 # Changelog
 
+## Guided rhythm notation — 2026-11-04
+
+- Add five progressive study steps: pulse, quarter notes, quarter rests, paired straight eighths, and reading/playing a mixed bar.
+- Require playback, a correct notation answer and an explicit practice self-report before continuing; save validated completed-step checkpoints locally.
+- Render original SVG rhythm notation in study and listening choices, with collapsible count/syllable support and accessible descriptions.
+- Keep all examples on C, explain that the rhythmic line does not encode pitch, and retain independent practice self-reports.
+- Cover step gates, checkpoint reload/validation, full course flow and desktop/mobile notation.
+
 ## Metronome timbre — 2026-11-04
 
 - Replace high pitched lesson-note clicks with an independent short wooden-style synthesized tap, with first-beat accents.

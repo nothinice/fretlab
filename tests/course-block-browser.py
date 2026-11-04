@@ -135,7 +135,11 @@ with sync_playwright() as p:
         body_button('Завершить упражнение →' if _ == 5 else 'Следующая пара →')
 
     activity(7)
-    body_button('Начать сравнение ритмов →')
+    for step,answer in enumerate(['Четыре','Одну','Продолжить ровный счёт','Одну','На второй']):
+        body_button('▶ Четыре доли' if step==0 else '▶ Послушать запись')
+        body_button(answer)
+        page.locator('.rhythm-intro input[type=checkbox]').check()
+        body_button('Начать сравнение ритмов →' if step==4 else 'Дальше по ритму →')
     for _ in range(3):
         page.evaluate('window._notes=[]')
         body_button('▶ Отсчёт и ритм')
