@@ -1,6 +1,6 @@
 /* Original lesson tasks. Source rationale lives in course/lesson-01-method.txt. */
 const CourseLesson = (() => {
-  const steps = [
+  const firstSteps = [
     {title:'Как измерять расстояние между звуками',
       explanation:'Чтобы построить гамму, нужно знать, на сколько повышать или понижать каждый следующий звук. Начнём с двух единиц: полутона и тона.\nК концу урока вы сможете находить их вверх и вниз на одной струне от разных ладов. Названия нот заучивать сейчас не нужно.',
       purpose:'В следующем уроке из этих шагов мы соберём мажорную гамму. Здесь учимся пользоваться музыкальной линейкой.',
@@ -39,17 +39,27 @@ const CourseLesson = (() => {
       instruction:'Экранные задания проверены отдельно от игры на гитаре. Отметка практики — ваша самооценка, приложение не слушало исполнение. Можно повторить урок или перейти во «Свободный гриф» и проверить другие исходные ноты.', str:4, start:3, finish:true}
   ];
   function answer(step, stringIdx, fret) {
+    if(step.target)return stringIdx===step.target.stringIdx && fret===step.target.fret;
     if (step.delta === undefined) return false;
     return stringIdx === step.str && fret === step.start + step.delta;
   }
   function boot() {
     const el = id => document.getElementById(id);
+    const content = typeof module !== 'undefined' && module.exports ? require('./course-lessons-content.js') : CourseLessonContent;
+    const originalSteps=firstSteps;
+    const sandbox = typeof module !== 'undefined' && module.exports ? require('./course-sandbox.js') : CourseSandbox;
+    const form=realizeScaleForm(0,'major','E',FRET_COUNT);
+    if(!form.complete)throw Error('Учебная позиция недоступна');
+    const lessons=[originalSteps,content.majorLesson(),content.degreeLesson(form.positions)];
+    let activeLesson=0, steps=lessons[0];
+    const sessions=new Map();
     let current = 0;
-    const solved = new Set();
-    const choices = new Map();
-    const hints = new Set();
+    let solved = new Set();
+    let choices = new Map();
+    let hints = new Set();
     let practiced = false;
-    function ready() {const s=steps[current]; return s.delta !== undefined ? solved.has(current) : s.practice ? practiced : true;}
+    const isTask=s=>s.delta!==undefined || !!s.target;
+    function ready() {const s=steps[current]; return isTask(s) ? solved.has(current) : s.practice ? practiced : true;}
     function render() {
       const s = steps[current];
       el('lessonTitle').textContent=s.title;
@@ -57,38 +67,57 @@ const CourseLesson = (() => {
       el('lessonPurpose').textContent=s.purpose;
       el('lessonInstruction').textContent=s.instruction;
       el('lessonProgress').value=current+1;
+      el('lessonProgress').max=steps.length;
+      el('lessonSelect').value=String(activeLesson);
+      el('lessonContinue').hidden=!s.finish || activeLesson===lessons.length-1;
+      el('lessonFormula').innerHTML='';
+      el('lessonFormula').hidden=!s.formula;
+      if(s.formula){
+        const parts=s.formulaIndex===undefined?[s.formula]:content.majorSteps.map(n=>n===1?'Полутон':'Тон');
+        parts.forEach((text,i)=>{const span=document.createElement('span');span.textContent=text;if(i===s.formulaIndex){span.className='current-step';span.setAttribute('aria-current','step');}el('lessonFormula').appendChild(span);});
+      }
       el('lessonPosition').textContent=`Шаг ${current+1} из ${steps.length}`;
       el('lessonBack').disabled=current===0;
       el('lessonNext').disabled=!ready() || !!s.finish;
-      el('lessonListen').hidden=s.delta !== undefined || !!s.practice || !!s.finish;
-      el('lessonHint').hidden=s.delta === undefined;
+      el('lessonListen').hidden=isTask(s) || !!s.practice || !!s.finish;
+      el('lessonHint').hidden=!isTask(s);
       el('lessonPracticeLabel').hidden=!s.practice;
       el('lessonPractice').checked=practiced;
-      el('lessonFeedback').textContent=s.delta !== undefined ? solved.has(current) ? 'Верно. Можно переходить дальше.' : 'Выберите ответ на указанной струне. Можно пробовать снова: ошибка не закрывает задание.' : s.finish ? `Экранных заданий выполнено: ${solved.size} из 4. Заданий с подсказкой: ${hints.size}. Практика на гитаре отмечена вами: ${practiced ? 'да' : 'нет'}.` : 'Нажмите «Послушать пример» или на золотую точку.';
+      el('lessonFeedback').textContent=isTask(s) ? solved.has(current) ? 'Верно. Можно переходить дальше.' : 'Выберите ответ на указанной струне. Можно пробовать снова: ошибка не закрывает задание.' : s.finish ? `Экранных заданий выполнено: ${solved.size} из ${steps.filter(isTask).length}. Заданий с подсказкой: ${hints.size}. Практика на гитаре отмечена вами: ${practiced ? 'да' : 'нет'}.` : 'Нажмите «Послушать пример» или на отмеченную точку.';
       if(s.practice) el('lessonFeedback').textContent='Отметьте практику после игры и самопроверки. Нажатия на грифе не заменяют это задание.';
       v2RenderBoard(new Map(), 'lessonBoard');
       const cells=el('lessonBoard').querySelectorAll('.cell');
       cells.forEach((cell,index) => {
         const stringIdx=Math.floor(index/(FRET_COUNT+1)), fret=index%(FRET_COUNT+1);
-        if(stringIdx!==s.str){cell.classList.add('lesson-muted');return;}
+        const point=(s.path||[]).find(p=>p.stringIdx===stringIdx&&p.fret===fret);
+        const active=s.multi?!!point:stringIdx===s.str;
+        if(!active)cell.classList.add('lesson-muted');
+        const midi=OPEN_STRINGS_TOP_TO_BOTTOM[stringIdx].midi+fret;
+        const selected=active && choices.get(current)===fret;
+        const isStart=!s.target && stringIdx===s.str && fret===s.start;
+        const marked=!!point || isStart || (stringIdx===s.str&&(fret===s.demo || fret===s.bridge)) || selected;
+        let dot;
+        if(marked){
+          dot=document.createElement('span');dot.className='note'+(isStart || (s.showDegrees&&point?.degree==='1')?' root':fret===s.bridge?'':' chord-tone');
+          dot.textContent=s.showDegrees?(point?.degree || ({0:'1',2:'2',4:'3',5:'4',7:'5',9:'6',11:'7'}[midi%12]||'·')):s.noteLabels||s.path?sandbox.pitch(midi).name:String(fret);
+        }
+        if(!active){if(dot)cell.appendChild(dot);return;}
         const button=document.createElement('button');
         button.type='button';button.className='sandbox-hit';
         button.setAttribute('aria-label',`Струна ${stringIdx+1}, лад ${fret}${fret===s.start?', исходный звук':''}`);
-        const marked=fret===s.start || fret===s.demo || fret===s.bridge || choices.get(current)===fret;
-        if(marked){
-          const dot=document.createElement('span');dot.className='note'+(fret===s.start?' root':fret===s.bridge?'':' chord-tone');
-          dot.textContent=String(fret);button.appendChild(dot);
-        }
+        if(dot)button.appendChild(dot);
         button.addEventListener('click',()=>{
           playMidi(OPEN_STRINGS_TOP_TO_BOTTOM[stringIdx].midi+fret);
-          if(s.delta===undefined)return;
+          if(!isTask(s))return;
           choices.set(current,fret);
           if(answer(s,stringIdx,fret))solved.add(current); else solved.delete(current);
           render();
-          if(!solved.has(current)){
+          if(!solved.has(current)&&s.target){
+            el('lessonFeedback').textContent='Пока не та ступень. Отсчитайте нужный номер от C. Можно воспользоваться подсказкой и попробовать снова.';
+          }else if(!solved.has(current)){
             const difference=fret-s.start;
             el('lessonFeedback').textContent=difference===0 ? 'Это исходный звук: пока ни одного перехода. Выберите другой лад.' : `Число выбранных переходов: ${Math.abs(difference)}, направление — ${difference>0?'вверх':'вниз'}. Нужно ${Math.abs(s.delta)===1?'один переход':'два перехода'} ${s.delta>0?'вверх':'вниз'}. Считайте промежутки между ладами на той же струне.`;
-          }else playSequence([OPEN_STRINGS_TOP_TO_BOTTOM[s.str].midi+s.start,OPEN_STRINGS_TOP_TO_BOTTOM[s.str].midi+fret]);
+          }else playSequence([s.target?48:OPEN_STRINGS_TOP_TO_BOTTOM[s.str].midi+s.start,OPEN_STRINGS_TOP_TO_BOTTOM[s.str].midi+fret]);
           el('lessonBoard').querySelectorAll('.sandbox-hit')[fret].focus({preventScroll:true});
         });
         cell.appendChild(button);
@@ -96,20 +125,30 @@ const CourseLesson = (() => {
     }
     el('lessonListen').addEventListener('click',()=>{
       const s=steps[current],open=OPEN_STRINGS_TOP_TO_BOTTOM[s.str].midi;
-      playSequence((s.bridge!==undefined?[s.start,s.bridge,s.demo,s.start,s.demo]:s.demo!==undefined?[s.start,s.demo]:[s.start]).map(f=>open+f));
+      playSequence(s.playback || (s.bridge!==undefined?[s.start,s.bridge,s.demo,s.start,s.demo]:s.demo!==undefined?[s.start,s.demo]:[s.start]).map(f=>open+f));
     });
     el('lessonHint').addEventListener('click',()=>{
       hints.add(current);
       const s=steps[current];
-      el('lessonFeedback').textContent=`Начните с ${s.start}-го лада. ${Math.abs(s.delta)===1?'Сделайте один переход':'Сделайте два перехода'} к ${s.delta>0?'большим':'меньшим'} номерам. Исходный лад не считается переходом.`;
+      el('lessonFeedback').textContent=s.targetHint || `Начните с ${s.start}-го лада. ${Math.abs(s.delta)===1?'Сделайте один переход':'Сделайте два перехода'} к ${s.delta>0?'большим':'меньшим'} номерам. Исходный лад не считается переходом.`;
     });
     el('lessonPractice').addEventListener('change',e=>{practiced=e.target.checked;render();});
     el('lessonBack').addEventListener('click',()=>{if(current>0){current--;render();}});
     el('lessonNext').addEventListener('click',()=>{if(ready()&&current<steps.length-1){current++;render();el('lessonTitle').setAttribute('tabindex','-1');el('lessonTitle').focus();}});
     el('lessonRestart').addEventListener('click',()=>{current=0;solved.clear();choices.clear();hints.clear();practiced=false;render();});
+    function switchLesson(index){
+      if(!Number.isInteger(index)||!lessons[index])return;
+      sessions.set(activeLesson,{current,solved,choices,hints,practiced});
+      activeLesson=index;steps=lessons[index];
+      const saved=sessions.get(index);
+      current=saved?.current||0;solved=saved?.solved||new Set();choices=saved?.choices||new Map();hints=saved?.hints||new Set();practiced=saved?.practiced||false;
+      render();
+    }
+    el('lessonSelect').addEventListener('change',e=>switchLesson(Number(e.target.value)));
+    el('lessonContinue').addEventListener('click',()=>{if(steps[current].finish)switchLesson(activeLesson+1);});
     render();
   }
-  return {steps,answer,boot};
+  return {steps:firstSteps,answer,boot};
 })();
 if(typeof module!=='undefined'&&module.exports)module.exports=CourseLesson;
 else CourseLesson.boot();

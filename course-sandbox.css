@@ -14,4 +14,9 @@
 .lesson-wrap progress{width:100%;accent-color:var(--chord-note)}
 .lesson-wrap [hidden]{display:none!important}
 .lesson-muted{opacity:.3}
+.lesson-picker{display:grid;gap:8px;max-width:600px;margin:12px 0 20px}
+.lesson-picker select{min-height:44px;width:100%}
+.lesson-formula{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0;font-family:'IBM Plex Mono',monospace;line-height:1.7}
+.lesson-formula span{padding:5px 10px;background:var(--panel);border-radius:8px}
+.lesson-formula .current-step{background:var(--chord-note);color:white;font-weight:bold;outline:2px solid var(--ink)}
 @media(max-width:600px){.sandbox-controls label{width:100%}.sandbox-controls select{width:100%}.sandbox-controls button{min-height:44px}.v2-tabs{flex-wrap:wrap}}

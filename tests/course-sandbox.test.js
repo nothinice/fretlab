@@ -28,6 +28,7 @@ global.played = [];
 global.v2RenderBoard = vm.runInThisContext('v2RenderBoard');
 global.FRET_COUNT = vm.runInThisContext('FRET_COUNT');
 global.OPEN_STRINGS_TOP_TO_BOTTOM = vm.runInThisContext('OPEN_STRINGS_TOP_TO_BOTTOM');
+global.realizeScaleForm = vm.runInThisContext('realizeScaleForm');
 global.playMidi = midi => played.push(midi);
 global.playSequence = list => played.push(...list);
 global.getAudioCtx = () => ({currentTime:0});
