@@ -39,6 +39,7 @@ const CourseLesson = (() => {
       instruction:'Экранные задания проверены отдельно от игры на гитаре. Вы сами отмечаете, что сыграли на гитаре; приложение не слушает исполнение. Можно повторить урок или перейти во «Свободный гриф» и проверить другие исходные ноты.', str:4, start:3, finish:true}
   ];
   function answer(step, stringIdx, fret) {
+    if(step.buildFrets)return stringIdx===step.str&&Array.isArray(fret)&&fret.length===step.buildFrets.length&&new Set(fret).size===fret.length&&step.buildFrets.every(n=>fret.includes(n));
     if(step.target)return stringIdx===step.target.stringIdx && fret===step.target.fret;
     if (step.delta === undefined) return false;
     return stringIdx === step.str && fret === step.start + step.delta;
@@ -49,15 +50,17 @@ const CourseLesson = (() => {
     if(raw&&Array.isArray(raw.choices))for(const item of raw.choices.slice(0,steps.length)){
       if(!Array.isArray(item)||item.length!==2)continue;
       const [i,fret]=item;
-      if(Number.isInteger(i)&&steps[i]&&Number.isInteger(fret)&&fret>=0&&fret<=16)choices.set(i,fret);
+      if(!Number.isInteger(i)||!steps[i])continue;
+      if(steps[i].buildFrets){if(Array.isArray(fret))choices.set(i,[...new Set(fret.filter(n=>Number.isInteger(n)&&n>=0&&n<=16&&n!==steps[i].start))].slice(0,16));}
+      else if(Number.isInteger(fret)&&fret>=0&&fret<=16)choices.set(i,fret);
     }
     const solved=new Set([...choices].filter(([i,fret])=>answer(steps[i],steps[i].str,fret)).map(([i])=>i));
     if(raw&&Array.isArray(raw.hints))for(const i of raw.hints.slice(0,steps.length)){
-      if(Number.isInteger(i)&&steps[i]&&(steps[i].delta!==undefined||steps[i].target))hints.add(i);
+      if(Number.isInteger(i)&&steps[i]&&(steps[i].delta!==undefined||steps[i].target||steps[i].buildFrets))hints.add(i);
     }
     const practiced=raw?.practiced===true;
     let current=Number.isInteger(raw?.current)?Math.max(0,Math.min(steps.length-1,raw.current)):0;
-    for(let i=0;i<current;i++)if((steps[i].delta!==undefined||steps[i].target)&&!solved.has(i)||steps[i].practice&&!practiced){current=i;break;}
+    for(let i=0;i<current;i++)if((steps[i].delta!==undefined||steps[i].target||steps[i].buildFrets)&&!solved.has(i)||steps[i].practice&&!practiced){current=i;break;}
     return {current,choices,solved,hints,practiced};
   }
   function boardPosition(stringIdx,fret){
@@ -65,6 +68,7 @@ const CourseLesson = (() => {
     return {boardId:'lessonBoard',index:stringIdx*(FRET_COUNT+1)+fret};
   }
   function positionFor(midi,step,occurrence=0){
+      if(step.buildFrets)return boardPosition(step.str,midi-OPEN_STRINGS_TOP_TO_BOTTOM[step.str].midi);
       const points=(step.path||[]).filter(p=>p.midi===midi);
       if(points.length){const p=points[occurrence%points.length];return boardPosition(p.stringIdx,p.fret);}
       // Do not reveal unreached notes in a construction exercise.
@@ -107,7 +111,7 @@ const CourseLesson = (() => {
     }
     const at=(stringIdx,fret)=>({boardId:'lessonBoard',index:stringIdx*(FRET_COUNT+1)+fret});
     function finishListening(){listening=false;el('lessonListen').textContent='▶ Послушать пример';el('lessonListen').setAttribute('aria-pressed','false');}
-    const isTask=s=>s.delta!==undefined || !!s.target;
+    const isTask=s=>s.delta!==undefined || !!s.target || !!s.buildFrets;
     function ready() {const s=steps[current]; return isTask(s) ? solved.has(current) : s.practice ? practiced : true;}
     function render() {
       stopSequence();clickedVoice?.stop();clickedVoice=null;finishListening();save();
@@ -135,9 +139,9 @@ const CourseLesson = (() => {
       el('lessonBack').disabled=current===0;
       el('lessonNext').disabled=!ready() || !!s.finish;
       el('lessonNext').hidden=!!s.finish;
-      el('lessonNextHelp').textContent=!ready()?(s.practice?'Сначала сыграйте на гитаре и отметьте самопроверку.':'Сначала выберите нужную ноту на грифе.') : '';
+      el('lessonNextHelp').textContent=!ready()?(s.practice?'Сначала сыграйте на гитаре и отметьте самопроверку.':s.buildFrets?'Сначала соберите всю гамму по формуле.':'Сначала выберите нужную ноту на грифе.') : '';
       el('lessonBack').hidden=!!s.finish;
-      el('lessonListen').hidden=isTask(s) || !!s.practice || !!s.finish;
+      el('lessonListen').hidden=(isTask(s)&&!(s.buildFrets&&solved.has(current))) || !!s.practice || !!s.finish;
       el('lessonHint').hidden=!isTask(s);
       el('lessonPracticeLabel').hidden=!s.practice;
       el('lessonFeedback').hidden=!isTask(s)&&!s.finish&&!s.practice;
@@ -145,6 +149,7 @@ const CourseLesson = (() => {
       if(s.finish)el('lessonFormula').hidden=true;
       el('lessonPractice').checked=practiced;
       el('lessonFeedback').textContent=isTask(s) ? solved.has(current) ? (s.target?'✓ Верно — нужная ступень найдена.':`✓ Верно — вы нашли ${Math.abs(s.delta)===1?'полутон':'тон'} ${s.delta>0?'вверх':'вниз'}.`) : 'Выберите ответ на указанной струне. Можно пробовать снова: ошибка не закрывает задание.' : s.finish ? `✓ Ответы: ${solved.size} из ${steps.filter(isTask).length} · ◇ Подсказки: ${hints.size} · ♫ Гитара: ${practiced ? 'вы отметили практику' : 'ещё не отмечено'}` : 'Нажмите «Послушать пример» или на отмеченную точку.';
+      if(s.buildFrets)el('lessonFeedback').textContent=solved.has(current)?'✓ Вы построили C–D–E–F–G–A–B–C по формуле. Послушайте целую гамму, затем сыграйте её.':`Выбрано ${(choices.get(current)||[]).length} из 7 нот после исходной C. Проверьте каждый шаг формулы; лишнюю точку можно убрать.`;
       el('lessonFeedback').classList.toggle('answer-success',!!s.finish||solved.has(current));
       el('lessonFeedback').classList.toggle('task-reward',!!s.finish);
       if(s.finish)el('lessonFeedback').textContent=['✦ Линейка звуков — урок завершён. ','✦ Мажор собран на экране — урок завершён. ','✦ Ступени найдены на экране — урок завершён. '][activeLesson]+el('lessonFeedback').textContent;
@@ -158,7 +163,7 @@ const CourseLesson = (() => {
         const active=s.multi?!!point:stringIdx===s.str;
         if(!active)cell.classList.add('lesson-muted');else cell.classList.add('active-string');
         const midi=OPEN_STRINGS_TOP_TO_BOTTOM[stringIdx].midi+fret;
-        const selected=active && choices.get(current)===fret;
+        const selected=active && (s.buildFrets?(choices.get(current)||[]).includes(fret):choices.get(current)===fret);
         const isStart=!s.target && stringIdx===s.str && fret===s.start;
         const marked=!!point || isStart || (stringIdx===s.str&&(fret===s.demo || fret===s.bridge)) || selected;
         let dot;
@@ -176,10 +181,12 @@ const CourseLesson = (() => {
             stopSequence();clickedVoice?.stop();
             clickedVoice=playMidi(midi,undefined,1.35,.22,at(stringIdx,fret));return;
           }
-          choices.set(current,fret);
-          if(answer(s,stringIdx,fret))solved.add(current); else solved.delete(current);
+          if(s.buildFrets){const selected=choices.get(current)||[];if(fret!==s.start)choices.set(current,selected.includes(fret)?selected.filter(n=>n!==fret):[...selected,fret]);}
+          else choices.set(current,fret);
+          if(answer(s,stringIdx,choices.get(current)))solved.add(current); else solved.delete(current);
           render();
           clickedVoice=playMidi(midi,undefined,1.35,.22,at(stringIdx,fret));
+          if(s.buildFrets){el('lessonBoard').querySelectorAll('.sandbox-hit')[fret].focus({preventScroll:true});return;}
           if(!solved.has(current)&&s.target){
             el('lessonFeedback').textContent='Пока не та ступень. Отсчитайте нужный номер от C. Можно воспользоваться подсказкой и попробовать снова.';
           }else if(!solved.has(current)){
@@ -190,7 +197,7 @@ const CourseLesson = (() => {
         });
         cell.appendChild(button);
       });
-      const points=s.path?[...s.path]:[{stringIdx:s.str,fret:s.start}];
+      const points=s.buildFrets?[s.start,...(choices.get(current)||[])].sort((a,b)=>a-b).map(fret=>({stringIdx:s.str,fret})):s.path?[...s.path]:[{stringIdx:s.str,fret:s.start}];
       const endpoint=s.demo!==undefined?s.demo:solved.has(current)&&s.delta!==undefined?s.start+s.delta:null;
       if(endpoint!==null)points.push({stringIdx:s.str,fret:endpoint});
       if(!s.showDegrees)sandbox.drawDistances(el('lessonBoard'),points);

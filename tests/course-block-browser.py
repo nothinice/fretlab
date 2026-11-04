@@ -107,6 +107,9 @@ with sync_playwright() as p:
             if 'delta' in step:
                 string, f = step['str']+1, step['start']+step['delta']
                 page.locator('#lessonBoard .sandbox-hit').nth(f).click()
+            if step.get('buildFrets'):
+                for f in step['buildFrets']:
+                    page.locator(f'#lessonBoard button[aria-label="Струна {step["str"]+1}, лад {f}"]').click()
             if step.get('practice'):
                 page.locator('#lessonPractice').check()
             if not step.get('finish'):

@@ -1,5 +1,12 @@
 # Changelog
 
+## Whole-scale construction before lesson completion — 2026-11-04
+
+- Replace the passive major-scale recap with an independent construction of all seven remaining notes from the displayed formula.
+- Require the complete scale without extra notes before guitar practice and the final lesson summary; allow toggling notes and replay only after completion.
+- Persist validated multi-note selections and rewind older incomplete sessions to the new construction prerequisite.
+- Add unit and desktop/mobile browser regression coverage for extra notes, edits and reload.
+
 ## Interval feedback lifecycle — 2026-11-04
 
 - Clear successful-answer feedback when advancing to an unanswered interval instead of generating a new success message.

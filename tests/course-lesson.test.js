@@ -59,10 +59,13 @@ for(const fret of [5,7,8,10,12,14,15]){
   assert.equal(byId.lessonNext.disabled,true);
   hit(fret);assert.equal(byId.lessonNext.disabled,false);click('lessonNext');
 }
+assert.equal(byId.lessonNext.disabled,true);
+hit(4);for(const fret of [5,7,8,10,12,14,15])hit(fret);assert.equal(byId.lessonNext.disabled,true);
+hit(4);assert.equal(byId.lessonNext.disabled,false);
 click('lessonListen');assert.deepEqual(played.slice(-15),[48,50,52,53,55,57,59,60,59,57,55,53,52,50,48]);
 click('lessonNext');assert.equal(byId.lessonNext.disabled,true);
 byId.lessonPractice.dispatch('change',{target:{checked:true}});click('lessonNext');
-assert.match(byId.lessonFeedback.textContent,/7 из 7/);
+assert.match(byId.lessonFeedback.textContent,/8 из 8/);
 assert.equal(byId.lessonContinue.hidden,false);
 byId.lessonSelect.dispatch('change',{target:{value:'2'}});
 assert.match(byId.lessonTitle.textContent,/Ступень/);
@@ -76,7 +79,7 @@ click('lessonNext');hit(10);assert.equal(byId.lessonNext.disabled,false);
 click('lessonNext');byId.lessonPractice.dispatch('change',{target:{checked:true}});click('lessonNext');
 assert.match(byId.lessonFeedback.textContent,/2 из 2/);assert.equal(byId.lessonContinue.hidden,false);
 byId.lessonSelect.dispatch('change',{target:{value:'1'}});
-assert.match(byId.lessonFeedback.textContent,/7 из 7/); // switching preserves progress
+assert.match(byId.lessonFeedback.textContent,/8 из 8/); // switching preserves progress
 byId.lessonSelect.dispatch('change',{target:{value:'0'}});
 assert.equal(byId.lessonPosition.textContent,'Шаг 3 из 9');
 byId.lessonSelect.dispatch('change',{target:{value:'99'}});assert.equal(byId.lessonSelect.value,'0');
@@ -95,3 +98,10 @@ assert.equal(lesson.positionFor(48,{str:99}),null);
 assert.equal(lesson.positionFor(48,{str:4,path:[]}),null);
 assert.deepEqual(lesson.positionFor(61,{str:4}),{boardId:'lessonBoard',index:84});
 console.log('OK: position fallback validates string/fret bounds and does not reveal hidden answers');
+const buildIndex=major.findIndex(s=>s.buildFrets);
+const oldMajor=lesson.cleanSession({current:major.length-1,practiced:true,choices:[5,7,8,10,12,14,15].map((f,i)=>[i+2,f])},major);
+assert.equal(oldMajor.current,buildIndex);
+assert.equal(lesson.answer(major[buildIndex],4,[5,7,8,10,12,14,15]),true);
+assert.equal(lesson.answer(major[buildIndex],4,[5,7,8,10,12,14,15,4]),false);
+assert.equal(lesson.answer(major[buildIndex],4,[5,5,8,10,12,14,15]),false);
+console.log('OK: full-scale answer and old-session prerequisite migration');
