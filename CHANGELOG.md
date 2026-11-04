@@ -1,5 +1,10 @@
 # Changelog
 
+## Review clarity — 2026-11-04
+
+- Explain why the major scale first uses one string and that block 2 transfers it into a multi-string position.
+- Render practice confirmations as readable sentence-case body text; give disabled buttons opaque text and a visible border.
+
 ## Guided rhythm notation — 2026-11-04
 
 - Add five progressive study steps: pulse, quarter notes, quarter rests, paired straight eighths, and reading/playing a mixed bar.
