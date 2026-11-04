@@ -301,10 +301,11 @@ const CourseBlockOne = (() => {
         });
       }else if(s.kind==='ear'){
         const q=s.earReview||s.questions[s.round],midi=OPEN_STRINGS_TOP_TO_BOTTOM[q.str].midi+q.start;
-        el('blockTaskExplanation').textContent='В каждой паре второй звук выше первого. Определите расстояние между ними: полутон или тон.';
+        el('blockTaskExplanation').textContent='В каждой паре второй звук выше первого. Пока сравниваем только два варианта вверх: полутон (½ тона) или тон (1).';
         const instruction=()=>{el('blockTaskInstruction').textContent=`Пара ${s.earReview?s.round:s.round+1}/${s.questions.length}. ${s.earReview?'Ответ найден. Можно повторить звучание или перейти дальше.':heard?'Теперь выберите: полутон или тон. Пару можно прослушать повторно.':'Новая пара ещё не звучала. Нажмите «Слушать пару», затем выберите ответ.'}`;};instruction();
         const row=controls();const listen=button(row,'▶ Слушать пару',()=>{audio([{midi,beats:1},{midi:midi+q.delta,beats:1}]);heard=true;instruction();drawAnswerButtons();});
         listen.classList.add('primary-btn');
+        button(row,'Не слышно? Проверить звук',()=>window.courseHelp?.open('sound'));
         const answers=node('div');answers.className='sandbox-controls';body.appendChild(answers);
         function drawAnswerButtons(){
           answers.innerHTML='';
@@ -330,6 +331,7 @@ const CourseBlockOne = (() => {
         el('blockTaskInstruction').textContent=`Пример ${s.round+1}/3. Нажмите «Отсчёт и ритм»: четыре щелчка для подготовки, затем один такт. Выберите, в каком рисунке звуки и пауза стоят на тех же долях.`;
         const row=controls();let reviewed=false;
         const listen=button(row,'▶ Отсчёт и ритм',()=>{audio(rhythmEvents(r),{countIn:true,click:true});heard=true;if(!reviewed)choices();});listen.classList.add('primary-btn');
+        button(row,'Не слышно? Проверить звук',()=>window.courseHelp?.open('sound'));
         const help=node('details');help.appendChild(node('summary','Как читать рисунки'));help.appendChild(node('p','Четверть — одна доля, две соединённые восьмые — по половине доли, четвертная пауза — доля молчания. Это ритмическая строка: высота не показана, играем на C. Под записью можно открыть счёт и слоги.'));body.appendChild(help);
         const explain=button(row,'Разобрать ритм ещё раз',()=>{s.introDone=false;s.studyStep=0;draw();});
         const answers=node('div');body.appendChild(answers);
@@ -365,6 +367,7 @@ const CourseBlockOne = (() => {
         audio(s.studyStep===0?Array.from({length:4},()=>({midi:null,beats:1,metronome:true})):rhythmEvents(lesson.pattern),{countIn:s.studyStep!==0,click:s.studyStep!==0});
         listened=true;update();
       });
+      button(audioRow,'Не слышно? Проверить звук',()=>window.courseHelp?.open('sound'));
       intro.appendChild(node('p',s.studyStep===0?'Повторите счёт после четырёх ударов.':'Четыре удара отсчёта, затем один такт. Тихий метроном помогает сохранять доли.'));
       const question=node('fieldset');question.className='rhythm-question';question.appendChild(node('legend',lesson.question));intro.appendChild(question);
       const response=node('p');response.setAttribute('role','status');question.appendChild(response);
@@ -379,8 +382,8 @@ const CourseBlockOne = (() => {
         try{localStorage.setItem(STUDY_KEY,JSON.stringify({version:1,step:studyProgress}));}catch{canStore=false;}
         heard=false;draw();
       },true);next.classList.add('primary-btn');
-      const help=node('p');help.className='rhythm-next-help';body.appendChild(help);
-      function update(){next.disabled=!(listened&&correct&&practiced);help.textContent=!listened?'Сначала послушайте пример.':!correct?'Ответьте на вопрос о записи.':!practiced?'Повторите упражнение и отметьте свою практику.':'Шаг разобран — можно продолжить.';}
+      const help=node('p');help.className='rhythm-next-help';help.id='rhythmNextHelp';row.appendChild(help);next.setAttribute('aria-describedby',help.id);
+      function update(){next.disabled=!(listened&&correct&&practiced);help.textContent=!listened?(correct?'Ответ верный и сохранён. Теперь нажмите ▶ и послушайте пример.':'Сначала нажмите ▶ и послушайте пример.'):!correct?'Ответьте на вопрос о записи.':!practiced?'Повторите упражнение и отметьте свою практику.':'Шаг разобран — можно продолжить.';}
       update();body.appendChild(node('p',canStore?'Пройденные шаги разбора сохраняются в этом браузере. Можно заниматься постепенно.':'Хранилище недоступно: шаги сохранятся только до закрытия страницы.'));tempoControl();drawActions();
     }
     function rhythmScore(parent,rhythm){
@@ -432,11 +435,6 @@ const CourseBlockOne = (() => {
       const meter=node('div');meter.className='phrase-meter';meter.setAttribute('aria-label',`Заполнено ${total()} из 8 долей`);
       for(let i=0;i<8;i++){const beat=node('span',String(i%4+1));beat.style.setProperty('--filled',Math.max(0,Math.min(1,total()-i))*100+'%');meter.appendChild(beat);}
       toolbar.appendChild(node('p',`Заполнено ${total()}/8 долей`));toolbar.appendChild(meter);
-      button(toolbar,'Проверить фразу и завершить',()=>{
-        const issue=phraseCheck(s.events);if(issue){feedback(issue);return;}
-        if(!s.checks.every(Boolean)){feedback('Сначала проиграйте фразу на гитаре и отметьте самопроверку ниже.');return;}
-        s.practice=true;complete();
-      });
       const row=controls();row.setAttribute('aria-label','Длительность следующего события');
       if(!s.duration)s.duration=1;
       const durations=[];
@@ -451,6 +449,12 @@ const CourseBlockOne = (() => {
       s.events.forEach((e,i)=>timeline.appendChild(node('li',`${i+1}. ${e.midi===null?'Пауза':pitchNames.pitch(e.midi).name} · ${e.beats===.5?'½ доли':e.beats===1?'1 доля':e.beats+' доли'}`)));body.appendChild(timeline);
       const playback=controls();button(playback,'Убрать последнее',()=>{s.events.pop();draw();},!s.events.length);button(playback,'Очистить фразу',()=>{s.events=[];s.checks=[false,false];draw();},!s.events.length);button(playback,'▶ Сыграть с отсчётом',()=>audio(s.events,{countIn:true,click:true}),!s.events.length);tempoControl();
       checklist(body,['Я пропел свою фразу, затем сыграл её на гитаре.','Я сохранил пульс и паузу; если сбивался, замедлил темп и повторил.'],s.checks);
+      button(controls(),'Проверить фразу и завершить',()=>{
+        const issue=phraseCheck(s.events);if(issue){feedback(issue);return;}
+        if(!s.checks.every(Boolean)){feedback('Сначала проиграйте фразу на гитаре и отметьте самопроверку.');return;}
+        s.practice=true;complete();
+      });
+
     }
     function checklist(parent,labels,values){labels.forEach((text,i)=>{const label=node('label');label.className='lesson-practice';const input=node('input');input.type='checkbox';input.checked=values[i];input.addEventListener('change',e=>values[i]=e.target.checked);label.appendChild(input);label.appendChild(node('span',text));parent.appendChild(label);});}
     function drawSelfCheck(){

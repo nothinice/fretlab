@@ -299,6 +299,7 @@
 </div>
 
 <section id="panel-block" role="tabpanel" aria-labelledby="tab-block" class="v2-active">
+  <div class="course-helpbar v2-wrap"><button type="button" class="play-btn text-btn" data-course-help="sound">Звук</button><button type="button" class="play-btn text-btn" data-course-help="terms">Термины и гриф</button><button type="button" class="play-btn text-btn" data-course-help="setup">Подготовить гитару</button></div>
   <div class="v2-wrap block-wrap" id="blockRoute">
     <div id="blockOverview">
     <p class="hint">Блок 1 · Расстояния и мажорная гамма</p>
@@ -309,6 +310,7 @@
     <progress id="blockProgress" max="10" value="0" aria-label="Завершённые части блока"></progress>
     <p>Для практики вам понадобится гитара. Занимайтесь в удобном темпе.</p>
     <p><button type="button" class="play-btn primary-btn" id="blockResume"></button></p>
+    <section class="sound-welcome" aria-label="Проверка звука"><strong>Перед началом проверьте звук</strong><p>Для примеров и заданий на слух понадобится звук устройства.</p><button type="button" class="play-btn" data-course-help="sound">▶ Проверить звук</button><span id="courseSoundStatus" role="status"></span></section>
     <div id="blockActivities" class="block-activities" aria-label="Уроки и практика блока"></div>
     <details class="block-plan"><summary>Как заниматься: маршрут на 3–4 занятия</summary>
       <ol><li>Тон и полутон: первый урок, поиск расстояний, затем повторение на гитаре.</li><li>C major: второй урок, восстановление формулы и гаммы. Вернитесь к расстояниям без подсказок.</li><li>Слух, ритм и своя фраза из C, D, E. Повторите построение гаммы перед игрой.</li><li>На следующем занятии пройдите итоговую проверку. При затруднениях вернитесь к соответствующему упражнению.</li></ol>
@@ -2713,5 +2715,6 @@ v2Init();
 <script src="course-lessons-content.js"></script>
 <script src="course-lesson.js"></script>
 <script src="course-block-one.js"></script>
+<script src="course-help.js"></script>
 </body>
 </html>

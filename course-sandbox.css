@@ -159,3 +159,10 @@ body{padding:0 0 40px}
 /* Practice is readable body text, not a muted field caption. */
 label.lesson-practice{font-size:16px;text-transform:none;letter-spacing:normal;color:var(--ink);line-height:1.55;min-height:44px;align-items:center}
 .play-btn:disabled{opacity:1;color:var(--ink);background:var(--panel);border:1px solid var(--border);cursor:not-allowed}
+.course-helpbar{display:flex;gap:8px;flex-wrap:wrap;padding-top:8px;padding-bottom:0}
+.course-helpbar button{font-size:13px;min-height:44px;padding:8px}
+.sound-welcome{border:1px solid var(--border);border-radius:12px;padding:16px;margin:16px 0;background:var(--panel)}
+.sound-welcome p{margin:6px 0 10px;font-size:14px}.sound-welcome span{display:block;font-size:14px;margin-top:8px}
+.course-help-dialog{color:var(--ink);background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:24px;width:min(640px,calc(100% - 24px));max-height:85dvh;overflow:auto;line-height:1.6}
+.course-help-dialog::backdrop{background:#0008}.course-help-dialog h2{margin-top:0}.course-help-dialog dt{font-weight:700;margin-top:16px}.course-help-dialog dd{margin:4px 0 0}.course-help-dialog button{min-height:44px}
+.rhythm-next-help{flex-basis:100%;margin:4px 0}.phrase-toolbar{position:static}

@@ -1,5 +1,14 @@
 # Changelog
 
+## Beginner orientation — 2026-11-04
+
+- Add an explicit sound check with user-reported audibility, browser-start failure handling and troubleshooting, available at entry and from listening tasks.
+- Add accessible course-wide terminology/fretboard orientation and guitar preparation dialogs.
+- Explain that an early correct rhythm answer is retained; place the next-step prerequisite beside its button.
+- Limit the ear exercise wording explicitly to two ascending intervals.
+- Move phrase completion below its notes, playback and practice confirmations; remove the sticky phrase toolbar.
+- Verify sound-check outcomes, early-answer retention, composer ordering and full course flow on desktop/mobile.
+
 ## Review clarity — 2026-11-04
 
 - Explain why the major scale first uses one string and that block 2 transfers it into a multi-string position.
