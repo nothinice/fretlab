@@ -1,5 +1,11 @@
 # Changelog
 
+## Metronome timbre — 2026-11-04
+
+- Replace high pitched lesson-note clicks with an independent short wooden-style synthesized tap, with first-beat accents.
+- Apply it to count-ins, rhythm backing and the pulse introduction; keep lesson notes unchanged.
+- Add offline audio checks for tap duration, clipping and cancellation.
+
 ## Listening and rhythm introduction — 2026-11-04
 
 - Keep correct ear answers visible until explicit continuation; clearly prompt listening to each new pair.

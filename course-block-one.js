@@ -122,11 +122,11 @@ const CourseBlockOne = (() => {
     function audio(events,{countIn=false,click=false}={}){
       stop();const version=audioVersion;const ctx=getAudioCtx(),beat=60/tempo,start=ctx.currentTime+.08,lead=countIn?4:0;
       const add=(midi,time,dur,peak)=>{voices.push(playMidi(midi,time,dur,peak,activity?.kind==='compose'&&[48,50,52].includes(midi)?{boardId:'blockPracticeBoard',index:4*(FRET_COUNT+1)+midi-45}:null));};
-      if(countIn)for(let i=0;i<4;i++)add(i===0?88:81,start+i*beat,.06,.06);
+      if(countIn)for(let i=0;i<4;i++)voices.push(playMetronome(start+i*beat,i===0,.16));
       const length=events.reduce((n,e)=>n+e.beats,0);
-      if(click)for(let i=0;i<length;i++)add(i%4===0?88:81,start+(lead+i)*beat,.05,.035);
+      if(click)for(let i=0;i<length;i++)voices.push(playMetronome(start+(lead+i)*beat,i%4===0,.09));
       let offset=lead;
-      events.forEach(e=>{if(e.midi!==null)add(e.midi,start+offset*beat,Math.max(.07,e.beats*beat*.8),e.accent ? 0.2 : 0.14);offset+=e.beats;});
+      events.forEach(e=>{if(e.metronome)voices.push(playMetronome(start+offset*beat,offset===0,.16));else if(e.midi!==null)add(e.midi,start+offset*beat,Math.max(.07,e.beats*beat*.8),e.accent ? 0.2 : 0.14);offset+=e.beats;});
       if(stopButton)stopButton.hidden=false;
       timers.push(setTimeout(()=>{if(version===audioVersion){voices=[];if(stopButton)stopButton.hidden=true;}},(start+(lead+length)*beat-ctx.currentTime)*1000+100));
       feedback(countIn?'Четыре щелчка отсчёта, затем пример. Слушайте, где звук и где пауза.':'Слушайте пример; затем повторите или ответьте.');
@@ -317,7 +317,7 @@ const CourseBlockOne = (() => {
           const intro=node('section');intro.className='rhythm-intro';body.appendChild(intro);
           intro.appendChild(node('h3','1. Почувствуйте ровный пульс'));
           intro.appendChild(node('p','Послушайте четыре щелчка. На каждый произнесите очередное число: 1, 2, 3, 4.'));
-          button(intro,'▶ Четыре доли',()=>audio(Array.from({length:4},()=>({midi:81,beats:1}))));
+          button(intro,'▶ Четыре доли',()=>audio(Array.from({length:4},()=>({midi:null,beats:1,metronome:true}))));
           intro.appendChild(node('h3','2. Разделите каждую долю пополам'));
           intro.appendChild(node('p','Считайте ровно: «1-и, 2-и, 3-и, 4-и». Числа остаются на щелчках. Два звука за одну долю — две восьмые; один звук на целую долю — четверть.'));
           button(intro,'▶ Послушать ровные восьмые',()=>audio(Array.from({length:8},()=>({midi:48,beats:.5})),{countIn:true,click:true}));

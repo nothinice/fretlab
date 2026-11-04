@@ -732,6 +732,21 @@ function getAudioCtx(){
   if(audioCtx.state === 'suspended') audioCtx.resume();
   return audioCtx;
 }
+// Short, low wooden-style metronome tap; synthesized independently of lesson notes.
+function playMetronome(when,accent=false,peak=.12){
+  const ctx=getAudioCtx(),t=when===undefined?ctx.currentTime:when;
+  const duration=.055,buffer=ctx.createBuffer(1,Math.ceil(ctx.sampleRate*duration),ctx.sampleRate);
+  const data=buffer.getChannelData(0),freq=accent?700:480;
+  for(let i=0;i<data.length;i++){
+    const x=i/ctx.sampleRate,attack=Math.min(1,x/.0015);
+    data[i]=attack*Math.exp(-x/ .009)*(Math.sin(2*Math.PI*freq*x)+.25*Math.sin(2*Math.PI*freq*1.7*x));
+  }
+  const source=ctx.createBufferSource(),gain=ctx.createGain();source.buffer=buffer;gain.gain.value=peak;
+  source.connect(gain);gain.connect(ctx.destination);
+  source.addEventListener('ended',()=>{source.disconnect();gain.disconnect();});source.start(t);
+  let stopped=false;
+  return {get stopped(){return stopped;},stop(){if(stopped)return;stopped=true;const now=ctx.currentTime;gain.gain.setValueAtTime(now<t?0:peak,now);gain.gain.linearRampToValueAtTime(0,now+.008);source.stop(now+.01);}};
+}
 function playMidi(midi, when, dur, peak = 0.22, position = null){
   if(!Number.isFinite(midi)) return; // guard: never hand NaN/Infinity to Web Audio
   const ctx = getAudioCtx();

@@ -7,7 +7,7 @@ with sync_playwright() as p:
  b=p.chromium.launch(args=['--no-sandbox'])
  for width,height in [(390,844),(1280,800)]:
   page=b.new_page(viewport={'width':width,'height':height});errors=[];page.on('pageerror',lambda e:errors.append(str(e)));page.goto(APP.as_uri())
-  page.evaluate('''() => {window.notes=[];const original=playMidi;playMidi=(...args)=>{notes.push([args[0],args[1]]);return original(...args)}}''')
+  page.evaluate('''() => {window.notes=[];window.taps=[];const tap=playMetronome;playMetronome=(...args)=>{taps.push(args);return tap(...args)};const original=playMidi;playMidi=(...args)=>{notes.push([args[0],args[1]]);return original(...args)}}''')
   def button(name):return page.locator('#blockTaskBody').get_by_role('button',name=name,exact=True)
   page.locator('#blockActivities article').nth(6).get_by_role('button').click()
   expect(page.locator('#blockTaskInstruction')).to_contain_text('Новая пара ещё не звучала')
@@ -17,7 +17,7 @@ with sync_playwright() as p:
   expect(page.locator('#blockTaskInstruction')).to_contain_text('Пара 2/6');expect(page.locator('#blockTaskInstruction')).to_contain_text('Новая пара ещё не звучала');expect(button('Тон')).to_be_disabled()
   page.locator('#blockClose').click();page.locator('#blockActivities article').nth(7).get_by_role('button').click()
   expect(page.locator('.rhythm-intro')).to_be_visible();assert page.locator('.rhythm-option').count()==0
-  button('▶ Четыре доли').click();assert page.evaluate('notes.slice(-4).every(n=>n[0]===81)')
+  button('▶ Четыре доли').click();assert page.evaluate('taps.length===4')
   button('Начать сравнение ритмов →').click();assert page.locator('.rhythm-option .rhythm-beat').count()==12
   expect(page.locator('.rhythm-option button').first).to_be_disabled()
   page.evaluate('notes=[]');button('▶ Отсчёт и ритм').click()
