@@ -1,5 +1,11 @@
 # Changelog
 
+## Lesson click audio — 2026-11-04
+
+- Play only the selected note on correct and repeated lesson answers; leave examples behind the Listen button.
+- Replace the ambiguous self-assessment status with an explicit user practice mark.
+- Cover single-note correct/repeated answers in the lesson regression test.
+
 ## Task rewards and course UX — 2026-11-04
 
 - Added persistent named task badges, specific animated success feedback and a block-completion celebration; hints do not reduce rewards.

@@ -36,7 +36,7 @@ const CourseLesson = (() => {
     {title:'Вы готовы строить гамму из шагов',
       explanation:'На одной струне: соседний лад — полутон; два перехода между ладами — тон. К большим номерам звук повышается, к меньшим — понижается.\nДальше мы выберем исходную ноту и построим мажорную гамму по последовательности тонов и полутонов.',
       purpose:'Теперь формула гаммы будет понятной инструкцией движения, а не набором слов для заучивания.',
-      instruction:'Экранные задания проверены отдельно от игры на гитаре. Отметка практики — ваша самооценка, приложение не слушало исполнение. Можно повторить урок или перейти во «Свободный гриф» и проверить другие исходные ноты.', str:4, start:3, finish:true}
+      instruction:'Экранные задания проверены отдельно от игры на гитаре. Вы сами отмечаете, что сыграли на гитаре; приложение не слушает исполнение. Можно повторить урок или перейти во «Свободный гриф» и проверить другие исходные ноты.', str:4, start:3, finish:true}
   ];
   function answer(step, stringIdx, fret) {
     if(step.target)return stringIdx===step.target.stringIdx && fret===step.target.fret;
@@ -144,7 +144,7 @@ const CourseLesson = (() => {
       el('lessonBoard').parentElement && (el('lessonBoard').parentElement.hidden=!!s.finish);
       if(s.finish)el('lessonFormula').hidden=true;
       el('lessonPractice').checked=practiced;
-      el('lessonFeedback').textContent=isTask(s) ? solved.has(current) ? (s.target?'✓ Верно — нужная ступень найдена.':`✓ Верно — вы нашли ${Math.abs(s.delta)===1?'полутон':'тон'} ${s.delta>0?'вверх':'вниз'}.`) : 'Выберите ответ на указанной струне. Можно пробовать снова: ошибка не закрывает задание.' : s.finish ? `✓ Ответы: ${solved.size} из ${steps.filter(isTask).length} · ◇ Подсказки: ${hints.size} · ♫ Гитара: ${practiced ? 'сыграно (самооценка)' : 'ещё не отмечено'}` : 'Нажмите «Послушать пример» или на отмеченную точку.';
+      el('lessonFeedback').textContent=isTask(s) ? solved.has(current) ? (s.target?'✓ Верно — нужная ступень найдена.':`✓ Верно — вы нашли ${Math.abs(s.delta)===1?'полутон':'тон'} ${s.delta>0?'вверх':'вниз'}.`) : 'Выберите ответ на указанной струне. Можно пробовать снова: ошибка не закрывает задание.' : s.finish ? `✓ Ответы: ${solved.size} из ${steps.filter(isTask).length} · ◇ Подсказки: ${hints.size} · ♫ Гитара: ${practiced ? 'вы отметили практику' : 'ещё не отмечено'}` : 'Нажмите «Послушать пример» или на отмеченную точку.';
       el('lessonFeedback').classList.toggle('answer-success',!!s.finish||solved.has(current));
       el('lessonFeedback').classList.toggle('task-reward',!!s.finish);
       if(s.finish)el('lessonFeedback').textContent=['✦ Линейка звуков — урок завершён. ','✦ Мажор собран на экране — урок завершён. ','✦ Ступени найдены на экране — урок завершён. '][activeLesson]+el('lessonFeedback').textContent;
@@ -179,13 +179,13 @@ const CourseLesson = (() => {
           choices.set(current,fret);
           if(answer(s,stringIdx,fret))solved.add(current); else solved.delete(current);
           render();
-          if(!solved.has(current))clickedVoice=playMidi(midi,undefined,1.35,.22,at(stringIdx,fret));
+          clickedVoice=playMidi(midi,undefined,1.35,.22,at(stringIdx,fret));
           if(!solved.has(current)&&s.target){
             el('lessonFeedback').textContent='Пока не та ступень. Отсчитайте нужный номер от C. Можно воспользоваться подсказкой и попробовать снова.';
           }else if(!solved.has(current)){
             const difference=fret-s.start;
             el('lessonFeedback').textContent=difference===0 ? 'Это исходный звук: пока ни одного перехода. Выберите другой лад.' : `Вы отложили ${Math.abs(difference)} ${Math.abs(difference)===1?'лад':Math.abs(difference)<5?'лада':'ладов'} ${difference>0?'вверх':'вниз'}, а нужно ${Math.abs(s.delta)===1?'один лад':'два лада'} ${s.delta>0?'вверх':'вниз'}.`;
-          }else playSequence([s.target?48:OPEN_STRINGS_TOP_TO_BOTTOM[s.str].midi+s.start,OPEN_STRINGS_TOP_TO_BOTTOM[s.str].midi+fret],{step:.55,positions:[s.target?positionFor(48,s):at(s.str,s.start),at(stringIdx,fret)]});
+          }
           el('lessonBoard').querySelectorAll('.sandbox-hit')[fret].focus({preventScroll:true});
         });
         cell.appendChild(button);

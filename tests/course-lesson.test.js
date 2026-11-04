@@ -17,7 +17,10 @@ click('lessonNext');assert.equal(byId.lessonNext.disabled,true);
 click('lessonNext');assert.equal(byId.lessonPosition.textContent,'Шаг 3 из 9');
 hit(5);assert.equal(byId.lessonNext.disabled,true);assert.match(byId.lessonFeedback.textContent,/два лада|один лад/);
 click('lessonHint');assert.match(byId.lessonFeedback.textContent,/один переход/);
+const beforeCorrect=played.length;
 hit(4);assert.equal(byId.lessonNext.disabled,false);
+assert.deepEqual(played.slice(beforeCorrect),[49]); // Only the clicked note, no automatic interval.
+const beforeRepeat=played.length;hit(4);assert.deepEqual(played.slice(beforeRepeat),[49]);
 click('lessonNext');click('lessonListen');assert.deepEqual(played.slice(-5),[48,49,50,48,50]);
 click('lessonNext');hit(5);assert.equal(byId.lessonNext.disabled,false);
 click('lessonNext');hit(9);assert.equal(byId.lessonNext.disabled,true);hit(5);
@@ -28,7 +31,7 @@ assert.equal(byId.lessonPracticeLabel.hidden,false);
 byId.lessonPractice.dispatch('change',{target:{checked:true}});
 click('lessonNext');assert.match(byId.lessonFeedback.textContent,/4 из 4/);
 assert.match(byId.lessonFeedback.textContent,/Подсказки: 1/);
-assert.match(byId.lessonInstruction.textContent,/самооценка/);
+assert.match(byId.lessonInstruction.textContent,/Вы сами отмечаете/);
 assert.equal(byId.lessonNext.disabled,true);
 click('lessonRestart');assert.equal(byId.lessonPosition.textContent,'Шаг 1 из 9');
 click('lessonNext');click('lessonNext');assert.equal(byId.lessonNext.disabled,true);
@@ -68,7 +71,7 @@ click('lessonNext');click('lessonListen');assert.deepEqual(played.slice(-8),[48,
 click('lessonNext');
 assert.equal(byId.lessonNext.disabled,true);
 hit(8);assert.equal(byId.lessonNext.disabled,true);
-hit(7);assert.equal(byId.lessonNext.disabled,false);assert.deepEqual(played.slice(-2),[48,52]);
+hit(7);assert.equal(byId.lessonNext.disabled,false);assert.equal(played.at(-1),52);
 click('lessonNext');hit(10);assert.equal(byId.lessonNext.disabled,false);
 click('lessonNext');byId.lessonPractice.dispatch('change',{target:{checked:true}});click('lessonNext');
 assert.match(byId.lessonFeedback.textContent,/2 из 2/);assert.equal(byId.lessonContinue.hidden,false);

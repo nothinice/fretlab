@@ -167,7 +167,7 @@ const CourseBlockOne = (() => {
           const card=node('article');card.className='block-card';card.appendChild(node('h3',a.title));card.appendChild(node('p',a.why));
           const current=resume?a.lesson===resume.index:a===next;card.classList.toggle('route-current',current);if(current)card.setAttribute('aria-current','step');
           const r=records[a.id],status=node('p');status.className='block-status';
-          [r?.done?'✦ '+REWARDS[a.id]:current?'Вы здесь':'○ Впереди',r?.assisted?'С подсказкой':null,r?.practice?'♫ Сыграно · самооценка':null].filter(Boolean).forEach(t=>status.appendChild(node('span',t)));
+          [r?.done?'✦ '+REWARDS[a.id]:current?'Вы здесь':'○ Впереди',r?.assisted?'С подсказкой':null,r?.practice?'♫ Вы отметили практику':null].filter(Boolean).forEach(t=>status.appendChild(node('span',t)));
           card.appendChild(status);const link=button(card,a.title,()=>open(a));link.className='route-open';link.setAttribute('aria-label',(r?.done?'Повторить: ':'Открыть: ')+a.title);cards.appendChild(card);
         });
         list.appendChild(group);
@@ -329,7 +329,7 @@ const CourseBlockOne = (() => {
     }
     function checklist(parent,labels,values){labels.forEach((text,i)=>{const label=node('label');label.className='lesson-practice';const input=node('input');input.type='checkbox';input.checked=values[i];input.addEventListener('change',e=>values[i]=e.target.checked);label.appendChild(input);label.appendChild(node('span',text));parent.appendChild(label);});}
     function drawSelfCheck(){
-      el('blockTaskExplanation').textContent='Экранные задания пройдены. Теперь проверьте перенос на настоящий инструмент. Это самооценка, автоматическое распознавание игры здесь не используется.';
+      el('blockTaskExplanation').textContent='Экранные задания пройдены. Теперь проверьте перенос на настоящий инструмент. Вы сами отмечаете результат игры; приложение не слушает исполнение.';
       el('blockTaskInstruction').dataset.label='Сыграйте на гитаре';
       el('blockTaskInstruction').textContent='Играйте без подсказки на экране. При затруднении вернитесь к нужному упражнению, затем повторите итоговую проверку позже.';
       const body=el('blockTaskBody');
