@@ -166,3 +166,14 @@ label.lesson-practice{font-size:16px;text-transform:none;letter-spacing:normal;c
 .course-help-dialog{color:var(--ink);background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:24px;width:min(640px,calc(100% - 24px));max-height:85dvh;overflow:auto;line-height:1.6}
 .course-help-dialog::backdrop{background:#0008}.course-help-dialog h2{margin-top:0}.course-help-dialog dt{font-weight:700;margin-top:16px}.course-help-dialog dd{margin:4px 0 0}.course-help-dialog button{min-height:44px}
 .rhythm-next-help{flex-basis:100%;margin:4px 0}.phrase-toolbar{position:static}
+
+/* Review: readable status, distinct disabled controls and consistent landmarks. */
+.play-btn:disabled,.play-btn.primary-btn:disabled,.play-btn.text-btn:disabled{
+  opacity:1;background:color-mix(in srgb,var(--ink) 10%,var(--panel));
+  color:var(--muted);border:1px dashed var(--muted);box-shadow:none;cursor:not-allowed;
+}
+.legend-start{color:var(--tonic-note);-webkit-text-stroke:1px #6b4b16}
+#lessonFeedback:empty{display:none}
+.block-plan summary,.lesson-purpose summary,.audio-options summary{
+  min-height:44px;box-sizing:border-box;padding:11px 0;line-height:22px;
+}

@@ -1,3 +1,11 @@
+## Course review follow-up — 2026-11-04
+
+- After Block 1 completion, the main action opens the introductory Block 2 lesson; its ending now explains that the continuation is in development.
+- Removed unavailable hint advice from the final assessment and internal verification wording from the learner instructions.
+- Clarified the two meanings of «лад»; hid initial empty answer feedback and the initial sound prompt after block completion.
+- Improved muted text and primary-button contrast, distinguished disabled controls, matched the starting-note legend to the fretboard and enlarged disclosure targets.
+- Added desktop/mobile and light/dark regression checks for contrast, feedback and completion navigation, plus a wrong-octave answer in the full walkthrough.
+
 # Changelog
 
 ## Whole-scale construction before lesson completion — 2026-11-04

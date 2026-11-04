@@ -113,6 +113,7 @@ const CourseBlockOne = (() => {
     final:'Вы завершили экранную проверку и отметили самопроверку на гитаре.'
   });
   function resumeLabel(records,resume){
+    if(ACTIVITIES.every(a=>records[a.id]?.done))return 'Дальше: Блок 2 · Ступени и позиция →';
     if(resume)return `Продолжить урок: шаг ${resume.step} из ${resume.total}`;
     const next=ACTIVITIES.find(a=>!records[a.id]?.done);
     if(!ACTIVITIES.some(a=>records[a.id]?.done))return 'Начать курс';
@@ -168,7 +169,8 @@ const CourseBlockOne = (() => {
       const next=ACTIVITIES.find(a=>!records[a.id]?.done);
       const resume=window.courseLessons?.getResume();
       el('blockResume').textContent=resumeLabel(records,resume);
-      el('blockResume').onclick=()=>resume?window.courseLessons.open(resume.index):open(next||ACTIVITIES[0]);
+      document.querySelector('.sound-welcome').hidden=count===ACTIVITIES.length;
+      el('blockResume').onclick=()=>count===ACTIVITIES.length?window.courseLessons.open(2):resume?window.courseLessons.open(resume.index):open(next||ACTIVITIES[0]);
       const list=el('blockActivities');list.innerHTML='';
       const groups=[['Расстояния',0,2],['Мажорная гамма',2,6],['Слух, ритм и своя фраза',6,9],['Проверка',9,10]];
       groups.forEach(([title,start,end])=>{
@@ -250,7 +252,7 @@ const CourseBlockOne = (() => {
         if(correct&&s.done){
           if(final){session.phase++;heard=false;draw();}
           else complete();
-        }else {heard=false;if(correct)boardScroll=null;draw();feedback(correct?message:'Пока неверно. Попробуйте ещё раз — можно вернуться к правилу или воспользоваться подсказкой.',correct);}
+        }else {heard=false;if(correct)boardScroll=null;draw();feedback(correct?message:final?'Пока неверно. Попробуйте ещё раз. В итоговой проверке подсказок нет.':'Пока неверно. Попробуйте ещё раз — можно вернуться к правилу или воспользоваться подсказкой.',correct);}
       }
       if(s.kind==='interval'){
         const q=s.intervalReview||s.questions[s.round];

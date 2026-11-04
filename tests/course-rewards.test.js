@@ -10,3 +10,7 @@ for(let seed=0;seed<100;seed++){
  const s=b.makeSession('repair',rng);assert(b.submit(s,s.values[s.badIndex]));assert(b.submit(s,b.FRETS[s.badIndex]));assert(b.matchScale(s.values));
 }
 console.log('OK: start/resume labels, reward coverage, final assessment coverage and corrected repair model');
+
+const completed=Object.fromEntries(b.ACTIVITIES.map(a=>[a.id,{done:true}]));
+assert.match(b.resumeLabel(completed,null),/^Дальше: Блок 2/);
+assert.match(b.resumeLabel(completed,{step:2,total:9}),/^Дальше: Блок 2/);

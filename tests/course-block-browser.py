@@ -170,7 +170,9 @@ with sync_playwright() as p:
     body_button('▶ Сыграть с отсчётом')
     body_button('Проверить фразу и завершить')
 
-    activity(9); solve_intervals(4); formula(); scale(); body_button('12')
+    activity(9); solve_intervals(4); formula(); scale(); body_button('7')
+    expect(page.locator('#blockTaskFeedback')).to_contain_text('В итоговой проверке подсказок нет')
+    body_button('12')
     for checkbox in page.locator('#blockTaskBody input[type=checkbox]').all():
         checkbox.check()
     body_button('Завершить проверку')

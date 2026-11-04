@@ -128,7 +128,7 @@ const CourseLesson = (() => {
       el('lessonProgress').max=steps.length;
       el('lessonSelect').value=String(activeLesson);
       el('lessonContinue').hidden=!s.finish;
-      el('lessonContinue').textContent=activeLesson<2?'Продолжить по маршруту →':'К маршруту →';
+      el('lessonContinue').textContent=activeLesson<2?'Продолжить по маршруту →':'К пройденному Блоку 1 →';
       el('lessonFormula').innerHTML='';
       el('lessonFormula').hidden=!s.formula;
       if(s.formula){
@@ -148,8 +148,8 @@ const CourseLesson = (() => {
       el('lessonBoard').parentElement && (el('lessonBoard').parentElement.hidden=!!s.finish);
       if(s.finish)el('lessonFormula').hidden=true;
       el('lessonPractice').checked=practiced;
-      el('lessonFeedback').textContent=isTask(s) ? solved.has(current) ? (s.target?'✓ Верно — нужная ступень найдена.':`✓ Верно — вы нашли ${Math.abs(s.delta)===1?'полутон':'тон'} ${s.delta>0?'вверх':'вниз'}.`) : 'Выберите ответ на указанной струне. Можно пробовать снова: ошибка не закрывает задание.' : s.finish ? `✓ Ответы: ${solved.size} из ${steps.filter(isTask).length} · ◇ Подсказки: ${hints.size} · ♫ Гитара: ${practiced ? 'вы отметили практику' : 'ещё не отмечено'}` : 'Нажмите «Послушать пример» или на отмеченную точку.';
-      if(s.buildFrets)el('lessonFeedback').textContent=solved.has(current)?'✓ Вы построили C–D–E–F–G–A–B–C по формуле. Послушайте целую гамму, затем сыграйте её.':`Выбрано ${(choices.get(current)||[]).length} из 7 нот после исходной C. Проверьте каждый шаг формулы; лишнюю точку можно убрать.`;
+      el('lessonFeedback').textContent=isTask(s) ? solved.has(current) ? (s.target?'✓ Верно — нужная ступень найдена.':`✓ Верно — вы нашли ${Math.abs(s.delta)===1?'полутон':'тон'} ${s.delta>0?'вверх':'вниз'}.`) : '' : s.finish ? `✓ Ответы: ${solved.size} из ${steps.filter(isTask).length} · ◇ Подсказки: ${hints.size} · ♫ Гитара: ${practiced ? 'вы отметили практику' : 'ещё не отмечено'}` : 'Нажмите «Послушать пример» или на отмеченную точку.';
+      if(s.buildFrets&&(choices.get(current)||[]).length)el('lessonFeedback').textContent=solved.has(current)?'✓ Вы построили C–D–E–F–G–A–B–C по формуле. Послушайте целую гамму, затем сыграйте её.':`Выбрано ${(choices.get(current)||[]).length} из 7 нот после исходной C. Проверьте каждый шаг формулы; лишнюю точку можно убрать.`;
       el('lessonFeedback').classList.toggle('answer-success',!!s.finish||solved.has(current));
       el('lessonFeedback').classList.toggle('task-reward',!!s.finish);
       if(s.finish)el('lessonFeedback').textContent=['✦ Линейка звуков — урок завершён. ','✦ Мажор собран на экране — урок завершён. ','✦ Ступени найдены на экране — урок завершён. '][activeLesson]+el('lessonFeedback').textContent;
