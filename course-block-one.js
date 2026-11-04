@@ -242,10 +242,26 @@ const CourseBlockOne = (() => {
         }else {heard=false;if(correct)boardScroll=null;draw();feedback(correct?message:'Пока неверно. Попробуйте ещё раз — можно вернуться к правилу или воспользоваться подсказкой.',correct);}
       }
       if(s.kind==='interval'){
-        const q=s.questions[s.round];
+        const q=s.intervalReview||s.questions[s.round];
         if(!final)el('blockTaskExplanation').textContent='Здесь меняются струна, исходный лад и направление. Это проверяет правило, а не запоминание одной точки.';
-        el('blockTaskInstruction').textContent=`Задание ${s.round+1}/${s.questions.length}: на струне ${q.str+1} от лада ${q.start} найдите ${Math.abs(q.delta)===1?'полутон':'тон'} ${q.delta>0?'выше':'ниже'}.`;
-        board(q.str,[{str:q.str,fret:q.start,root:true}],(str,fret)=>{playMidi(OPEN_STRINGS_TOP_TO_BOTTOM[str].midi+fret,undefined,1.35,.22,{boardId:'blockPracticeBoard',index:str*(FRET_COUNT+1)+fret});accepted(submit(s,{str,fret}),`✓ Вы нашли ${Math.abs(q.delta)===1?'полутон':'тон'} ${q.delta>0?'вверх':'вниз'}.`);});
+        el('blockTaskInstruction').textContent=`Задание ${s.intervalReview?s.round:s.round+1}/${s.questions.length}: на струне ${q.str+1} от лада ${q.start} найдите ${Math.abs(q.delta)===1?'полутон':'тон'} ${q.delta>0?'выше':'ниже'}.`;
+        const marks=[{str:q.str,fret:q.start,root:true}];
+        if(s.intervalReview)marks.push({str:q.str,fret:q.start+q.delta});
+        board(q.str,marks,(str,fret)=>{
+          if(!s.intervalReview){
+            if(submit(s,{str,fret})){s.intervalReview=q;draw();}
+            else feedback('Пока неверно. Отсчитайте расстояние от золотой точки в указанную сторону.');
+          }
+          playMidi(OPEN_STRINGS_TOP_TO_BOTTOM[str].midi+fret,undefined,1.35,.22,{boardId:'blockPracticeBoard',index:str*(FRET_COUNT+1)+fret});
+        });
+        if(s.intervalReview){
+          CourseSandbox.drawDistances(el('blockPracticeBoard'),marks.map(m=>({stringIdx:m.str,fret:m.fret})));
+          feedback(`✓ Верно: ${Math.abs(q.delta)===1?'½ · Полутон':'1 · Тон'} ${q.delta>0?'вверх':'вниз'}. Лады ${q.start} → ${q.start+q.delta}. Можно ещё раз послушать обе точки.`,true);
+          const next=button(controls(),s.done?(final?'Продолжить проверку →':'Завершить упражнение →'):'Следующий пример →',()=>{
+            delete s.intervalReview;accepted(true);
+          });
+          next.classList.add('primary-btn');next.focus({preventScroll:true});
+        }
       }else if(s.kind==='formula'){
         if(!final)el('blockTaskExplanation').textContent='Восстановите семь расстояний между соседними звуками мажорной гаммы. Готовая последовательность скрыта.';
         el('blockTaskInstruction').textContent='Добавляйте тон (2) или полутон (1). Должно получиться семь шагов до следующей тоники.';

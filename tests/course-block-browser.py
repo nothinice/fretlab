@@ -36,6 +36,10 @@ with sync_playwright() as p:
             string, start, size, direction = match.groups()
             delta = (1 if size == 'полутон' else 2) * (1 if direction == 'выше' else -1)
             page.locator(f'#blockPracticeBoard button[aria-label="Струна {string}, лад {int(start)+delta}"]').click()
+            assert page.locator('#blockTaskInstruction').inner_text() == text
+            expect(page.locator('#blockTaskFeedback')).to_contain_text('✓ Верно:')
+            assert page.locator('#blockPracticeBoard .note').count() == 2
+            page.locator('#blockTaskBody .primary-btn').click()
 
     def formula():
         for n in [2,2,1,2,2,2,1]:

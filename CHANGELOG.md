@@ -1,5 +1,11 @@
 # Changelog
 
+## Interval answer review — 2026-11-04
+
+- Keep both interval endpoints, a labeled arc and success feedback visible after correct answers.
+- Advance only through an explicit next/finish button, including the final interval assessment; repeated clicks remain available for listening.
+- Extend the complete browser flow to verify the intermediate review state.
+
 ## Lesson click audio — 2026-11-04
 
 - Play only the selected note on correct and repeated lesson answers; leave examples behind the Listen button.
