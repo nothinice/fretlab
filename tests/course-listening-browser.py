@@ -17,18 +17,17 @@ with sync_playwright() as p:
   expect(page.locator('#blockTaskInstruction')).to_contain_text('Пара 2/6');expect(page.locator('#blockTaskInstruction')).to_contain_text('Новая пара ещё не звучала');expect(button('Тон')).to_be_disabled()
   page.locator('#blockClose').click();page.locator('#blockActivities article').nth(7).get_by_role('button').click()
   expect(page.locator('.rhythm-intro')).to_be_visible();assert page.locator('.rhythm-option').count()==0
-  button('▶ Четыре доли').click();assert page.evaluate('taps.length===4')
   for step,answer in enumerate(['Четыре','Одну','Продолжить ровный счёт','Одну','На второй']):
-   button('▶ Четыре доли' if step==0 else '▶ Послушать запись').click();button(answer).click()
+   button('▶ Четыре доли' if step==0 else '▶ Послушать запись').click();expect(page.locator('.rhythm-question')).to_be_visible(timeout=12000);button(answer).click();button('К практике →').click();button('Я простучал — к гитаре').click()
    page.locator('.rhythm-intro input[type=checkbox]').check()
    button('Начать сравнение ритмов →' if step==4 else 'Дальше по ритму →').click()
-  assert page.locator('.rhythm-option .rhythm-beat').count()==12
+  assert page.locator('.rhythm-option .rhythm-count').count()==12
   expect(page.locator('.rhythm-option button').first).to_be_disabled()
   page.evaluate('notes=[]');button('▶ Отсчёт и ритм').click()
   times=page.evaluate('notes.filter(n=>n[0]===48).map(n=>n[1])');offsets=[round(t-times[0],2) for t in times];which=[[0,1,3],[0,.5,1,2],[0,2,2.5,3]].index(offsets)
   assert page.evaluate('document.documentElement.scrollWidth<=innerWidth+1')
   page.screenshot(path=f'/tmp/fretlab-rhythm-choices-{width}.png',full_page=True)
-  page.locator('.rhythm-option').nth(which).get_by_role('button').click();page.evaluate('notes=[]');button('▶ Отсчёт и ритм').click()
+  page.locator('.rhythm-option').nth(which).get_by_role('button').click();button('■ Стоп').click();page.evaluate('notes=[]');button('▶ Послушать запись').click()
   replay=page.evaluate('notes.filter(n=>n[0]===48).map(n=>n[1])');assert [round(t-replay[0],2) for t in replay]==offsets
   button('Повторил голосом и на гитаре — дальше').click();expect(page.locator('#blockTaskInstruction')).to_contain_text('Пример 2/3');expect(page.locator('.rhythm-option button').first).to_be_disabled()
   assert not errors,errors;page.close()

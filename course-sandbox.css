@@ -177,3 +177,46 @@ label.lesson-practice{font-size:16px;text-transform:none;letter-spacing:normal;c
 .block-plan summary,.lesson-purpose summary,.audio-options summary{
   min-height:44px;box-sizing:border-box;padding:11px 0;line-height:22px;
 }
+
+/* Rhythm: one aligned clock, one action at a time. */
+.rhythm-workspace{scroll-margin-top:64px}
+.rhythm-workspace #blockTaskTitle{font-size:21px;margin:8px 0 14px}
+.rhythm-intro{max-width:780px;margin:auto;min-height:640px}
+.rhythm-player{border:1px solid var(--border);background:var(--panel);border-radius:16px;padding:16px;position:relative}
+.rhythm-player h3{font-size:16px;line-height:1.5;margin:0;min-height:48px;outline:none}
+.rhythm-caption{margin:6px 0;font-size:15px;min-height:44px}
+.rhythm-unified{display:block;width:100%;max-width:none;height:auto;margin:0;color:var(--ink);overflow:visible}
+.rhythm-tile rect{fill:var(--bg);stroke:var(--border)}
+.rhythm-tile text{fill:var(--ink)}
+.rhythm-tile.is-rest rect{fill:none;stroke-dasharray:4 3}
+.rhythm-tile.is-playing rect{fill:var(--tonic-note);stroke:#6b4b16}
+.rhythm-tile.is-playing text{fill:#241e19}
+.rhythm-symbol.is-playing{color:var(--teal);filter:drop-shadow(0 0 2px var(--teal))}
+.rhythm-count circle{fill:transparent}.rhythm-count text,.rhythm-and{fill:var(--muted)}
+.rhythm-count.is-playing circle{fill:var(--tonic-note)}.rhythm-count.is-playing text{fill:#241e19}
+.rhythm-cursor{stroke:var(--teal);stroke-width:2;pointer-events:none}
+.rhythm-count-in{display:flex;gap:8px;justify-content:center;height:26px;margin:2px 0}
+.rhythm-count-in span{border:1px solid var(--border);border-radius:50%;font-size:13px;width:24px;height:24px;text-align:center;line-height:24px}
+.rhythm-count-in .is-playing{background:var(--tonic-note);color:#241e19;border-color:#6b4b16}
+.rhythm-player-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:4px}
+.rhythm-player-controls label{display:flex;gap:6px;align-items:center;margin:0;font-size:14px;text-transform:none;letter-spacing:0}
+.rhythm-player-controls input{width:70px;min-height:44px}
+.rhythm-settings summary,.rhythm-details summary{min-height:44px;line-height:44px;cursor:pointer;font-size:14px}
+.rhythm-settings p,.rhythm-details p{font-size:14px;line-height:1.6}
+.rhythm-flow{list-style:none;display:grid;grid-template-columns:repeat(4,1fr);padding:0;gap:5px;font-size:13px;counter-reset:rhythm;margin:14px 0}
+.rhythm-flow li{counter-increment:rhythm;color:var(--muted);border-bottom:3px solid var(--border);padding:8px 0}
+.rhythm-flow li::before{content:counter(rhythm) ' · ';}.rhythm-flow .is-current{color:var(--ink);border-color:var(--teal);font-weight:bold}.rhythm-flow .is-done::before{content:'✓ ';}
+.rhythm-stage-content{min-height:180px;animation:rhythm-reveal .2s ease-out}
+.rhythm-stage-content .rhythm-question{margin:0}.rhythm-stage-content p{line-height:1.5}
+.rhythm-question .correct-choice{border:2px solid var(--teal);color:var(--ink);background:var(--bg)}
+.rhythm-question .wrong-choice{border:2px solid #b34736}
+.rhythm-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.rhythm-options .rhythm-option{margin:0;padding:12px}.rhythm-options h3{font-size:16px}
+@keyframes rhythm-reveal{from{opacity:.4;transform:translateY(3px)}to{opacity:1;transform:none}}
+@media(max-width:600px){.rhythm-player{padding:12px}.rhythm-options{grid-template-columns:1fr}.rhythm-flow{font-size:12px}.rhythm-stage-content{min-height:200px}}
+@media(prefers-reduced-motion:reduce){.rhythm-stage-content{animation:none}.rhythm-cursor{display:none}}
+
+.rhythm-stage-content > :not([hidden]){animation:rhythm-reveal .2s ease-out}
+@media(prefers-reduced-motion:reduce){.rhythm-stage-content > :not([hidden]){animation:none}}
+
+.rhythm-workspace{overflow-anchor:none}

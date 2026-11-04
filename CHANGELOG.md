@@ -1,3 +1,12 @@
+## Rhythm player and duration — 2026-11-04
+
+- Rebuilt the five rhythm study steps around one aligned notation/beat/count diagram with a compact player and tempo control.
+- Added audio-clock count-in, note/beat highlighting and a playhead, with immediate visual reset on Stop and a stationary reduced-motion mode.
+- Rhythmic notes and composed phrases now use their full notated duration and a sustained envelope, with an 8 ms maximum release ending at the note boundary. Other instrument playback keeps its existing envelope.
+- Study now proceeds through listening, an answer, self-reported tapping and self-reported guitar practice; tapping accuracy is not measured. Details and sound help are collapsed, and step changes preserve scroll position.
+- Rhythm comparison uses compact aligned scores and reveals animated playback only after a correct answer. Existing rhythms, answer keys and saved study checkpoints remain compatible.
+- Added clock-boundary, rendered-audio sustain/silence and desktop/mobile alignment, highlight, stop, motion and scroll regression checks.
+
 ## Course review follow-up — 2026-11-04
 
 - After Block 1 completion, the main action opens the introductory Block 2 lesson; its ending now explains that the continuation is in development.

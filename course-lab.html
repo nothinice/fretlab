@@ -749,7 +749,7 @@ function playMetronome(when,accent=false,peak=.12){
   let stopped=false;
   return {get stopped(){return stopped;},stop(){if(stopped)return;stopped=true;const now=ctx.currentTime;gain.gain.setValueAtTime(now<t?0:peak,now);gain.gain.linearRampToValueAtTime(0,now+.008);source.stop(now+.01);}};
 }
-function playMidi(midi, when, dur, peak = 0.22, position = null){
+function playMidi(midi, when, dur, peak = 0.22, position = null, articulation = null){
   if(!Number.isFinite(midi)) return; // guard: never hand NaN/Infinity to Web Audio
   const ctx = getAudioCtx();
   const t = when !== undefined ? when : ctx.currentTime;
@@ -770,14 +770,17 @@ function playMidi(midi, when, dur, peak = 0.22, position = null){
   gain.gain.setValueAtTime(0.0001, t);
   gain.gain.exponentialRampToValueAtTime(peak, t + attack);
   gain.gain.exponentialRampToValueAtTime(peak * .65, t + settle);
-  gain.gain.exponentialRampToValueAtTime(peak * .45, t + d * .68);
+  const held=articulation==='held';
+  const releaseAt=held?t+d-Math.min(.008,d*.05):t+d*.68;
+  const sustain=held?peak*.65:peak*.45;
+  gain.gain.exponentialRampToValueAtTime(sustain, releaseAt);
   gain.gain.exponentialRampToValueAtTime(0.0001, t + d);
   osc.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
   osc.addEventListener('ended', ()=>{osc.disconnect();filter.disconnect();gain.disconnect();});
-  osc.start(t); osc.stop(t + d + 0.05);
+  osc.start(t); osc.stop(t + d + (held?0:0.05));
   // Release from the actual envelope level, including voices scheduled in the future.
   let stopped=false;
-  const envelope=[[t,.0001],[t+attack,peak],[t+settle,peak*.65],[t+d*.68,peak*.45],[t+d,.0001]];
+  const envelope=[[t,.0001],[t+attack,peak],[t+settle,peak*.65],[releaseAt,sustain],[t+d,.0001]];
   const voice={
     get stopped(){return stopped;},
     addEventListener:(...args)=>osc.addEventListener(...args),
@@ -2714,6 +2717,7 @@ v2Init();
 <script src="course-sandbox.js"></script>
 <script src="course-lessons-content.js"></script>
 <script src="course-lesson.js"></script>
+<script src="course-rhythm-player.js"></script>
 <script src="course-block-one.js"></script>
 <script src="course-help.js"></script>
 </body>

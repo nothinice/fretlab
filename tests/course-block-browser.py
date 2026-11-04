@@ -144,7 +144,10 @@ with sync_playwright() as p:
     activity(7)
     for step,answer in enumerate(['Четыре','Одну','Продолжить ровный счёт','Одну','На второй']):
         body_button('▶ Четыре доли' if step==0 else '▶ Послушать запись')
+        expect(page.locator('.rhythm-question')).to_be_visible(timeout=12000)
         body_button(answer)
+        body_button('К практике →')
+        body_button('Я простучал — к гитаре')
         page.locator('.rhythm-intro input[type=checkbox]').check()
         body_button('Начать сравнение ритмов →' if step==4 else 'Дальше по ритму →')
     for _ in range(3):
