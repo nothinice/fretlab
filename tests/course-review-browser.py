@@ -13,7 +13,8 @@ with sync_playwright() as p:
     page.locator('#lessonNext').click();page.locator('#lessonNext').click()
     page.locator('#lessonHint').click()
     page.locator('#lessonBoard .sandbox-hit').nth(4).click()
-    page.wait_for_function("document.querySelectorAll('#lessonBoard .sounding').length===1 && document.querySelectorAll('#lessonBoard .cell')[71].classList.contains('sounding')")
+    # Correct answer now sounds only the clicked C-sharp, not the old automatic C interval.
+    page.wait_for_function("document.querySelectorAll('#lessonBoard .sounding').length===1 && document.querySelectorAll('#lessonBoard .cell')[72].classList.contains('sounding')")
     page.locator('#lessonNext').click()
     expect(page.locator('#lessonPosition')).to_have_text('Шаг 4 из 9')
     page.reload()
