@@ -40,6 +40,10 @@ with sync_playwright() as p:
             expect(page.locator('#blockTaskFeedback')).to_contain_text('✓ Верно:')
             assert page.locator('#blockPracticeBoard .note').count() == 2
             page.locator('#blockTaskBody .primary-btn').click()
+            if _ < count-1:
+                expect(page.locator('#blockTaskFeedback')).to_be_hidden()
+                assert page.locator('#blockTaskFeedback').inner_text()==''
+                assert 'answer-success' not in (page.locator('#blockTaskFeedback').get_attribute('class') or '')
 
     def formula():
         for n in [2,2,1,2,2,2,1]:

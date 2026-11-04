@@ -269,7 +269,8 @@ const CourseBlockOne = (() => {
           CourseSandbox.drawDistances(el('blockPracticeBoard'),marks.map(m=>({stringIdx:m.str,fret:m.fret})));
           feedback(`✓ Верно: ${Math.abs(q.delta)===1?'½ · Полутон':'1 · Тон'} ${q.delta>0?'вверх':'вниз'}. Лады ${q.start} → ${q.start+q.delta}. Можно ещё раз послушать обе точки.`,true);
           const next=button(controls(),s.done?(final?'Продолжить проверку →':'Завершить упражнение →'):'Следующий пример →',()=>{
-            delete s.intervalReview;accepted(true);
+            delete s.intervalReview;
+            if(s.done)accepted(true);else{heard=false;boardScroll=null;draw();}
           });
           next.classList.add('primary-btn');next.focus({preventScroll:true});
         }

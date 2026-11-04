@@ -1,5 +1,10 @@
 # Changelog
 
+## Interval feedback lifecycle — 2026-11-04
+
+- Clear successful-answer feedback when advancing to an unanswered interval instead of generating a new success message.
+- Cover every intermediate interval transition in both practice and final assessment browser flows.
+
 ## Beginner orientation — 2026-11-04
 
 - Add an explicit sound check with user-reported audibility, browser-start failure handling and troubleshooting, available at entry and from listening tasks.
