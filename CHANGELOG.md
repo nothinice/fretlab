@@ -1,5 +1,15 @@
 # Changelog
 
+## Course audio refinement — 2026-11-04
+
+- Replaced the plain triangle oscillator with a rounded synthetic tone containing
+  gentle overtones and a decaying low-pass filter. This is not a guitar sample.
+- Sustained the body of each note before release: single clicks last 1.35 seconds;
+  guided sequences use 0.5-second notes at 0.55-second intervals. Explicit durations
+  and tempo in rhythm/composition exercises remain unchanged.
+- Verified the rendered envelope, release, C3 fundamental and sequence scheduling
+  with OfflineAudioContext, plus the complete course UI and musical regression suites.
+
 ## Course presentation review — 2026-11-04
 
 - Follow-up: replaced rectangular fret hover/focus/playback fills with circular halos

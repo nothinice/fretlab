@@ -736,17 +736,27 @@ function playMidi(midi, when, dur, peak = 0.22){
   if(!Number.isFinite(midi)) return; // guard: never hand NaN/Infinity to Web Audio
   const ctx = getAudioCtx();
   const t = when !== undefined ? when : ctx.currentTime;
-  const d = dur !== undefined ? dur : 0.9;
+  const d = dur !== undefined ? dur : 1.35;
   const freq = 440 * Math.pow(2, (midi - 69) / 12);
   if(!Number.isFinite(freq) || freq <= 0) return;
   const osc = ctx.createOscillator();
   const gain = ctx.createGain();
-  osc.type = 'triangle';
+  // A rounded, harmonic-rich synthetic tone; no sampled guitar recording.
+  const partials = new Float32Array([0, 1, .28, .16, .07, .045, .025]);
+  osc.setPeriodicWave(ctx.createPeriodicWave(new Float32Array(partials.length), partials));
   osc.frequency.value = freq;
+  const filter = ctx.createBiquadFilter();
+  filter.type = 'lowpass'; filter.Q.value = .5;
+  filter.frequency.setValueAtTime(Math.min(6000, freq * 10), t);
+  filter.frequency.exponentialRampToValueAtTime(Math.min(6000, Math.max(1000, freq * 3.5)), t + d);
+  const attack = Math.min(.012, d * .18), settle = Math.min(.08, d * .32);
   gain.gain.setValueAtTime(0.0001, t);
-  gain.gain.exponentialRampToValueAtTime(peak, t + 0.01);
+  gain.gain.exponentialRampToValueAtTime(peak, t + attack);
+  gain.gain.exponentialRampToValueAtTime(peak * .65, t + settle);
+  gain.gain.exponentialRampToValueAtTime(peak * .45, t + d * .68);
   gain.gain.exponentialRampToValueAtTime(0.0001, t + d);
-  osc.connect(gain); gain.connect(ctx.destination);
+  osc.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
+  osc.addEventListener('ended', ()=>{osc.disconnect();filter.disconnect();gain.disconnect();});
   osc.start(t); osc.stop(t + d + 0.05);
   if(typeof CourseSandbox!=='undefined')CourseSandbox.trackVoice(osc,midi,t,d,ctx);
   return osc;
@@ -758,7 +768,7 @@ function playSequence(midiList){
   if(!midiList || !midiList.length) return;
   const ctx = getAudioCtx();
   let t = ctx.currentTime + 0.03;
-  midiList.forEach(midi => { sequenceVoices.push(playMidi(midi, t, 0.28)); t += 0.32; });
+  midiList.forEach(midi => { sequenceVoices.push(playMidi(midi, t, 0.5)); t += 0.55; });
 }
 function ascendingMidiFromPcs(pcsOrdered, firstMidi){
   if(!pcsOrdered || !pcsOrdered.length || !Number.isFinite(firstMidi)) return [];
