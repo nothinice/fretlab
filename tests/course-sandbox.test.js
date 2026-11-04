@@ -17,10 +17,10 @@ assert.equal(sandbox.interval(60,84).degree, 15);
 
 // Exercise real fretboard rendering and click handlers with the project's DOM harness.
 require('./dom-shim-v2.js');
-for (const id of ['tab-sandbox','panel-sandbox','sandboxBoard','sandboxReadout','sandboxAction','sandboxSpelling','sandboxHelp','sandboxClear','sandboxSequence','sandboxTogether']) {
+for (const id of ['tab-lesson','panel-lesson','tab-sandbox','panel-sandbox','sandboxBoard','sandboxReadout','sandboxAction','sandboxSpelling','sandboxHelp','sandboxClear','sandboxSequence','sandboxTogether']) {
   const node = document.createElement('div'); node.id = id; byId[id] = node;
 }
-for (const section of ['sandbox','learn','explore']) byId['tab-'+section].setAttribute('aria-controls','panel-'+section);
+for (const section of ['lesson','sandbox','learn','explore']) byId['tab-'+section].setAttribute('aria-controls','panel-'+section);
 const html = fs.readFileSync(path.join(__dirname,'../course-lab.html'),'utf8');
 const core = html.match(/<script>([\s\S]*?)<\/script>/)[1].replace('\ninit();\n','\n');
 vm.runInThisContext(core + '\nplayMidi = midi => global.played.push(midi); playSequence = list => global.played.push(...list);', {filename:'course-core.js'});

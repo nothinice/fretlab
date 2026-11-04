@@ -290,13 +290,38 @@
 <div class="v2-topbar">
   <div class="v2-brand">FretLab</div>
   <nav class="v2-tabs" role="tablist" aria-label="Разделы">
-    <button class="v2-tab-btn" id="tab-sandbox" role="tab" aria-selected="true" aria-controls="panel-sandbox" tabindex="0">Свободный гриф</button>
+    <button class="v2-tab-btn" id="tab-lesson" role="tab" aria-selected="true" aria-controls="panel-lesson" tabindex="0">Урок 1</button>
+    <button class="v2-tab-btn" id="tab-sandbox" role="tab" aria-selected="false" aria-controls="panel-sandbox" tabindex="-1">Свободный гриф</button>
     <button class="v2-tab-btn" id="tab-learn" role="tab" aria-selected="false" aria-controls="panel-learn" tabindex="-1">Изучать</button>
     <button class="v2-tab-btn" id="tab-explore" role="tab" aria-selected="false" aria-controls="panel-explore" tabindex="-1">Исследовать</button>
   </nav>
 </div>
 
-<section id="panel-sandbox" role="tabpanel" aria-labelledby="tab-sandbox" class="v2-active">
+<section id="panel-lesson" role="tabpanel" aria-labelledby="tab-lesson" class="v2-active">
+  <div class="v2-wrap lesson-wrap">
+    <p class="hint">Основы · Урок 1 · Тон и полутон</p>
+    <progress id="lessonProgress" max="9" value="1" aria-label="Шаг урока"></progress>
+    <p id="lessonPosition" class="hint"></p>
+    <h1 id="lessonTitle"></h1>
+    <p id="lessonExplanation" class="lesson-copy"></p>
+    <div class="lesson-purpose"><strong>Зачем это делать</strong><p id="lessonPurpose"></p></div>
+    <p id="lessonInstruction" class="lesson-copy"></p>
+    <div class="board-outer"><div class="board" id="lessonBoard" aria-label="Учебный гриф, первая струна сверху"></div></div>
+    <div class="sandbox-controls">
+      <button type="button" class="play-btn" id="lessonListen">▶ Послушать пример</button>
+      <button type="button" class="play-btn" id="lessonHint">Подсказка</button>
+    </div>
+    <p id="lessonFeedback" class="sandbox-readout" role="status" aria-live="polite"></p>
+    <label id="lessonPracticeLabel" class="lesson-practice"><input type="checkbox" id="lessonPractice"> Я сыграл упражнение на гитаре и проверил себя по критериям выше</label>
+    <nav class="sandbox-controls" aria-label="Шаги урока">
+      <button type="button" class="play-btn" id="lessonBack">← Назад</button>
+      <button type="button" class="play-btn" id="lessonNext">Далее →</button>
+      <button type="button" class="play-btn" id="lessonRestart">Начать заново</button>
+    </nav>
+    <p class="hint">Номер струны считаем от тонкой: первая E сверху, шестая E снизу. Номера ладов указаны над грифом. Ноты звучат после нажатия.</p>
+  </div>
+</section>
+<section id="panel-sandbox" role="tabpanel" aria-labelledby="tab-sandbox">
   <div class="v2-wrap">
     <h1>Свободный гриф</h1>
     <p>Нажмите на любой лад: нота появится и прозвучит. Повторное нажатие убирает её.</p>
@@ -2507,7 +2532,7 @@ function renderLearn(){
 function v2InitTabs(){
   const learnTab = document.getElementById('tab-learn');
   const exploreTab = document.getElementById('tab-explore');
-  const tabs = [document.getElementById('tab-sandbox'), learnTab, exploreTab];
+  const tabs = [document.getElementById('tab-lesson'), document.getElementById('tab-sandbox'), learnTab, exploreTab];
   function activate(tab){
     tabs.forEach(t=>{
       const isActive = t===tab;
@@ -2560,5 +2585,6 @@ v2Init();
 </script>
 <link rel="stylesheet" href="course-sandbox.css">
 <script src="course-sandbox.js"></script>
+<script src="course-lesson.js"></script>
 </body>
 </html>
