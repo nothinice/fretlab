@@ -142,7 +142,7 @@ with sync_playwright() as p:
         body_button('Завершить упражнение →' if _ == 5 else 'Следующая пара →')
 
     activity(7)
-    for step,answer in enumerate(['Четыре','Одну','Продолжить ровный счёт','Одну','На второй']):
+    for step,answer in enumerate(['Четыре','Одну','Ровно считать «1, 2, 3, 4», но на «3» не играть','Одну','На второй']):
         body_button('▶ Четыре доли' if step==0 else '▶ Послушать запись')
         expect(page.locator('.rhythm-question')).to_be_visible(timeout=12000)
         body_button(answer)

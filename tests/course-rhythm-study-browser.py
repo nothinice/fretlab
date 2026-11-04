@@ -11,7 +11,7 @@ with sync_playwright() as p:
   def open_rhythm():page.locator('#blockActivities article').nth(7).get_by_role('button').click()
   def button(name):return page.locator('#blockTaskBody').get_by_role('button',name=name,exact=True)
   open_rhythm()
-  for step,answer in enumerate(['Четыре','Одну','Продолжить ровный счёт','Одну','На второй']):
+  for step,answer in enumerate(['Четыре','Одну','Ровно считать «1, 2, 3, 4», но на «3» не играть','Одну','На второй']):
    expect(page.locator('.rhythm-player h3')).to_contain_text(f'шаг {step+1} из 5')
    expect(page.locator('.rhythm-question')).to_be_hidden()
    play=button('▶ Четыре доли' if step==0 else '▶ Послушать запись')

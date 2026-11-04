@@ -17,7 +17,7 @@ with sync_playwright() as p:
   expect(page.locator('#blockTaskInstruction')).to_contain_text('Пара 2/6');expect(page.locator('#blockTaskInstruction')).to_contain_text('Новая пара ещё не звучала');expect(button('Тон')).to_be_disabled()
   page.locator('#blockClose').click();page.locator('#blockActivities article').nth(7).get_by_role('button').click()
   expect(page.locator('.rhythm-intro')).to_be_visible();assert page.locator('.rhythm-option').count()==0
-  for step,answer in enumerate(['Четыре','Одну','Продолжить ровный счёт','Одну','На второй']):
+  for step,answer in enumerate(['Четыре','Одну','Ровно считать «1, 2, 3, 4», но на «3» не играть','Одну','На второй']):
    button('▶ Четыре доли' if step==0 else '▶ Послушать запись').click();expect(page.locator('.rhythm-question')).to_be_visible(timeout=12000);button(answer).click();button('К практике →').click();button('Я простучал — к гитаре').click()
    page.locator('.rhythm-intro input[type=checkbox]').check()
    button('Начать сравнение ритмов →' if step==4 else 'Дальше по ритму →').click()
