@@ -289,29 +289,81 @@ const CourseBlockOne = (() => {
           if(correct&&s.done){draw();complete();}else{draw();feedback(correct&&!wasLocated?'Верно, эта нота нарушает формулу. Теперь исправьте её положение.':'Проверьте соседние интервалы вокруг выбранной ноты.');}
         });
       }else if(s.kind==='ear'){
-        const q=s.questions[s.round],midi=OPEN_STRINGS_TOP_TO_BOTTOM[q.str].midi+q.start;
-        el('blockTaskExplanation').textContent='Сравните два звука на слух. Это отдельный навык: правильные точки на экране не гарантируют слухового узнавания. Гриф с ответом скрыт.';
-        el('blockTaskInstruction').textContent=`Пример ${s.round+1}/${s.questions.length}: прозвучит полутон или тон вверх. Сначала нажмите «Слушать пару», затем выберите ответ.`;
-        const row=controls();button(row,'▶ Слушать пару',()=>{audio([{midi,beats:1},{midi:midi+q.delta,beats:1}]);heard=true;drawAnswerButtons();});
+        const q=s.earReview||s.questions[s.round],midi=OPEN_STRINGS_TOP_TO_BOTTOM[q.str].midi+q.start;
+        el('blockTaskExplanation').textContent='В каждой паре второй звук выше первого. Определите расстояние между ними: полутон или тон.';
+        const instruction=()=>{el('blockTaskInstruction').textContent=`Пара ${s.earReview?s.round:s.round+1}/${s.questions.length}. ${s.earReview?'Ответ найден. Можно повторить звучание или перейти дальше.':heard?'Теперь выберите: полутон или тон. Пару можно прослушать повторно.':'Новая пара ещё не звучала. Нажмите «Слушать пару», затем выберите ответ.'}`;};instruction();
+        const row=controls();const listen=button(row,'▶ Слушать пару',()=>{audio([{midi,beats:1},{midi:midi+q.delta,beats:1}]);heard=true;instruction();drawAnswerButtons();});
+        listen.classList.add('primary-btn');
         const answers=node('div');answers.className='sandbox-controls';body.appendChild(answers);
-        function drawAnswerButtons(){answers.innerHTML='';[1,2].forEach(v=>button(answers,v===1?'Полутон':'Тон',()=>accepted(submit(s,v),`✓ Верно — это ${v===1?'полутон':'тон'}.`),!heard));}drawAnswerButtons();
+        function drawAnswerButtons(){
+          answers.innerHTML='';
+          if(s.earReview){
+            feedback(`✓ Верно — это ${Math.abs(q.delta)===1?'½ · полутон':'1 · тон'}. Следующая пара начнётся по вашему нажатию.`,true);
+            listen.classList.remove('primary-btn');
+            const next=button(answers,s.done?'Завершить упражнение →':'Следующая пара →',()=>{delete s.earReview;heard=false;if(s.done)complete();else draw();});next.classList.add('primary-btn');return;
+          }
+          [1,2].forEach(v=>button(answers,v===1?'Полутон':'Тон',()=>{
+            if(submit(s,v)){stop();s.earReview=q;instruction();drawAnswerButtons();}
+            else feedback('Пока неверно. Нажмите «Слушать пару», чтобы сравнить звуки ещё раз.');
+          },!heard));
+        }drawAnswerButtons();
       }else if(s.kind==='octave'){
         el('blockTaskInstruction').textContent='Сколько полутонов от начальной C до следующей C на октаву выше?';
         const row=controls();[7,8,12].forEach(n=>button(row,String(n),()=>accepted(submit(s,n))));
       }else if(s.kind==='rhythm'){
-        el('blockTaskExplanation').textContent='Одна и та же C может звучать по-разному благодаря ритму и паузам. После четырёх щелчков прозвучит один такт. Выберите его рисунок, затем повторите голосом и на гитаре.';
-        el('blockTaskInstruction').textContent=`Пример ${s.round+1}/3. Считайте четыре доли. После правильного выбора рисунка повторите его, прежде чем переходить к следующему.`;
-        const row=controls();button(row,'▶ Отсчёт и ритм',()=>{audio(rhythmEvents(RHYTHMS[s.order[s.round]]),{countIn:true,click:true});heard=true;choices();});
+        el('blockTaskExplanation').textContent='Ритм — это расположение звуков и пауз во времени. Здесь высота звука не меняется: всё играем на ноте C.';
+        if(!s.introDone){
+          el('blockTaskInstruction').textContent='Сначала познакомьтесь с пульсом и обозначениями. Здесь размер 4/4: в такте четыре равные доли, считаем «1, 2, 3, 4».';
+          const intro=node('section');intro.className='rhythm-intro';body.appendChild(intro);
+          intro.appendChild(node('h3','1. Почувствуйте ровный пульс'));
+          intro.appendChild(node('p','Послушайте четыре щелчка. На каждый произнесите очередное число: 1, 2, 3, 4.'));
+          button(intro,'▶ Четыре доли',()=>audio(Array.from({length:4},()=>({midi:81,beats:1}))));
+          intro.appendChild(node('h3','2. Разделите каждую долю пополам'));
+          intro.appendChild(node('p','Считайте ровно: «1-и, 2-и, 3-и, 4-и». Числа остаются на щелчках. Два звука за одну долю — две восьмые; один звук на целую долю — четверть.'));
+          button(intro,'▶ Послушать ровные восьмые',()=>audio(Array.from({length:8},()=>({midi:48,beats:.5})),{countIn:true,click:true}));
+          intro.appendChild(node('h3','3. Прочитайте один рисунок'));
+          intro.appendChild(node('p','Каждая рамка ниже — одна доля, внутри две половины. «ТА» — новый звук, «—» — его продолжение, «пауза» — молчание. Во время паузы продолжайте считать. Это наша подсказка к ритму, а не нотная запись.'));
+          rhythmDiagram(intro,RHYTHMS[0]);
+          intro.appendChild(node('p','В этом примере сыграйте на 1 и 2, промолчите на 3, сыграйте на 4. Сначала прозвучат четыре щелчка отсчёта, затем сам рисунок с тихим пульсом.'));
+          button(intro,'▶ Послушать разобранный пример',()=>audio(rhythmEvents(RHYTHMS[0]),{countIn:true,click:true}));
+          button(controls(),'Начать сравнение ритмов →',()=>{s.introDone=true;heard=false;draw();}).classList.add('primary-btn');
+          tempoControl();drawActions();return;
+        }
+        const r=RHYTHMS[s.order[s.round]];
+        el('blockTaskInstruction').textContent=`Пример ${s.round+1}/3. Нажмите «Отсчёт и ритм»: четыре щелчка для подготовки, затем один такт. Выберите, в каком рисунке звуки и пауза стоят на тех же долях.`;
+        const row=controls();let reviewed=false;
+        const listen=button(row,'▶ Отсчёт и ритм',()=>{audio(rhythmEvents(r),{countIn:true,click:true});heard=true;if(!reviewed)choices();});listen.classList.add('primary-btn');
+        const help=node('details');help.appendChild(node('summary','Как читать рисунки'));help.appendChild(node('p','Четыре рамки — четыре доли. В каждой две половины: число и «и». ТА — новый звук, — — продолжение, пауза — молчание. Счёт не прерывается.'));body.appendChild(help);
+        const explain=button(row,'Разобрать ритм ещё раз',()=>{s.introDone=false;draw();});
         const answers=node('div');body.appendChild(answers);
-        body.appendChild(node('p','В строке счёта ● — начало звука, ─ — продолжение, · — пауза. Каждая клетка — половина доли.'));
-        function choices(){answers.innerHTML='';RHYTHMS.forEach((r,i)=>{const option=node('div');option.className='rhythm-option';option.appendChild(node('p',r.label));option.appendChild(node('p',rhythmCells(r).map((symbol,k)=>`${k%2===0?Math.floor(k/2)+1:'и'}:${symbol}`).join('  ')));button(option,'Этот рисунок',()=>{
-          const correct=submit(s,i);
-          if(correct){feedback('✓ Ритм распознан. Проговорите и сыграйте его на одной ноте.',true);answers.innerHTML='';button(answers,'Повторил голосом и на гитаре — дальше',()=>{if(s.done){s.practice=true;complete();}else{heard=false;draw();}});}
-          else feedback('Пока неверно. Послушайте ещё раз и найдите, на каких долях появляются звуки.');
-        },!heard);answers.appendChild(option);});}choices();
+        function choices(){answers.innerHTML='';RHYTHMS.forEach((pattern,i)=>{const option=node('div');option.className='rhythm-option';option.appendChild(node('h3',`Вариант ${i+1}`));rhythmDiagram(option,pattern);
+          option.appendChild(node('p',[
+            'Звуки на 1, 2 и 4. На третьей доле — пауза.',
+            'Два звука на первой доле, затем по одному на 2 и 3. На четвёртой — пауза.',
+            'Звук на 1, пауза на 2, два звука на третьей доле и один на 4.'
+          ][i]));
+          button(option,'Этот рисунок',()=>{
+            const correct=submit(s,i);
+            if(correct){stop();reviewed=true;explain.disabled=true;listen.classList.remove('primary-btn');feedback('✓ Ритм распознан. Повторите показанный рисунок голосом, затем на одной ноте на гитаре. Пример можно послушать снова.',true);answers.innerHTML='';rhythmDiagram(answers,pattern);button(answers,'Повторил голосом и на гитаре — дальше',()=>{if(s.done){s.practice=true;complete();}else{heard=false;draw();}}).classList.add('primary-btn');}
+            else feedback('Пока неверно. Послушайте ещё раз: на какой доле пауза, а где два звука вместо одного?');
+          },!heard);answers.appendChild(option);});}choices();
       }else if(s.kind==='compose')drawComposer();
       if(['ear','rhythm'].includes(s.kind))tempoControl();
       drawActions();
+    }
+    function rhythmDiagram(parent,rhythm){
+      const cells=rhythmCells(rhythm),grid=node('div');grid.className='rhythm-grid';
+      for(let beat=0;beat<4;beat++){
+        const group=node('div');group.className='rhythm-beat';
+        const rest=cells[beat*2]==='·'&&cells[beat*2+1]==='·';
+        for(let half=0;half<2;half++){
+          const symbol=cells[beat*2+half],cell=node('div');cell.className='rhythm-half';
+          cell.appendChild(node('span',half?'и':String(beat+1)));
+          if(!rest)cell.appendChild(node('strong',symbol==='●'?'ТА':symbol==='─'?'—':'пауза'));group.appendChild(cell);
+        }
+        if(rest){const label=node('strong','пауза');label.className='rhythm-rest-label';group.appendChild(label);}
+        grid.appendChild(group);
+      }parent.appendChild(grid);
     }
     function tempoControl(){const details=node('details');details.className='audio-options';details.appendChild(node('summary','Настройки звука'));el('blockTaskBody').appendChild(details);const row=node('div');row.className='sandbox-controls';details.appendChild(row);const label=node('label','Темп (уд/мин) '),input=node('input');input.type='number';input.min='40';input.max='100';input.value=String(tempo);input.addEventListener('change',()=>{const n=Number(input.value);tempo=Number.isFinite(n)?Math.min(100,Math.max(40,n)):60;input.value=String(tempo);stop();});label.appendChild(input);row.appendChild(label);}
     function drawComposer(){

@@ -132,8 +132,10 @@ with sync_playwright() as p:
         notes = page.evaluate('window._notes')
         delta = notes[-1][0]-notes[-2][0]
         body_button('Полутон' if delta == 1 else 'Тон')
+        body_button('Завершить упражнение →' if _ == 5 else 'Следующая пара →')
 
     activity(7)
+    body_button('Начать сравнение ритмов →')
     for _ in range(3):
         page.evaluate('window._notes=[]')
         body_button('▶ Отсчёт и ритм')

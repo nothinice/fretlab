@@ -139,3 +139,12 @@ body{padding:0 0 40px}
 @keyframes reward-arrive{from{opacity:.6;transform:translateY(4px)}to{opacity:1;transform:none}}
 @media(max-width:600px){.v2-tab-btn{padding:8px;font-size:13px}#tab-sandbox{margin-left:2px}.v2-topbar{gap:5px}.phrase-toolbar{top:58px}.phrase-toolbar .primary-btn{width:100%;margin:0}.block-card{padding:12px}.block-card h3{font-size:16px}}
 @media(prefers-reduced-motion:reduce){.answer-success,.course-celebration{animation:none}#blockProgress::-webkit-progress-value{transition:none}}
+
+/* Read rhythm by beats; labels remain meaningful without colour. */
+.rhythm-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:12px 0;max-width:640px}
+.rhythm-beat{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--border);border-radius:8px;padding:8px 2px;background:var(--bg)}
+.rhythm-half{text-align:center;min-width:0}.rhythm-half span,.rhythm-half strong{display:block}
+.rhythm-half span{font-size:13px;margin-bottom:8px}.rhythm-half strong{font-size:14px}
+.rhythm-intro{max-width:720px}.rhythm-intro h3{margin-top:24px}.rhythm-intro .play-btn{min-height:44px}
+
+.rhythm-rest-label{grid-column:1/-1;text-align:center;font-size:14px}.rhythm-option p{font-family:inherit;white-space:normal;font-size:15px;line-height:1.5}

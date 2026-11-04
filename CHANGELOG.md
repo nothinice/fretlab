@@ -1,5 +1,13 @@
 # Changelog
 
+## Listening and rhythm introduction — 2026-11-04
+
+- Keep correct ear answers visible until explicit continuation; clearly prompt listening to each new pair.
+- Introduce pulse, straight eighths and rests with original audio demonstrations before rhythm choices.
+- Display rhythm answers in four beat groups with counts, syllables and plain-language descriptions.
+- Replay the reviewed rhythm until guitar/voice practice is acknowledged, rather than playing the next question.
+- Add desktop/mobile listening regression coverage.
+
 ## Interval answer review — 2026-11-04
 
 - Keep both interval endpoints, a labeled arc and success feedback visible after correct answers.
