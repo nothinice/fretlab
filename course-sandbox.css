@@ -19,4 +19,21 @@
 .lesson-formula{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0;font-family:'IBM Plex Mono',monospace;line-height:1.7}
 .lesson-formula span{padding:5px 10px;background:var(--panel);border-radius:8px}
 .lesson-formula .current-step{background:var(--chord-note);color:white;font-weight:bold;outline:2px solid var(--ink)}
+.block-wrap [hidden]{display:none!important}
+.block-plan{max-width:860px;padding:16px;background:var(--panel);border-radius:12px;line-height:1.7}
+.block-plan summary{cursor:pointer;font-weight:600}
+.block-activities{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;margin:22px 0}
+.block-card{padding:18px;background:var(--panel);border:1px solid #d8cdbb;border-radius:12px;line-height:1.6}
+.block-card h2{font-size:19px;margin-top:0}
+.block-workspace{margin:22px 0;padding:20px 0;border-top:1px solid #d8cdbb}
+.block-workspace button,.block-card button{min-height:44px}
+.rhythm-option{border:1px solid #d8cdbb;border-radius:10px;padding:12px;margin:12px 0;overflow-wrap:anywhere}
+.rhythm-option p:last-of-type{font-family:'IBM Plex Mono',monospace;font-size:13px}
+.phrase-timeline{display:flex;gap:8px;flex-wrap:wrap;list-style:none;padding:0}
+.phrase-timeline li{padding:10px;background:var(--panel);border-radius:8px;border:1px solid #d8cdbb}
+.block-workspace input[type=number]{max-width:100px;min-height:44px}
+.block-workspace .lesson-practice{margin:14px 0}
+#blockTaskTitle,#lessonTitle{scroll-margin-top:175px}
+.mobile-board-tip{display:none}
+@media(max-width:600px){.mobile-board-tip{display:block}}
 @media(max-width:600px){.sandbox-controls label{width:100%}.sandbox-controls select{width:100%}.sandbox-controls button{min-height:44px}.v2-tabs{flex-wrap:wrap}}

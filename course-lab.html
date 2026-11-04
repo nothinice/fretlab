@@ -290,14 +290,40 @@
 <div class="v2-topbar">
   <div class="v2-brand">FretLab</div>
   <nav class="v2-tabs" role="tablist" aria-label="Разделы">
-    <button class="v2-tab-btn" id="tab-lesson" role="tab" aria-selected="true" aria-controls="panel-lesson" tabindex="0">Уроки</button>
+    <button class="v2-tab-btn" id="tab-block" role="tab" aria-selected="true" aria-controls="panel-block" tabindex="0">Блок 1</button>
+    <button class="v2-tab-btn" id="tab-lesson" role="tab" aria-selected="false" aria-controls="panel-lesson" tabindex="-1">Уроки</button>
     <button class="v2-tab-btn" id="tab-sandbox" role="tab" aria-selected="false" aria-controls="panel-sandbox" tabindex="-1">Свободный гриф</button>
     <button class="v2-tab-btn" id="tab-learn" role="tab" aria-selected="false" aria-controls="panel-learn" tabindex="-1">Изучать</button>
     <button class="v2-tab-btn" id="tab-explore" role="tab" aria-selected="false" aria-controls="panel-explore" tabindex="-1">Исследовать</button>
   </nav>
 </div>
 
-<section id="panel-lesson" role="tabpanel" aria-labelledby="tab-lesson" class="v2-active">
+<section id="panel-block" role="tabpanel" aria-labelledby="tab-block" class="v2-active">
+  <div class="v2-wrap block-wrap">
+    <p class="hint">Блок 1 · Расстояния и мажорная гамма</p>
+    <h1>От первого шага до своей фразы</h1>
+    <p class="lesson-copy">Научитесь отмерять тон и полутон, строить C major и использовать несколько её нот в музыке. Здесь есть объяснения, самостоятельная практика, слух, ритм и итоговая проверка.</p>
+    <details class="block-plan"><summary>Как заниматься: маршрут на 3–4 занятия</summary>
+      <ol><li>Тон и полутон: первый урок, поиск расстояний, затем повторение на гитаре.</li><li>C major: второй урок, восстановление формулы и гаммы. Вернитесь к расстояниям без подсказок.</li><li>Слух, ритм и своя фраза из C, D, E. Повторите построение гаммы перед игрой.</li><li>На следующем занятии пройдите итоговую проверку. При затруднениях вернитесь к соответствующему упражнению.</li></ol>
+      <p>Ориентир на занятие: 5 минут повторения, 5 минут объяснения, 10 минут игры, 5 минут слуха/ритма и 5 минут своей музыки. Это план, а не таймер допуска. Не нужно проходить всё за один день или ждать до завтра, если материал уже освоен.</p>
+    </details>
+    <p id="blockStorage" class="hint"></p>
+    <p id="blockSummary" class="sandbox-readout" role="status" aria-live="polite"></p>
+    <div id="blockActivities" class="block-activities" aria-label="Уроки и практика блока"></div>
+    <section id="blockWorkspace" class="block-workspace" aria-labelledby="blockTaskTitle" hidden>
+      <button type="button" class="play-btn" id="blockClose">← К маршруту блока</button>
+      <h2 id="blockTaskTitle" tabindex="-1"></h2>
+      <p id="blockTaskExplanation" class="lesson-copy"></p>
+      <div class="lesson-purpose"><strong>Зачем это делать</strong><p id="blockTaskPurpose"></p></div>
+      <p id="blockTaskInstruction" class="lesson-copy"></p>
+      <div id="blockTaskBody"></div>
+      <p id="blockTaskFeedback" class="sandbox-readout" role="status" aria-live="polite"></p>
+      <div class="sandbox-controls" id="blockTaskActions"></div>
+    </section>
+    <p class="hint">Приложение проверяет экранные ответы и устройство вашей фразы. Чистота звука, ритм и исполнение на гитаре проверяются вами или преподавателем.</p>
+  </div>
+</section>
+<section id="panel-lesson" role="tabpanel" aria-labelledby="tab-lesson">
   <div class="v2-wrap lesson-wrap">
     <label class="lesson-picker">Основы · Выберите урок
       <select id="lessonSelect"><option value="0">1. Тон и полутон</option><option value="1">2. Построение C major</option><option value="2">3. Ступени и удобная позиция</option></select>
@@ -711,6 +737,7 @@ function playMidi(midi, when, dur, peak = 0.22){
   gain.gain.exponentialRampToValueAtTime(0.0001, t + d);
   osc.connect(gain); gain.connect(ctx.destination);
   osc.start(t); osc.stop(t + d + 0.05);
+  return osc;
 }
 function playSequence(midiList){
   if(!midiList || !midiList.length) return;
@@ -2537,7 +2564,7 @@ function renderLearn(){
 function v2InitTabs(){
   const learnTab = document.getElementById('tab-learn');
   const exploreTab = document.getElementById('tab-explore');
-  const tabs = [document.getElementById('tab-lesson'), document.getElementById('tab-sandbox'), learnTab, exploreTab];
+  const tabs = [document.getElementById('tab-block'), document.getElementById('tab-lesson'), document.getElementById('tab-sandbox'), learnTab, exploreTab];
   function activate(tab){
     tabs.forEach(t=>{
       const isActive = t===tab;
@@ -2592,5 +2619,6 @@ v2Init();
 <script src="course-sandbox.js"></script>
 <script src="course-lessons-content.js"></script>
 <script src="course-lesson.js"></script>
+<script src="course-block-one.js"></script>
 </body>
 </html>

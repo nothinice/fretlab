@@ -85,6 +85,7 @@ const CourseLesson = (() => {
       el('lessonPractice').checked=practiced;
       el('lessonFeedback').textContent=isTask(s) ? solved.has(current) ? 'Верно. Можно переходить дальше.' : 'Выберите ответ на указанной струне. Можно пробовать снова: ошибка не закрывает задание.' : s.finish ? `Экранных заданий выполнено: ${solved.size} из ${steps.filter(isTask).length}. Заданий с подсказкой: ${hints.size}. Практика на гитаре отмечена вами: ${practiced ? 'да' : 'нет'}.` : 'Нажмите «Послушать пример» или на отмеченную точку.';
       if(s.practice) el('lessonFeedback').textContent='Отметьте практику после игры и самопроверки. Нажатия на грифе не заменяют это задание.';
+      if(s.finish && document.dispatchEvent && typeof CustomEvent!=='undefined') document.dispatchEvent(new CustomEvent('course-lesson-progress',{detail:{lessonId:activeLesson,complete:solved.size===steps.filter(isTask).length&&practiced,assisted:hints.size>0,practice:practiced}}));
       v2RenderBoard(new Map(), 'lessonBoard');
       const cells=el('lessonBoard').querySelectorAll('.cell');
       cells.forEach((cell,index) => {
@@ -147,8 +148,9 @@ const CourseLesson = (() => {
     el('lessonSelect').addEventListener('change',e=>switchLesson(Number(e.target.value)));
     el('lessonContinue').addEventListener('click',()=>{if(steps[current].finish)switchLesson(activeLesson+1);});
     render();
+    return {open:switchLesson};
   }
   return {steps:firstSteps,answer,boot};
 })();
 if(typeof module!=='undefined'&&module.exports)module.exports=CourseLesson;
-else CourseLesson.boot();
+else window.courseLessons=CourseLesson.boot();
