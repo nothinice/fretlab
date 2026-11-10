@@ -290,7 +290,8 @@
 <div class="v2-topbar">
   <div class="v2-brand">FretLab</div>
   <nav class="v2-tabs" role="tablist" aria-label="Разделы">
-    <button class="v2-tab-btn" id="tab-block" role="tab" aria-selected="true" aria-controls="panel-block" tabindex="0">Курс</button>
+    <button class="v2-tab-btn" id="tab-block" role="tab" aria-selected="true" aria-controls="panel-block" tabindex="0">Блок 1</button>
+    <button class="v2-tab-btn" id="tab-block2" role="tab" aria-selected="false" aria-controls="panel-block2" tabindex="-1">Блок 2</button>
     <button class="v2-tab-btn" id="tab-sandbox" role="tab" aria-selected="false" aria-controls="panel-sandbox" tabindex="-1">Гриф</button>
     <button class="v2-tab-btn" id="tab-learn" role="tab" aria-selected="false" aria-controls="panel-learn" tabindex="-1">Формы</button>
     <button class="v2-tab-btn" id="tab-explore" role="tab" aria-selected="false" aria-controls="panel-explore" tabindex="-1">Теория</button>
@@ -302,6 +303,7 @@
   <div class="course-helpbar v2-wrap"><button type="button" class="play-btn text-btn" data-course-help="sound">Звук</button><button type="button" class="play-btn text-btn" data-course-help="terms">Термины и гриф</button><button type="button" class="play-btn text-btn" data-course-help="setup">Подготовить гитару</button></div>
   <div class="v2-wrap block-wrap" id="blockRoute">
     <div id="blockOverview">
+    <div class="b2-reminders" data-b2-reviews hidden role="region" aria-label="Повторение пройденного"></div>
     <p class="hint">Блок 1 · Расстояния и мажорная гамма</p>
     <h1>От первого шага до своей фразы</h1>
     <p class="lesson-copy">Научитесь отмерять тон и полутон, строить C major и использовать несколько её нот в музыке. Здесь есть объяснения, самостоятельная практика, слух, ритм и итоговая проверка.</p>
@@ -364,6 +366,66 @@
     <p id="lessonStorage" class="hint">Шаг урока сохраняется в этом браузере. После перезагрузки откройте урок, чтобы продолжить.</p>
   </div>
 </section>
+</section>
+<section id="panel-block2" role="tabpanel" aria-labelledby="tab-block2">
+  <div class="v2-wrap b2-wrap">
+    <div id="b2Overview">
+      <p class="course-breadcrumb">Блок 2 · От ступеней к своей музыке</p>
+      <h1>Гамма, позиция и звуки аккорда</h1>
+      <p class="lesson-copy">Научитесь видеть ступени в C major, переносить те же звуки на соседние струны и собирать из них аккорд. Во второй части сыграете свою фразу под C major.</p>
+      <div class="b2-reminders" data-b2-reviews hidden role="region" aria-label="Повторение пройденного"></div>
+      <div class="b2-part-grid">
+        <article class="b2-part-card">
+          <p class="b2-eyebrow">2A · 3–4 занятия</p><h2>Ступени и позиция</h2>
+          <p>Номера ступеней, одинаковые высоты на разных струнах и одна компактная позиция C major с понятной аппликатурой.</p>
+          <p id="b2Statusa" tabindex="-1" role="status"></p>
+          <button type="button" class="play-btn primary-btn" id="b2Resumea">Начать блок 2A</button>
+          <details><summary>Шаги и практика</summary><div id="b2Stepsa" class="b2-step-list"></div></details>
+        </article>
+        <article class="b2-part-card">
+          <p class="b2-eyebrow">2B · 3–4 занятия</p><h2>Из гаммы — аккорд</h2>
+          <p>C–E–G, роль терции, аккорд и арпеджио. Конструктор, слуховая практика и своя фраза под сопровождение.</p>
+          <p id="b2Statusb" tabindex="-1" role="status"></p>
+          <button type="button" class="play-btn primary-btn" id="b2Resumeb">Начать блок 2B</button>
+          <details><summary>Шаги и практика</summary><div id="b2Stepsb" class="b2-step-list"></div></details>
+        </article>
+      </div>
+      <details class="block-plan"><summary>Как заниматься и возвращаться к материалу</summary>
+        <p>Сначала пройдите 2A, затем 2B. На занятии оставляйте время на медленную игру, слух и повторение. Три-четыре занятия на часть — ориентир; календарной блокировки нет.</p>
+        <p>Через три дня после завершения части здесь появится «Проверьте, что осталось». Рекомендуется повторить без подсказок через 3–7 дней. Если вернётесь позже, проверка останется доступной.</p>
+      </details>
+    </div>
+    <section id="b2Work" hidden aria-labelledby="b2Title">
+      <p class="course-breadcrumb"><button type="button" class="play-btn text-btn" id="b2Route">← К маршруту блока 2</button><span id="b2Crumb"></span></p>
+      <progress id="b2StepProgress" max="1" value="1" aria-label="Шаг блока 2"></progress>
+      <div class="lesson-layout b2-layout">
+        <div class="b2-copy">
+          <h1 id="b2Title" tabindex="-1"></h1>
+          <p id="b2Text" class="lesson-copy"></p>
+          <details id="b2Why" class="lesson-purpose"><summary>Почему так</summary><p id="b2WhyText"></p></details>
+        </div>
+        <div class="b2-workspace">
+          <p id="b2Instruction" class="task-card" data-label="На грифе и на гитаре"></p>
+          <div id="b2TaskBody"></div>
+          <p id="b2Feedback" class="sandbox-readout" role="status" aria-live="polite" hidden></p>
+          <div class="sandbox-controls b2-audio-controls">
+            <button type="button" id="b2Stop" class="play-btn" hidden>■ Стоп</button>
+            <span id="b2AudioStatus" role="status" aria-live="off"></span>
+          </div>
+          <details class="audio-options"><summary>Темп и повторение</summary>
+            <label>Темп (уд/мин) <input type="number" id="b2Tempo" min="40" max="120" value="80"></label>
+            <button type="button" class="play-btn text-btn" id="b2Retry">Повторить текущий шаг</button>
+          </details>
+          <nav class="sandbox-controls b2-navigation" aria-label="Шаги второго блока">
+            <button type="button" class="play-btn text-btn" id="b2Back">← Назад</button>
+            <button type="button" class="play-btn text-btn" id="b2Hint">Подсказка</button>
+            <div class="lesson-next-action"><button type="button" class="play-btn primary-btn" id="b2Next" aria-describedby="b2NextHelp">Дальше →</button><p id="b2NextHelp" role="status"></p></div>
+          </nav>
+        </div>
+      </div>
+    </section>
+    <p id="b2Storage" class="hint"></p>
+  </div>
 </section>
 <section id="panel-sandbox" role="tabpanel" aria-labelledby="tab-sandbox">
   <div class="v2-wrap">
@@ -560,8 +622,10 @@ const TETRAD_QUALITY = {
   '4,6,10':'7b5', '4,6,11':'maj7b5', '5,7,10':'7sus4', '2,7,10':'7sus2'
 };
 function nameChord(rootNote, otherNotes){
-  const key = otherNotes.map(n => ((n.semitone - rootNote.semitone) % 12 + 12) % 12).sort((a,b)=>a-b).join(',');
-  const table = otherNotes.length === 2 ? TRIAD_QUALITY : TETRAD_QUALITY;
+  // Voicings can double chord tones and roots in different octaves.
+  const intervals = [...new Set(otherNotes.map(n => ((n.semitone - rootNote.semitone) % 12 + 12) % 12))].filter(n=>n!==0).sort((a,b)=>a-b);
+  const key = intervals.join(',');
+  const table = intervals.length === 2 ? TRIAD_QUALITY : TETRAD_QUALITY;
   const quality = table[key];
   if(quality) return rootNote.noteName + quality;
   return rootNote.noteName + '(' + [rootNote, ...otherNotes].map(n=>n.noteName).join(' ') + ')';
@@ -2642,7 +2706,7 @@ function renderLearn(){
 function v2InitTabs(){
   const learnTab = document.getElementById('tab-learn');
   const exploreTab = document.getElementById('tab-explore');
-  const tabs = [document.getElementById('tab-block'), document.getElementById('tab-sandbox'), learnTab, exploreTab];
+  const tabs = [document.getElementById('tab-block'), document.getElementById('tab-block2'), document.getElementById('tab-sandbox'), learnTab, exploreTab];
   function activate(tab){
     stopSequence();
     tabs.forEach(t=>{
@@ -2719,6 +2783,8 @@ v2Init();
 <script src="course-lesson.js"></script>
 <script src="course-rhythm-player.js"></script>
 <script src="course-block-one.js"></script>
+<script src="course-block-two-content.js"></script>
+<script src="course-block-two.js"></script>
 <script src="course-help.js"></script>
 </body>
 </html>

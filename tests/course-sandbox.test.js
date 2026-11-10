@@ -17,7 +17,7 @@ assert.equal(sandbox.interval(60,84).degree, 15);
 
 // Exercise real fretboard rendering and click handlers with the project's DOM harness.
 require('./dom-shim-v2.js');
-for (const id of ['tab-block','panel-block','tab-lesson','panel-lesson','tab-sandbox','panel-sandbox','sandboxBoard','sandboxReadout','sandboxAction','sandboxSpelling','sandboxHelp','sandboxClear','sandboxSequence','sandboxTogether']) {
+for (const id of ['tab-block','panel-block','tab-block2','panel-block2','tab-lesson','panel-lesson','tab-sandbox','panel-sandbox','sandboxBoard','sandboxReadout','sandboxAction','sandboxSpelling','sandboxHelp','sandboxClear','sandboxSequence','sandboxTogether']) {
   const node = document.createElement('div'); node.id = id; byId[id] = node;
 }
 for (const section of ['block','lesson','sandbox','learn','explore']) byId['tab-'+section].setAttribute('aria-controls','panel-'+section);

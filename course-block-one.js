@@ -178,7 +178,7 @@ const CourseBlockOne = (() => {
       const resume=window.courseLessons?.getResume();
       el('blockResume').textContent=resumeLabel(records,resume);
       document.querySelector('.sound-welcome').hidden=count===ACTIVITIES.length;
-      el('blockResume').onclick=()=>count===ACTIVITIES.length?window.courseLessons.open(2):resume?window.courseLessons.open(resume.index):open(next||ACTIVITIES[0]);
+      el('blockResume').onclick=()=>count===ACTIVITIES.length?window.courseBlockTwo.open('a'):resume?window.courseLessons.open(resume.index):open(next||ACTIVITIES[0]);
       const list=el('blockActivities');list.innerHTML='';
       const groups=[['Расстояния',0,2],['Мажорная гамма',2,6],['Слух, ритм и своя фраза',6,9],['Проверка',9,10]];
       groups.forEach(([title,start,end])=>{
@@ -476,7 +476,7 @@ const CourseBlockOne = (() => {
     }
     el('blockClose').addEventListener('click',()=>{stop();el('blockWorkspace').hidden=true;el('blockOverview').hidden=false;overview();el('blockResume').focus();});
     el('tab-block').addEventListener('click',()=>{stop();el('panel-lesson').hidden=true;el('blockRoute').hidden=false;el('blockWorkspace').hidden=true;el('blockOverview').hidden=false;overview();});
-    el('blockNextLesson').addEventListener('click',()=>{window.courseLessons.open(2);});
+    el('blockNextLesson').addEventListener('click',()=>{window.courseBlockTwo.open('a');});
     document.addEventListener('course-lesson-progress',e=>{
       const d=e.detail;if(![0,1].includes(d.lessonId)||!d.complete)return;
       records['lesson'+d.lessonId]={done:true,practice:d.practice,assisted:d.assisted,at:new Date().toISOString()};save();overview();

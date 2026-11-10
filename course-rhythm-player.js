@@ -51,6 +51,42 @@ const CourseRhythmPlayer=(()=>{
     }
     return {svg,paint,clear,showBlocks};
   }
-  return {timeline,frame,diagram};
+  // Shared phrase/backing clock. Times are seconds relative to the transport start.
+  function schedule(events,{tempo=60,countIn=false,metronome=false,accompaniment=null}={}){
+    if(!Array.isArray(events)||!events.length||events.length>64||events.some(e=>![.5,1,2,4].includes(e.beats)||!(e.midi===null||Number.isInteger(e.midi)&&e.midi>=0&&e.midi<=127)))throw Error('Некорректная фраза');
+    const beat=60/Math.max(40,Math.min(120,Number(tempo)||60)),lead=countIn?4:0,length=events.reduce((n,e)=>n+e.beats,0),items=[];
+    if(length>32)throw Error('Фраза слишком длинная');
+    if(countIn)for(let i=0;i<4;i++)items.push({kind:'click',at:i*beat,accent:i===0});
+    if(metronome)for(let i=0;i<length;i++)items.push({kind:'click',at:(lead+i)*beat,accent:i%4===0});
+    timeline(events).forEach((e,i)=>{if(e.midi!==null)items.push({kind:'melody',midi:e.midi,at:(lead+e.offset)*beat,duration:e.beats*beat,index:i});});
+    if(accompaniment){
+      const notes=[...new Set(accompaniment.notes)];
+      if(!notes.length||notes.length>6||notes.some(n=>!Number.isInteger(n)||n<0||n>127))throw Error('Некорректный аккорд сопровождения');
+      const period=accompaniment.mode==='sustain'?length:4;
+      for(let i=0;i<length;i+=period)notes.forEach(midi=>items.push({kind:'backing',midi,at:(lead+i)*beat,duration:Math.min(period,length-i)*beat}));
+    }
+    return {beat,lead,length,duration:(lead+length)*beat,items};
+  }
+  function createTransport({context=()=>getAudioCtx(),note=(...args)=>playMidi(...args),tap=(...args)=>playMetronome(...args),request=fn=>requestAnimationFrame(fn),cancel=id=>cancelAnimationFrame(id)}={}){
+    let voices=[],animation=0,version=0,playing=false,finish=null;
+    function stop(){version++;if(animation)cancel(animation);animation=0;voices.forEach(v=>{try{v?.stop();}catch{}});voices=[];playing=false;const callback=finish;finish=null;callback?.(false);}
+    function play(events,options={}){
+      stop();const plan=schedule(events,options),ctx=context(),start=ctx.currentTime+.08,ticket=version;
+      playing=true;finish=options.onend||null;
+      plan.items.forEach(e=>{
+        const voice=e.kind==='click'?tap(start+e.at,e.accent,.09):note(e.midi,start+e.at,e.duration,e.kind==='backing'?.045:.18,e.kind==='melody'?options.positions?.[e.index]||null:null,'held');
+        voices.push(voice);
+      });
+      function tick(){
+        if(ticket!==version)return;
+        const f=frame(events,ctx.currentTime-start,plan.beat,plan.lead);options.onframe?.(f);
+        if(f.done){animation=0;playing=false;voices=[];const callback=finish;finish=null;callback?.(true);return;}
+        animation=request(tick);
+      }
+      animation=request(tick);return plan;
+    }
+    return {play,stop,get playing(){return playing;}};
+  }
+  return {timeline,frame,diagram,schedule,createTransport};
 })();
 if(typeof module!=='undefined'&&module.exports)module.exports=CourseRhythmPlayer;

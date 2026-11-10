@@ -16,6 +16,12 @@ app is available at
   serve it via GitHub Pages.
 - `reel-lesson.html` — a standalone nine-scene vertical presentation for recording
   the Russian one-minute lesson about semitones, scale formulas, and degrees.
+- `course-lab.html` — course workspace: Block 1, Block 2A (degrees and position),
+  Block 2B (triad, arpeggio, listening, phrase over C), and the free fretboard.
+  Build a single portable page with `node scripts/build-course-preview.js`.
+  Published review: https://nothinice.github.io/fretlab-course-preview/.
+- `course/block-02-method.txt` — learning outcomes, exact fingerings, persistence,
+  delayed review, the lesson chord constructor and assessment limitations.
 - `TASKS.md` — agreed priorities and review criteria for the next iteration.
 - `CHANGELOG.md` — concise history of delivered versions.
 

@@ -1,3 +1,12 @@
+## Block 2A / 2B and lesson chord constructor
+
+- Add 13 steps for scale degrees, same-pitch string transfers, the exact C3–C4 E-position and its fingering, recall, repair and an independent final check.
+- Add 16 steps from C–E–G through explicit unison transfers, C/Cm third comparison, open-C doublings, chord/arpeggio playback, listening, a two-bar phrase over C major and transfer to G major.
+- Keep chord roots lesson-controlled and reuse the shared nameChord engine after normalizing doubled notes. Support one note per string, open/muted states, undo and reset.
+- Schedule count-in, metronome, melody and sustained/repeated accompaniment on one audio clock; cancel all pending voices on stop or navigation.
+- Persist block-2 steps, answers and phrases separately; offer a hint-free delayed review at entry three days after first completion, retaining the first completion date and a separate review result.
+- Connect Block 1 completion to the new route, and add browser coverage for both complete routes, wrong answers, reload, listening gates, sound cancellation and mobile layouts.
+
 ## Rhythm player and duration — 2026-11-04
 
 - Rebuilt the five rhythm study steps around one aligned notation/beat/count diagram with a compact player and tempo control.

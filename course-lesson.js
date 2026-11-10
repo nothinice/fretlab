@@ -244,7 +244,11 @@ const CourseLesson = (() => {
       current=saved?.current||0;solved=saved?.solved||new Set();choices=saved?.choices||new Map();hints=saved?.hints||new Set();practiced=saved?.practiced||false;
       render();
     }
-    el('lessonSelect').addEventListener('change',e=>switchLesson(Number(e.target.value)));
+    el('lessonSelect').addEventListener('change',e=>{
+      const index=Number(e.target.value);
+      if(index===2&&typeof window!=='undefined'&&window.courseBlockTwo){window.courseBlockTwo.open('a');return;}
+      switchLesson(index);
+    });
     el('lessonRoute').addEventListener('click',()=>el('tab-block').click());
     el('lessonContinue').addEventListener('click',()=>{
       if(!steps[current].finish)return;

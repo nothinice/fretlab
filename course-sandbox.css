@@ -1,6 +1,51 @@
 .sandbox-controls{display:flex;align-items:end;flex-wrap:wrap;gap:12px;margin:16px 0}
 .sandbox-controls label{display:grid;gap:6px;font-size:14px}
 .sandbox-controls select{max-width:100%;min-height:44px}
+
+/* Block 2: two clear routes, the same fretboard and a compact practice workspace. */
+.b2-wrap{max-width:1260px}
+.b2-part-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px;margin:24px 0}
+.b2-part-card{padding:24px;border:1px solid var(--border);border-radius:16px;background:var(--panel)}
+.b2-part-card h2{font-size:26px;margin:8px 0 12px}
+.b2-part-card p{line-height:1.65}
+.b2-eyebrow{color:var(--teal);font-size:13px;letter-spacing:.04em;margin:0}
+.b2-part-card details{margin-top:20px}
+.b2-part-card summary,.b2-wrap summary{cursor:pointer;min-height:32px;line-height:1.6}
+.b2-step-list{display:grid;gap:8px;margin-top:14px}
+.b2-step-link{text-align:left;white-space:normal;font-size:14px}
+.b2-reminders{padding:18px;border:2px solid var(--teal);border-radius:12px;margin:16px 0;line-height:1.6}
+.b2-layout{grid-template-columns:minmax(220px,.85fr) minmax(0,2fr);gap:28px}
+.b2-workspace{min-width:0}
+#b2Title{font-size:27px;line-height:1.25;margin:10px 0 16px;scroll-margin-top:90px}
+#b2Work,#b2Statusa,#b2Statusb{scroll-margin-top:85px}
+#b2StepProgress{width:100%;accent-color:var(--teal);margin:8px 0 16px}
+#b2Text{line-height:1.65}
+#b2TaskBody p{line-height:1.6}
+#b2TaskBody .board-outer{margin:12px 0;max-width:100%;overscroll-behavior-inline:contain}
+#b2Board{padding-bottom:8px}
+#b2Board .note{width:30px;height:30px;font-size:14px}
+#b2Board .b2-target::before{opacity:1;border:3px solid var(--teal);transform:translate(-50%,-50%) scale(1);box-shadow:none}
+#b2Board .b2-finger{position:absolute;right:1px;bottom:0;font:600 10px/14px sans-serif;color:var(--ink);background:var(--panel);border:1px solid var(--border);border-radius:4px;min-width:14px;text-align:center;z-index:3}
+.b2-transfer{font-family:'IBM Plex Mono',monospace;background:var(--panel);padding:12px;border-radius:8px;font-size:14px}
+.b2-string-states{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:12px 0}
+.b2-string-states>div{display:grid;gap:5px;border:1px solid var(--border);border-radius:8px;padding:10px;font-size:12px}
+.b2-string-states button{font-size:12px;min-height:40px;padding:6px}
+.b2-string-states span{color:var(--muted)}
+.b2-phrase{display:grid;grid-template-columns:repeat(16,minmax(0,1fr));gap:4px;list-style:none;padding:0;border:1px solid var(--border);border-radius:10px;min-height:52px;overflow:hidden}
+.b2-phrase li{font:12px/1.5 'IBM Plex Mono',monospace;overflow-wrap:anywhere;padding:10px 4px;background:var(--panel);border-right:1px solid var(--border);text-align:center}
+.b2-phrase li.is-playing{background:var(--teal);color:var(--panel);outline:2px solid var(--ink);outline-offset:-2px}
+.b2-navigation{padding:12px 0;border-top:1px solid var(--border);margin-top:18px}
+#b2NextHelp{font-size:13px;line-height:1.4;max-width:270px;margin:0;color:var(--muted)}
+#b2Next{min-width:140px}
+.b2-wrap .sandbox-controls button[aria-pressed=true]{border-color:var(--teal);box-shadow:inset 0 -3px var(--teal)}
+#b2AudioStatus{font:13px/1.5 'IBM Plex Mono',monospace;min-height:20px}
+#b2Feedback{min-height:0;padding:12px}
+.b2-wrap input[type=number]{max-width:90px;min-height:44px}
+.b2-wrap .sandbox-controls button{min-height:44px}
+.b2-wrap .lesson-practice{margin:16px 0}
+.b2-wrap .audio-options{border-top:1px solid var(--border);padding-top:10px}
+@media(max-width:850px){.b2-layout{grid-template-columns:1fr;gap:12px}.b2-part-grid{gap:14px}.b2-part-card{padding:18px}#b2Title{font-size:24px}}
+@media(max-width:600px){.b2-part-grid{grid-template-columns:1fr}.b2-string-states{grid-template-columns:repeat(2,minmax(0,1fr))}.b2-wrap{padding-left:14px;padding-right:14px}.b2-phrase li{font-size:10px}.b2-navigation .lesson-next-action{width:100%}.b2-navigation .primary-btn{flex:1}#b2Board .note{width:28px;height:28px}#b2NextHelp{max-width:none}}
 .sandbox-readout{min-height:64px;padding:16px;background:var(--panel);border:1px solid var(--border);border-radius:12px;margin:14px 0;line-height:1.7}
 .board .sandbox-hit{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;width:100%;height:100%;padding:0;border:0;border-radius:0;background:transparent;cursor:pointer;z-index:2}
 .board .sandbox-hit::before{content:'';position:absolute;left:50%;top:50%;width:36px;height:36px;border:2px solid rgba(255,247,225,.85);border-radius:50%;background:rgba(255,247,225,.1);box-shadow:0 0 12px rgba(242,193,78,.25);opacity:0;transform:translate(-50%,-50%) scale(.8);transition:opacity .18s ease,transform .18s ease;pointer-events:none}

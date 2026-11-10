@@ -7,7 +7,7 @@
   dialog.addEventListener('close',stop);dialog.addEventListener('cancel',stop);
   const action=(parent,text,fn)=>{const b=node('button',text);b.type='button';b.className='play-btn';b.onclick=fn;parent.appendChild(b);return b;};
   function open(kind){
-    stop();window.courseBlockOne?.stop();if(typeof stopSequence==='function')stopSequence();
+    stop();window.courseBlockOne?.stop();window.courseBlockTwo?.stop();if(typeof stopSequence==='function')stopSequence();
     dialog.replaceChildren();const title=node('h2',kind==='sound'?'Слышите звук?':kind==='terms'?'Термины и ориентиры':'Перед игрой');title.id='courseHelpTitle';dialog.appendChild(title);
     if(kind==='sound'){
       dialog.appendChild(node('p','Нажмите «Проиграть звук», затем сообщите, слышите ли вы ноту. Приложение не может проверить громкость динамика или беззвучный режим.'));

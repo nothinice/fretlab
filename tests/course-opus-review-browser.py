@@ -39,15 +39,9 @@ with sync_playwright() as p:
   # Completed course takes priority over a replayed, unfinished lesson.
   page.evaluate("localStorage.setItem('fretlab-block1-v1',JSON.stringify({version:1,records:Object.fromEntries(CourseBlockOne.ACTIVITIES.map(a=>[a.id,{done:true}]))}))")
   page.reload();expect(page.locator('.sound-welcome')).to_be_hidden();expect(page.locator('#blockResume')).to_contain_text('Дальше: Блок 2')
-  page.locator('#blockResume').click();expect(page.locator('#lessonBreadcrumb')).to_contain_text('Блок 2')
-  for i in range(6):
-   if i==3:page.locator('#lessonBoard .sandbox-hit').nth(7).click()
-   if i==4:page.locator('#lessonBoard .sandbox-hit').nth(10).click()
-   if i==5:page.locator('#lessonPractice').check()
-   page.locator('#lessonNext').click()
-  expect(page.locator('#lessonExplanation')).to_contain_text('Блок 2 в работе')
-  expect(page.locator('#lessonContinue')).to_have_text('К пройденному Блоку 1 →')
-  page.locator('#lessonContinue').click();expect(page.locator('#blockResume')).to_contain_text('Дальше: Блок 2')
+  page.locator('#blockResume').click();expect(page.locator('#b2Crumb')).to_contain_text('Блок 2A')
+  expect(page.locator('#b2Title')).to_have_text('Восстановите C major')
+  page.locator('#tab-block').click();expect(page.locator('#blockResume')).to_contain_text('Дальше: Блок 2')
   assert page.evaluate('document.documentElement.scrollWidth<=innerWidth+1');assert not errors,errors;page.close()
  browser.close()
 print('OK: review feedback, completion priority and Block 2 return, light/dark contrast >=4.5, touch targets, 390/1280')
