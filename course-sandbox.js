@@ -2,11 +2,12 @@
 const CourseSandbox = (() => {
   const names = {
     sharp: ['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'],
-    flat: ['C','D♭','D','E♭','E','F','G♭','G','A♭','A','B♭','B']
+    flat: ['C','D♭','D','E♭','E','F','G♭','G','A♭','A','B♭','B'],
+    auto: ['C','D♭','D','E♭','E','F','F♯','G','A♭','A','B♭','B']
   };
   function pitch(midi, spelling = 'sharp') {
     const octave = Math.floor(midi / 12) - 1;
-    const name = names[spelling][((midi % 12) + 12) % 12];
+    const name = (names[spelling]||names.auto)[((midi % 12) + 12) % 12];
     return {name, octave, label: name + octave, letter: 'CDEFGAB'.indexOf(name[0]) + octave * 7};
   }
   function interval(from, to, spelling = 'sharp') {
@@ -68,16 +69,16 @@ const CourseSandbox = (() => {
     const maybe=id=>{try{return document.getElementById(id);}catch{return null;}};
     const marks = new Map();
     const chord=new Map(),history=[];const CHORD_KEY='fretlab-chord-v1';
-    let pair = [], action = el('sandboxAction').value||'mark', spelling = 'sharp', focusIndex=0;
-    let root='auto',display='notes',candidateKey=null,canStore=true,analysis=null,currentCandidate=null,ownVoices=[],playTicket=0;
+    let pair = [], action = el('sandboxAction').value||'mark', spelling = el('sandboxSpelling').value||'sharp', focusIndex=0;
+    let root='auto',display='notes',candidateKey=null,candidateExplicit=false,canStore=true,analysis=null,currentCandidate=null,ownVoices=[],playTicket=0;
     const signature=c=>`${c.rootPc}:${c.quality}:${(c.missing||[]).join(',')}`;
     function chordSnapshot(){return Array.from({length:6},(_,i)=>chord.get(i)?.fret??null);}
     function loadFrets(frets){chord.clear();frets.forEach((fret,stringIdx)=>{if(fret!==null){const midi=OPEN_STRINGS_TOP_TO_BOTTOM[stringIdx].midi+fret;chord.set(stringIdx,{key:`${stringIdx}:${fret}`,stringIdx,fret,midi});}});}
     try{const saved=JSON.parse(localStorage.getItem(CHORD_KEY)||'null');if(saved?.version===1&&Array.isArray(saved.frets)&&saved.frets.length===6&&saved.frets.every(f=>f===null||Number.isInteger(f)&&f>=0&&f<=FRET_COUNT)){
       loadFrets(saved.frets);if(typeof saved.root==='string'&&/^(auto|[0-9]|1[01])$/.test(saved.root))root=saved.root;
-      if(saved.display==='intervals')display='intervals';if(saved.spelling==='flat')spelling='flat';if(typeof saved.candidate==='string'&&saved.candidate.length<80)candidateKey=saved.candidate;
+      if(saved.display==='intervals')display='intervals';if(['auto','sharp','flat'].includes(saved.spelling))spelling=saved.spelling;if(typeof saved.candidate==='string'&&saved.candidate.length<80){candidateKey=saved.candidate;candidateExplicit=saved.candidateExplicit===true;}
     }}catch{canStore=false;}
-    function saveChord(){try{localStorage.setItem(CHORD_KEY,JSON.stringify({version:1,frets:chordSnapshot(),root,display,spelling,candidate:candidateKey}));canStore=true;}catch{canStore=false;}}
+    function saveChord(){try{localStorage.setItem(CHORD_KEY,JSON.stringify({version:1,frets:chordSnapshot(),root,display,spelling,candidate:candidateKey,candidateExplicit}));canStore=true;}catch{canStore=false;}}
     function stop(){playTicket++;for(const voice of ownVoices){try{voice?.stop();}catch{}}ownVoices=[];stopSequence();const button=maybe('sandboxStop');if(button)button.hidden=true;const b=maybe('sandboxBoard');if(b)b.querySelectorAll('.sounding').forEach(c=>c.classList.remove('sounding'));}
     function changeChord(stringIdx,fret,{toggle=false,focus=null}={}){
       stop();const old=chord.get(stringIdx)?.fret??null,next=toggle&&old===fret?null:fret;
@@ -87,25 +88,48 @@ const CourseSandbox = (() => {
     }
     const readout = el('sandboxReadout');
     function selected() { return action==='chord'?[...chord.values()].sort((a,b)=>a.midi-b.midi||b.stringIdx-a.stringIdx):action === 'measure' ? pair : [...marks.values()]; }
-    function contextualPitch(midi){
-      const interval=currentCandidate?.intervals.find(i=>i.pc===((midi%12)+12)%12),name=interval?.note||pitch(midi,spelling).name;
+    function namedPitch(midi,name){
       const parsed=/^([A-G])([#b♯♭]*)$/.exec(name);let octave=Math.floor(midi/12)-1;
       if(parsed){const natural={C:0,D:2,E:4,F:5,G:7,A:9,B:11}[parsed[1]],offset=[...parsed[2]].reduce((n,a)=>n+(['#','♯'].includes(a)?1:-1),0);octave=(midi-natural-offset)/12-1;}
-      return {name,label:name+octave,interval:interval?.label||['1','♭2','2','♭3','3','4','♭5','5','♭6','6','♭7','7'][((midi-(currentCandidate?.rootPc??(root==='auto'?(analysis?.bassPc||0):Number(root))))%12+12)%12]};
+      return {name,label:name+octave};
+    }
+    function contextualPitch(midi){
+      const interval=currentCandidate?.intervals.find(i=>i.pc===((midi%12)+12)%12),name=interval?.note||pitch(midi,spelling).name;
+      return {...namedPitch(midi,name),interval:interval?.label||['1','♭2','2','♭3','3','4','♭5','5','♭6','6','♭7','7'][((midi-(currentCandidate?.rootPc??(root==='auto'?(analysis?.bassPc??0):Number(root))))%12+12)%12]};
+    }
+    function twoNoteInterval(){
+      if(currentCandidate||analysis?.notes.length!==2)return null;
+      const distinct=[];
+      for(const note of selected())if(!distinct.some(n=>n.midi%12===note.midi%12))distinct.push(note);
+      if(distinct.length!==2)return null;
+      const [a,b]=distinct,result=interval(a.midi,b.midi,spelling);
+      return {title:result.title,names:distinct.map(n=>pitch(n.midi,spelling).name).join('–')};
     }
     function renderAnalysis(){
       const panel=maybe('chordPanel');if(!panel)return;
       const active=action==='chord';panel.hidden=!active;maybe('chordControls').hidden=!active;maybe('chordStrings').hidden=!active;
+      if(maybe('chordQuickResult'))el('chordQuickResult').hidden=!active;
       maybe('sandboxUndo').hidden=!active;maybe('sandboxUndo').disabled=!history.length;
       if(!active)return;
-      const results=el('chordResults');results.replaceChildren();
+      const results=el('chordResults'),otherResults=maybe('chordOtherResults'),other=maybe('chordOtherInterpretations');results.replaceChildren();otherResults?.replaceChildren();
+      const candidates=analysis?.candidates||[],complete=candidates.filter(c=>!c.missing?.length);
+      const primary=complete.length?complete:candidates,secondary=complete.length?candidates.filter(c=>c.missing?.length):[];
+      if(other){other.hidden=!secondary.length;if(currentCandidate?.missing?.length&&secondary.length)other.open=true;}
       const warnings={'ambiguous':'Возможны разные гармонические трактовки. Выберите имя, чтобы увидеть интервалы от его основного тона.','root-not-played':'Выбранный основной тон не звучит. Это предположение о неполном аккорде.','missing-tones':'Часть звуков отсутствует; пропуски явно указаны в названии.','unknown-chord':'Для этого сочетания нет надёжного имени в поддерживаемых формулах. Проверьте состав или задайте основной тон.','invalid-midi':'Некорректная высота звука.','invalid-root':'Некорректный основной тон.'};
-      el('chordStatus').textContent=currentCandidate?.symbol||(analysis?.status==='single'?'Пока один звук':chord.size?'Имя не определено':'Выберите ноты аккорда');
-      for(const c of analysis?.candidates||[]){const b=document.createElement('button');b.type='button';b.className='play-btn chord-candidate';b.textContent=c.symbol;b.dataset.candidate=signature(c);b.setAttribute('aria-pressed',String(signature(c)===candidateKey));b.onclick=()=>{stop();candidateKey=signature(c);render();results.querySelector(`[data-candidate="${candidateKey}"]`)?.focus({preventScroll:true});};results.appendChild(b);}
+      const two=twoNoteInterval();
+      const title=currentCandidate?.symbol||(two?'Два звука: '+two.title:analysis?.status==='single'?'Пока один звук':chord.size?'Имя не определено':'Выберите ноты аккорда');
+      el('chordStatus').textContent=title;if(maybe('chordQuickName')){el('chordQuickName').textContent=title;el('chordQuickName').title=title;}
+      function addCandidates(container,list){
+        if(!container)return;
+        for(const c of list){const b=document.createElement('button');b.type='button';b.className='play-btn chord-candidate';b.textContent=c.symbol;b.dataset.candidate=signature(c);b.setAttribute('aria-pressed',String(signature(c)===candidateKey));b.onclick=()=>{stop();candidateKey=signature(c);candidateExplicit=true;render();panel.querySelector(`[data-candidate="${candidateKey}"]`)?.focus({preventScroll:true});};container.appendChild(b);}
+      }
+      addCandidates(results,primary);addCandidates(otherResults,secondary);
       el('chordFormula').textContent=currentCandidate?`От ${currentCandidate.rootName}: ${currentCandidate.formula.replace(/b/g,'♭').replace(/#/g,'♯').split(/\s+/).join(' · ')}`:root!=='auto'?`Интервалы от ${pitch(Number(root),spelling).name}: ${selected().map(n=>contextualPitch(n.midi).interval).join(' · ')}`:'';
-      const bass=selected()[0];el('chordBass').textContent=bass?`Бас: ${contextualPitch(bass.midi).label}${currentCandidate?' · Основной тон: '+currentCandidate.rootName:''}`:'Бас появится после выбора первой ноты.';
-      el('chordDetails').textContent=currentCandidate?`Состав: ${currentCandidate.intervals.map(i=>i.note).join(' · ')}${currentCandidate.missing?.length?' · Не звучат: '+currentCandidate.missing.join(', '):''}`:selected().length?`Выбранные ноты: ${[...new Set(selected().map(n=>pitch(n.midi,spelling).name))].join(' · ')}`:'Лад 0 — открытая струна. Невыбранные струны заглушены.';
-      el('chordWarnings').textContent=[...new Set([...(analysis?.warnings||[]).filter(w=>w!=='missing-tones'||currentCandidate?.missing?.length),...(currentCandidate?.warnings||[])])].map(w=>warnings[w]||'').filter(Boolean).join(' ');
+      const bass=selected()[0],bassName=bass?currentCandidate?.bassName||pitch(bass.midi,spelling).name:null;
+      el('chordBass').textContent=bass?`Бас: ${namedPitch(bass.midi,bassName).label}${currentCandidate?' · Основной тон: '+currentCandidate.rootName:''}`:'Бас появится после выбора первой ноты.';
+      el('chordDetails').textContent=currentCandidate?`Состав: ${currentCandidate.intervals.map(i=>i.note).join(' · ')}${currentCandidate.missing?.length?' · Не звучат: '+currentCandidate.missing.join(', '):''}`:two?`${two.names}. Добавьте ещё один звук, чтобы проверить состав аккорда.`:selected().length?`Выбранные ноты: ${[...new Set(selected().map(n=>pitch(n.midi,spelling).name))].join(' · ')}`:'Лад 0 — открытая струна. Невыбранные струны заглушены.';
+      const visibleWarnings=(analysis?.warnings||[]).filter(w=>w==='ambiguous'?complete.length>1:w==='missing-tones'?currentCandidate?.missing?.length:w==='unknown-chord'?!two:true);
+      el('chordWarnings').textContent=[...new Set([...visibleWarnings,...(currentCandidate?.warnings||[])])].map(w=>warnings[w]||'').filter(Boolean).join(' ');
       el('chordStorage').textContent=canStore?'Аппликатура сохраняется в этом браузере.':'Сохранение недоступно: аппликатура останется только до закрытия страницы.';
       const strings=el('chordStrings');strings.replaceChildren();
       for(let i=5;i>=0;i--){const n=chord.get(i),group=document.createElement('div');group.className='chord-string-control';group.dataset.state=!n?'muted':n.fret===0?'open':'fretted';
@@ -117,7 +141,10 @@ const CourseSandbox = (() => {
     function render() {
       if(action==='chord'&&typeof ChordIdentifier!=='undefined'){
         const identify=nameChord.identify||ChordIdentifier.analyze;analysis=identify(selected().map(n=>n.midi),{rootPc:root==='auto'?null:Number(root),spelling,triads:TRIAD_QUALITY,tetrads:TETRAD_QUALITY,buildScale});
-        currentCandidate=analysis.candidates.find(c=>signature(c)===candidateKey)||analysis.candidates[0]||null;candidateKey=currentCandidate?signature(currentCandidate):null;
+        const chosen=candidateExplicit?analysis.candidates.find(c=>signature(c)===candidateKey):null;
+        currentCandidate=chosen||analysis.candidates.find(c=>!c.missing?.length)||analysis.candidates[0]||null;
+        if(!chosen)candidateExplicit=false;
+        candidateKey=currentCandidate?signature(currentCandidate):null;
       }else{analysis=null;currentCandidate=null;}
       v2RenderBoard(new Map(), 'sandboxBoard');
       const board = el('sandboxBoard');
@@ -196,7 +223,7 @@ const CourseSandbox = (() => {
       el('sandboxHelp').textContent = action==='chord'?'По одному звуку на струну. Лад 0 открывает струну, повторный клик заглушает. Стрелки выбирают лад и струну, Enter ставит ноту.':action === 'measure' ? 'Выберите две ноты в любом месте грифа. Отмеченные в свободном режиме ноты сохранятся при возврате.' : action === 'listen' ? 'Каждый клик проигрывает ноту; отмеченные ноты сохраняются.' : 'Отмечайте любые ноты на всех шести струнах.';
       render();
     });
-    function roots(){const control=maybe('chordRoot');if(!control)return;control.replaceChildren();const auto=document.createElement('option');auto.value='auto';auto.textContent='Авто';control.appendChild(auto);for(let i=0;i<12;i++){const option=document.createElement('option');option.value=String(i);option.textContent=pitch(i,spelling).name;control.appendChild(option);}control.value=root;}
+    function roots(){const control=maybe('chordRoot');if(!control)return;control.replaceChildren();const auto=document.createElement('option');auto.value='auto';auto.textContent='Авто';control.appendChild(auto);for(let i=0;i<12;i++){const option=document.createElement('option');option.value=String(i);option.textContent=spelling==='auto'&&i===1?'C♯ / D♭':spelling==='auto'&&i===6?'F♯ / G♭':pitch(i,spelling).name;control.appendChild(option);}control.value=root;}
     el('sandboxSpelling').value=spelling;
     el('sandboxSpelling').addEventListener('change', e => {stop();spelling = e.target.value;roots();render();});
     el('sandboxClear').addEventListener('click', () => {stop();if(action==='chord'){if(chord.size){history.push(chordSnapshot());chord.clear();}}else{marks.clear();pair=[];}render();});
@@ -209,7 +236,7 @@ const CourseSandbox = (() => {
     el('sandboxTogether').addEventListener('click',()=>playback(true));
     maybe('sandboxUndo')?.addEventListener('click',()=>{if(!history.length)return;stop();loadFrets(history.pop());render();});
     maybe('sandboxStop')?.addEventListener('click',stop);
-    maybe('chordRoot')?.addEventListener('change',e=>{stop();root=e.target.value;candidateKey=null;render();});
+    maybe('chordRoot')?.addEventListener('change',e=>{stop();root=e.target.value;candidateKey=null;candidateExplicit=false;render();});
     maybe('chordDisplay')?.addEventListener('change',e=>{display=e.target.value;render();});
     if(maybe('chordDisplay'))el('chordDisplay').value=display;
     roots();

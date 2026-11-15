@@ -90,6 +90,35 @@
   max-width: 100%;
   overscroll-behavior-inline: contain;
 }
+#panel-sandbox #chordQuickResult {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  min-width: 0;
+  min-height: 48px;
+  margin: 0 0 10px;
+  padding: 10px 12px;
+  border-bottom: 2px solid var(--teal);
+  border-radius: 5px 5px 0 0;
+  background: var(--panel);
+  color: var(--ink);
+}
+#panel-sandbox #chordQuickResult > span {
+  flex: 0 0 auto;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+#panel-sandbox #chordQuickName {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--ink);
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
 /* Six instruments states form one strip, rather than six separate cards. */
 #panel-sandbox #chordStrings {
@@ -206,7 +235,7 @@
   letter-spacing: -.025em;
   overflow-wrap: anywhere;
 }
-#panel-sandbox #chordResults {
+#panel-sandbox :is(#chordResults, #chordOtherResults) {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
@@ -214,7 +243,8 @@
   min-width: 0;
   margin: 12px 0 16px;
 }
-#panel-sandbox #chordResults:empty { display: none; }
+#panel-sandbox :is(#chordResults, #chordOtherResults):empty { display: none; }
+#panel-sandbox #chordOtherResults { margin: 12px 0 0; }
 #panel-sandbox .chord-candidate {
   min-width: 0;
   min-height: 44px;
@@ -364,6 +394,17 @@
   #panel-sandbox #chordControls label { width: auto; }
   #panel-sandbox :is(#chordRoot, #chordDisplay) { min-width: 0; }
   #panel-sandbox #sandboxHelp { margin: 12px 0 14px; }
+  #panel-sandbox #chordQuickResult {
+    position: sticky;
+    top: 70px;
+    z-index: 10;
+    gap: 12px;
+    margin-bottom: 10px;
+    scroll-margin-top: 70px;
+  }
+  #panel-sandbox :is(.sandbox-hit, .chord-open, .chord-mute, .chord-candidate) {
+    scroll-margin-top: 132px;
+  }
   #panel-sandbox #chordStrings {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     margin: 12px 0 0;
@@ -398,4 +439,10 @@
   #panel-sandbox #sandboxReadout { order: 3; }
   #panel-sandbox .sandbox-controls:has(#sandboxSequence) { order: 4; }
   #panel-sandbox > .v2-wrap > .hint:last-child { order: 5; }
+}
+@media (max-width: 600px) {
+  #panel-sandbox #chordQuickResult {
+    top: 58px;
+    scroll-margin-top: 58px;
+  }
 }

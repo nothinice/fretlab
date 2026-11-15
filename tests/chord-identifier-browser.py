@@ -30,9 +30,17 @@ with sync_playwright() as playwright:
         def symbols():
             return page.locator('#chordResults button').all_text_contents()
 
+        def other_symbols():
+            return page.locator('#chordOtherResults button').all_text_contents()
+
         def choose(symbol):
-            page.locator('#chordResults').get_by_role('button', name=symbol, exact=True).click()
-            expect(page.locator('#chordResults button[aria-pressed="true"]')).to_have_text(symbol)
+            if symbol in other_symbols():
+                details = page.locator('#chordOtherInterpretations')
+                if details.get_attribute('open') is None:
+                    details.locator('summary').click()
+            page.locator('#chordPanel').get_by_role('button', name=symbol, exact=True).click()
+            expect(page.locator('#chordPanel button[aria-pressed="true"]')).to_have_text(symbol)
+            expect(page.locator('#chordQuickName')).to_have_text(symbol)
 
         def shape(low_to_high, order=None):
             # Every fixture is a physical fingering, entered through the UI.
@@ -50,9 +58,11 @@ with sync_playwright() as playwright:
 
         expect(page.locator('#panel-sandbox')).to_be_visible()
         expect(page.locator('#sandboxAction')).to_have_value('chord')
+        expect(page.locator('#sandboxSpelling')).to_have_value('auto')
         expect(page.locator('#sandboxBoard .sandbox-hit')).to_have_count(102)
         expect(page.locator('#chordRoot option')).to_have_count(13)
         expect(page.locator('#chordStatus')).to_have_text('Выберите ноты аккорда')
+        expect(page.locator('#chordQuickResult')).to_be_visible()
         expect(page.locator('#chordStrings .chord-mute[aria-pressed="true"]')).to_have_count(6)
         expect(page.locator('#sandboxSequence')).to_be_disabled()
 
@@ -87,7 +97,9 @@ with sync_playwright() as playwright:
         page.locator('#sandboxClear').click()
 
         # Older free-note and interval work remain separate from chord fingerings.
+        page.locator('#sandboxSpelling').select_option('sharp')
         page.locator('#sandboxAction').select_option('mark')
+        expect(page.locator('#chordQuickResult')).to_be_hidden()
         hit(1, 3).click()
         hit(1, 5).click()
         expect(page.locator('#sandboxBoard .note')).to_have_count(2)
@@ -97,6 +109,7 @@ with sync_playwright() as playwright:
         expect(page.locator('#sandboxReadout')).to_contain_text('увеличенная прима')
         page.locator('#sandboxAction').select_option('chord')
         assert frets() == [None] * 6
+        page.locator('#sandboxSpelling').select_option('auto')
 
         shape([None, 3, 2, 0, 1, 0], order='reverse')  # x32010, high strings entered first
         choose('C')
@@ -126,7 +139,7 @@ with sync_playwright() as playwright:
             ([None, 3, 2, 3, 1, 3], 'C7', 'От C: 1 · 3 · 5 · ♭7'),
             ([None, 3, 2, 3, 1, 0], 'C7(no5)', 'От C: 1 · 3 · ♭7'),
             ([None, 3, 0, 0, 1, 3], 'Csus2', 'От C: 1 · 2 · 5'),
-            ([None, 3, 2, 0, 3, 0], 'Cadd9', 'От C: 1 · 9 · 3 · 5'),
+            ([None, 3, 2, 0, 3, 0], 'C(add9)', 'От C: 1 · 3 · 5 · 9'),
             ([None, 2, 3, 2, 3, None], 'Bm7b5', 'От B: 1 · ♭3 · ♭5 · ♭7'),
             ([None, 3, 4, 2, 4, None], 'Cdim7', 'От C: 1 · ♭3 · ♭5 · ♭♭7'),
         ]:
@@ -134,8 +147,114 @@ with sync_playwright() as playwright:
             assert symbol in symbols(), (symbol, symbols())
             choose(symbol)
             expect(page.locator('#chordFormula')).to_have_text(formula)
-            if symbol == 'Cadd9':
+            if symbol == 'C(add9)':
                 assert 'C9' not in symbols(), symbols()
+
+        # Complete plain triads are clean answers; omitted-tone guesses remain opt-in.
+        for fingering, symbol in [
+            ([None, 0, 2, 2, 1, 0], 'Am'),
+            ([0, 2, 2, 0, 0, 0], 'Em'),
+            ([None, None, 0, 2, 3, 1], 'Dm'),
+            ([1, 3, 3, 1, 1, 1], 'Fm'),
+        ]:
+            shape(fingering)
+            assert symbols() == [symbol], (symbol, symbols())
+            assert other_symbols(), (symbol, 'incomplete alternatives were lost')
+            expect(page.locator('#chordOtherInterpretations')).to_be_visible()
+            assert page.locator('#chordOtherInterpretations').get_attribute('open') is None
+            expect(page.locator('#chordWarnings')).to_be_empty()
+            assert all('(no' in item for item in other_symbols()), other_symbols()
+
+        # A selected opt-in interpretation remains interpretable after reload.
+        choose('Ab6(no5)/F')
+        expect(page.locator('#chordWarnings')).to_contain_text('пропуски')
+        assert 'разные гармонические трактовки' not in page.locator('#chordWarnings').inner_text()
+        page.reload(wait_until='domcontentloaded')
+        expect(page.locator('#chordStatus')).to_have_text('Ab6(no5)/F')
+        choose('Fm')
+
+        # Genuine complete alternatives still receive the ambiguity explanation.
+        for fingering, expected in [
+            ([None, None, 0, 2, 3, 3], {'Dsus4', 'Gsus2/D'}),
+            ([3, 2, 0, 0, 0, 0], {'G6', 'Em7/G'}),
+            ([None, 2, 3, 2, 3, None], {'Bm7b5', 'Dm6/B'}),
+        ]:
+            shape(fingering)
+            assert expected.issubset(set(symbols())), (expected, symbols())
+            expect(page.locator('#chordWarnings')).to_contain_text('разные гармонические трактовки')
+        for fingering, minimum in [
+            ([None, 3, 4, 2, 4, None], 4),
+            ([None, 3, 2, 1, 1, None], 3),
+        ]:
+            shape(fingering)
+            assert len(symbols()) >= minimum, symbols()
+            expect(page.locator('#chordWarnings')).to_contain_text('разные гармонические трактовки')
+
+        # Auto notation follows conventional roots without modifying physical notes.
+        for fingering, symbol in [
+            ([None, 6, 8, 8, 8, 6], 'Eb'),
+            ([4, 6, 6, 5, 4, 4], 'Ab'),
+            ([None, 1, 3, 3, 3, 1], 'Bb'),
+            ([None, 4, 6, 6, 6, 4], 'Db'),
+            ([None, 4, 6, 6, 5, 4], 'C#m'),
+            ([2, 4, 4, 2, 2, 2], 'F#m'),
+        ]:
+            shape(fingering)
+            choose(symbol)
+        shape([2, 4, 4, 3, 2, 2])
+        assert {'F#', 'Gb'} & set(symbols()), symbols()
+
+        # Slash bass is a practical pitch label; theoretical chord tones stay intact.
+        page.locator('#sandboxSpelling').select_option('sharp')
+        for fingering, expected, bass in [
+            ([1, 3, 3, 1, 1, 1], 'G#6(no5)/F', 'F2'),
+            ([None, 2, 3, 1, 3, None], 'Ddim7/B', 'B2'),
+            ([None, 3, 2, 1, 1, 0], 'Eaug/C', 'C3'),
+            ([None, 3, 4, 5, 4, None], 'D#m6(no5)/C', 'C3'),
+        ]:
+            shape(fingering)
+            assert expected in symbols() + other_symbols(), (expected, symbols(), other_symbols())
+            choose(expected)
+            expect(page.locator('#chordBass')).to_contain_text('Бас: ' + bass)
+            if expected == 'Ddim7/B':
+                expect(page.locator('#chordDetails')).to_contain_text('Cb')
+                expect(page.locator('#chordFormula')).to_contain_text('♭♭7')
+        page.locator('#sandboxSpelling').select_option('auto')
+
+        # Extensions follow core tones and use familiar compact chord symbols.
+        page.locator('#chordRoot').select_option('0')
+        shape([None, 3, 2, None, 3, None])
+        expect(page.locator('#chordFormula')).to_have_text('От C: 1 · 3 · 9')
+        page.locator('#chordRoot').select_option('auto')
+        shape([3, None, 3, 4, 5, None])
+        choose('G13(no5)')
+        expect(page.locator('#chordFormula')).to_have_text('От G: 1 · 3 · ♭7 · 13')
+        shape([0, 2, 2, 0, 0, 2])
+        choose('Em(add9)')
+        expect(page.locator('#chordFormula')).to_have_text('От E: 1 · ♭3 · 5 · 9')
+
+        # Two distinct tones explain their interval without inventing a triad.
+        shape([None, 3, 2, None, None, None])
+        assert symbols() == [], symbols()
+        expect(page.locator('#chordPanel')).to_contain_text('большая терция')
+        assert 'нет надёжного имени' not in page.locator('#chordWarnings').inner_text()
+        shape([None, 3, None, 5, 5, None])  # C3 C4 E4: choose distinct tones for the explanation
+        text = page.locator('#chordPanel').inner_text()
+        assert 'терция' in text or 'децима' in text, text
+        shape([None, 3, None, 0, None, None])
+        choose('C5')
+
+        # The concise answer remains in view while frets are being edited on mobile.
+        shape([None, 3, 2, 0, 1, 0])
+        if width < 700:
+            page.evaluate("scrollTo(0, scrollY + document.getElementById('sandboxBoard').getBoundingClientRect().top - 90)")
+            assert page.locator('#chordQuickResult').evaluate('e => getComputedStyle(e).position') == 'sticky'
+            for string, fret in [(1, 1), (1, 0), (6, 0), (6, 0)]:
+                hit(string, fret).click()
+                box = page.locator('#chordQuickName').bounding_box()
+                assert box and box['y'] >= 0 and box['y'] + box['height'] <= height, box
+                assert page.locator('#chordQuickName').inner_text() == page.locator('#chordStatus').inner_text()
+            page.screenshot(path='/tmp/fretlab-chord-review-mobile-sticky.png', animations='disabled')
 
         # Expert: identical tones can be heard as C6 or Am7 over C.
         shape([None, 3, 2, 2, 1, 3])
@@ -172,6 +291,7 @@ with sync_playwright() as playwright:
         expect(page.locator('#chordBass')).to_contain_text('Бас: A2')
 
         # Spelling affects names and intervals, while the physical voicing stays put.
+        page.locator('#sandboxSpelling').select_option('sharp')
         page.locator('#chordRoot').select_option('1')
         shape([None, 4, 6, 6, 6, 4])
         choose('C#')

@@ -8,13 +8,43 @@ const ChordIdentifier = (() => {
 
   const SHARP_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
   const FLAT_NAMES = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
+  const AUTO_NAMES = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];
   const SIMPLE_INTERVALS = ['1', 'b2', '2', 'b3', '3', '4', 'b5', '5', 'b6', '6', 'b7', '7'];
   const mod12 = value => ((value % 12) + 12) % 12;
   const same = (left, right) => left.length === right.length && left.every((value, index) => value === right[index]);
 
-  function noteName(pc, spelling = 'sharp') {
+  function noteName(pc, spelling = 'auto') {
     if (!Number.isInteger(pc)) return '';
-    return (spelling === 'flat' ? FLAT_NAMES : SHARP_NAMES)[mod12(pc)];
+    return (spelling === 'flat' ? FLAT_NAMES : spelling === 'sharp' ? SHARP_NAMES : AUTO_NAMES)[mod12(pc)];
+  }
+
+  const degreeNumber = label => Number(String(label).replace(/^[b#]+/, ''));
+  const intervalOrder = (left, right) => degreeNumber(left.label) - degreeNumber(right.label) || left.semitones - right.semitones;
+  function suffixName(quality) {
+    if (quality === 'maj') return '';
+    const add = quality.indexOf('add');
+    return add < 0 ? quality : quality.slice(0, add) + '(' + quality.slice(add) + ')';
+  }
+
+  function rootSpelling(rootPc, template, spelling, spell) {
+    if (spelling !== 'auto') return spelling;
+    if ([3, 8, 10].includes(rootPc)) return 'flat';
+    if (![1, 6].includes(rootPc)) return 'sharp';
+    // C#/Db and F#/Gb depend on chord quality. Compare the complete formula,
+    // including omitted tones, so changing a voicing does not rename its root.
+    const minor = template.quality.startsWith('m') && !template.quality.startsWith('maj');
+    const preferred = rootPc === 1 && !minor ? 'flat' : 'sharp';
+    if (!spell) return preferred;
+    const formula = template.intervals.map(semitones => template.labels[semitones] || intervalLabel(semitones, template.quality)).join(' ');
+    const cost = option => {
+      try {
+        const tones = spell(rootPc, noteName(rootPc, option)[0], formula);
+        if (!Array.isArray(tones) || !tones.length) return Infinity;
+        return tones.reduce((total, tone) => total + (String(tone.noteName).match(/[#b]/g) || []).length, 0);
+      } catch (_) { return Infinity; }
+    };
+    const sharp = cost('sharp'), flat = cost('flat');
+    return sharp === flat ? preferred : sharp < flat ? 'sharp' : 'flat';
   }
 
   function intervalLabel(semitones, quality = '') {
@@ -78,11 +108,14 @@ const ChordIdentifier = (() => {
         const prefix = quality.slice(0, -1);
         extend(base, [2], ninthNames[quality], {2: '9'});
         extend(base, [5], quality + 'add11', {5: '11'});
-        extend(base, [9], quality + 'add13', {9: '13'});
+        // In practical 13th voicings, the 9th and 11th may independently be
+        // absent. Their absence does not change the symbol to "7add13".
+        extend(base, [9], prefix + '13', {9: '13'});
         extend(base, [2, 5], prefix + '11', {2: '9', 5: '11'});
         // A 13th commonly omits the 11th. Both complete pitch sets are exact
         // templates, rather than treating that conventional voicing as an error.
         extend(base, [2, 9], prefix + '13', {2: '9', 9: '13'});
+        extend(base, [5, 9], prefix + '13', {5: '11', 9: '13'});
         extend(base, [2, 5, 9], prefix + '13', {2: '9', 5: '11', 9: '13'});
       }
       if (quality === '7' || quality === 'maj7') {
@@ -114,7 +147,7 @@ const ChordIdentifier = (() => {
     const midis = values.filter(value => Number.isInteger(value) && value >= 0 && value <= 127);
     if (midis.length !== values.length) warn('invalid-midi');
     const notes = [...new Set(midis.map(mod12))].sort((a, b) => a - b);
-    const spelling = options.spelling === 'flat' ? 'flat' : 'sharp';
+    const spelling = options.spelling === 'flat' || options.spelling === 'sharp' ? options.spelling : 'auto';
     const bassMidi = midis.length ? midis.reduce((lowest, midi) => Math.min(lowest, midi), 127) : null;
     const bassPc = bassMidi === null ? null : mod12(bassMidi);
     const result = {notes, noteNames: notes.map(pc => noteName(pc, spelling)), bassMidi, bassPc,
@@ -155,15 +188,16 @@ const ChordIdentifier = (() => {
               !same(observed, expected.filter(value => value !== 7))) continue;
           missing.push('5');
         }
-        const rootName = noteName(rootPc, spelling);
+        const candidateSpelling = rootSpelling(rootPc, template, spelling, spell);
+        const rootName = noteName(rootPc, candidateSpelling);
         const quality = template.quality;
-        const suffix = quality === 'maj' ? '' : quality;
+        const suffix = suffixName(quality);
         const incomplete = missing.length ? '(' + missing.map(degree => 'no' + degree).join(',') + ')' : '';
         const intervals = observed.map(semitones => {
           const pc = mod12(rootPc + semitones);
           const label = template.labels[semitones] || intervalLabel(semitones, quality);
           return {pc, semitones, label, note: noteName(pc, spelling)};
-        });
+        }).sort(intervalOrder);
         const formula = intervals.map(interval => interval.label).join(' ');
         if (spell) {
           // Reuse the lesson's degree-aware spelling (E# in C# major, Bbb in
@@ -176,7 +210,12 @@ const ChordIdentifier = (() => {
             });
           } catch (_) { /* A caller-supplied spelling helper must not break analysis. */ }
         }
-        const bassName = intervals.find(interval => interval.pc === bassPc)?.note || noteName(bassPc, spelling);
+        const theoreticalBass = intervals.find(interval => interval.pc === bassPc)?.note;
+        // Keep degree-aware names inside the chord formula, but make the slash
+        // a practical pitch label: B instead of Cb, C instead of B#, etc.
+        // Ordinary names remain contextual (Cm/Eb, C#m/G#), including in Auto.
+        const simpleBass = theoreticalBass && /^[A-G](?:#|b)?$/.test(theoreticalBass) && !['E#', 'B#', 'Cb', 'Fb'].includes(theoreticalBass);
+        const bassName = simpleBass ? theoreticalBass : noteName(bassPc, spelling);
         const slash = bassPc === rootPc ? '' : '/' + bassName;
         // Prefer familiar readings with their root in the bass. A conventional
         // omitted fifth is less consequential than an absent root, while an
@@ -186,7 +225,7 @@ const ChordIdentifier = (() => {
         const score = 100 - Math.max(0, template.intervals.length - 3) * 3 - missingPenalty +
           (bassPc === rootPc ? 8 : 0) - (template.source === 'power' ? 8 : 0) - (altered ? 6 : 0);
         result.candidates.push({rootPc, rootName, symbol: rootName + suffix + incomplete + slash,
-          quality, intervals, formula,
+          quality, intervals, formula, spelling: candidateSpelling, bassName,
           score, bassPc, missing, warnings: missing.length ? ['missing-tones'] : []});
       }
     }
@@ -198,7 +237,7 @@ const ChordIdentifier = (() => {
     if (result.candidates.length) {
       result.status = 'identified';
       if (result.candidates.some(candidate => candidate.missing.length)) warn('missing-tones');
-      if (result.candidates.length > 1) warn('ambiguous');
+      if (result.candidates.filter(candidate => !candidate.missing.length).length > 1) warn('ambiguous');
     } else {
       result.status = 'unknown';
       warn('unknown-chord');

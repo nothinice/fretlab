@@ -1,3 +1,17 @@
+## Chord identifier review follow-up — 2026-11-15
+
+- Show the current name above the fretboard, with a sticky mobile result strip.
+  Keep incomplete alternatives under “Другие трактовки” when a complete reading
+  exists; warn about ambiguity only for multiple complete readings.
+- Add automatic root spelling by conventional name and chord-quality spelling
+  cost. Retain explicit sharp/flat choices and saved fingerings.
+- Use readable bass labels independently from theoretical chord-tone spelling,
+  sort formulas by interval number and display conventional add/13 symbols.
+- Describe unidentified two-note sets as intervals using the existing interval
+  tool. Keep power-chord and deliberately root-controlled incomplete readings.
+- Preserve deliberate candidate choices on reload and reopen their disclosure;
+  automatic choices follow the new note set rather than retaining a stale name.
+
 ## Free-fretboard chord identifier — 2026-11-15
 
 - Add chord entry directly to the existing free fretboard: one note per string,
