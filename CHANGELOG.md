@@ -1,3 +1,18 @@
+## Free-fretboard chord identifier — 2026-11-15
+
+- Add chord entry directly to the existing free fretboard: one note per string,
+  open/muted strings, replacement, toggle, undo and a saved local fingering.
+- Extend shared `nameChord` with candidate analysis using the existing quality
+  tables and degree-aware spelling. Show alternate readings, actual lowest
+  sounding bass, slash names, intervals and explicit omitted tones.
+- Support triads, sixth/seventh chords, sus/add chords, power chords and selected
+  extensions; report unsupported sets without inventing a confident name.
+- Add chord/arpeggio playback with cancellation of future notes, keyboard
+  navigation, mobile controls and the direct `?tool=chords` entry point.
+- Retain separate free-note and interval buffers. Keep stable pages and all
+  curated form coordinates unchanged. Use Oolimo's analyzer as an interaction
+  reference without copying its code, text, audio or fingering database.
+
 ## First complete course prototype — 2026-11-15
 
 - Add an eight-block route covering the existing foundations and new harmony,

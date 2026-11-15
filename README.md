@@ -20,6 +20,10 @@ app is available at
   Block 2B (triad, arpeggio, listening, phrase over C), and the free fretboard.
   Build a single portable page with `node scripts/build-course-preview.js`.
   Published review: https://nothinice.github.io/fretlab-course-preview/.
+- `chord-identifier.js` — chord candidates for the free fretboard, extending the
+  shared `nameChord` entry point and quality tables. Open `?tool=chords`, select
+  one fret per string, and compare names, bass, chord intervals and sound.
+  See `course/chord-identifier.txt` for the interaction and supported scope.
 - `course/block-02-method.txt` — learning outcomes, exact fingerings, persistence,
   delayed review, the lesson chord constructor and assessment limitations.
 - `course-complete.js` and its content modules — the full first course prototype:
@@ -62,6 +66,9 @@ free to open one.
 Run `node tests/scale-forms.test.js`, `node tests/popov-forms.test.js`, and
 `node tests/triad-forms.test.js` to verify curated scale/chord coordinates,
 transposition, source subsets, and the no-internal-string-gap publication rule.
+Run `node tests/chord-identifier.test.js` for chord analysis and
+`tests/chord-identifier-browser.py` with Python Playwright for real fretboard
+entry, interpretations, sound cancellation and desktop/mobile interactions.
 
 ## Roadmap
 

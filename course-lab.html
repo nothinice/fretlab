@@ -464,18 +464,36 @@
 <section id="panel-sandbox" role="tabpanel" aria-labelledby="tab-sandbox">
   <div class="v2-wrap">
     <h1>Свободный гриф</h1>
-    <p>Нажмите на любой лад: нота появится и прозвучит. Повторное нажатие убирает её.</p>
+    <p>Соберите аппликатуру на грифе — определитель покажет возможные аккорды. Нажатие на новый лад той же струны заменяет прежнюю ноту.</p>
     <div class="sandbox-controls">
-      <label>Действие <select id="sandboxAction"><option value="mark">Ставить и убирать ноты</option><option value="listen">Только слушать</option><option value="measure">Измерить интервал</option></select></label>
+      <label>Действие <select id="sandboxAction"><option value="chord">Аккорд</option><option value="mark">Свободные ноты</option><option value="listen">Слушать ноты</option><option value="measure">Интервал</option></select></label>
       <label>Названия <select id="sandboxSpelling"><option value="sharp">С диезами ♯</option><option value="flat">С бемолями ♭</option></select></label>
+      <div id="chordControls" class="sandbox-controls">
+        <label>Основной тон <select id="chordRoot"><option value="auto">Авто</option></select></label>
+        <label>На грифе <select id="chordDisplay"><option value="notes">Ноты</option><option value="intervals">Интервалы</option></select></label>
+      </div>
       <button type="button" class="play-btn text-btn" id="sandboxClear">Очистить гриф</button>
+      <button type="button" class="play-btn text-btn" id="sandboxUndo" disabled>Отменить</button>
     </div>
     <p class="hint" id="sandboxHelp">Отмечайте любые ноты на всех шести струнах. С клавиатуры: Tab — вход на гриф, стрелки — выбор лада и струны, Enter — нота.</p>
+    <div id="chordStrings" aria-label="Открытые и заглушённые струны"></div>
     <div class="board-outer"><div class="board" id="sandboxBoard" aria-label="Интерактивный гриф, первая струна сверху"></div></div>
     <div class="sandbox-readout" id="sandboxReadout" role="status" aria-live="polite"></div>
+    <section id="chordPanel" aria-labelledby="chordStatus">
+      <p class="chord-eyebrow">Определитель аккордов</p>
+      <h2 id="chordStatus" aria-live="polite">Выберите ноты аккорда</h2>
+      <div id="chordResults" role="group" aria-label="Возможные названия аккорда"></div>
+      <p id="chordFormula"></p>
+      <p id="chordBass"></p>
+      <p id="chordDetails"></p>
+      <p id="chordWarnings" role="status" aria-live="polite"></p>
+      <p class="hint" id="chordStorage"></p>
+      <details><summary>Почему названий может быть несколько?</summary><p>Один набор звуков может выполнять разные гармонические роли. Выберите предполагаемое имя или задайте основной тон: интервалы на грифе пересчитаются от него. Бас — самая низкая звучащая нота; он может отличаться от основного тона.</p></details>
+    </section>
     <div class="sandbox-controls">
       <button type="button" class="play-btn" id="sandboxSequence">▶ По очереди</button>
       <button type="button" class="play-btn" id="sandboxTogether">▶ Вместе</button>
+      <button type="button" class="play-btn text-btn" id="sandboxStop" hidden>■ Стоп</button>
     </div>
     <p class="hint">Первая струна — тонкая E сверху. Лад 0 — открытая струна. В режиме интервала золотая нота — начало, бирюзовая — конец. Название интервала зависит и от букв нот, и от числа полутонов.</p>
   </div>
@@ -2813,6 +2831,8 @@ v2Init();
 </script>
 <link rel="stylesheet" href="course-sandbox.css">
 <link rel="stylesheet" href="course-complete-design.css">
+<link rel="stylesheet" href="chord-identifier.css">
+<script src="chord-identifier.js"></script>
 <script src="course-sandbox.js"></script>
 <script src="course-lessons-content.js"></script>
 <script src="course-lesson.js"></script>
