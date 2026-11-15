@@ -1,0 +1,8 @@
+__pycache__/
+*.py[cod]
+reference-library/
+.home/
+uploads/
+TELEGRAM_CONTEXT.txt
+FRETLAB_CONVERSATION_HISTORY.txt
+GITHUB_PUBLISHING.txt

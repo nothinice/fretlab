@@ -1,0 +1,124 @@
+FRETLAB — LITERATURE REVIEW FOR FULL COURSE PROTOTYPE
+Date: 2026-11-15. This is a selective page audit, not a claim to have read every book.
+Private source directory: /var/lib/codex-telegram/work/fretlab-course/reference-library/
+
+VERIFIED EVIDENCE
+
+1. Popov — Музыкальное и аппликатурное мышление гитариста.
+   PDF 7 / printed 7: visually verified this turn. Tonic and a scale's relationship
+   to its center; major and natural-minor formulas; names and octave landmarks.
+   PDF 21 / printed 21: visually verified. Triads and four combinations of thirds.
+   PDF 23 / printed 23: visually verified. Inversions and relation of chord shapes
+   and arpeggios across strings.
+   PDF 32 / printed 32: visually verified. Seventh chords arise from a triad plus
+   a seventh; basic qualities and symbols.
+   PDF 34 / printed 34: visually verified. Five types of seventh chords, their
+   interval structures, and use of the upper four strings.
+   Adaptation: derive our own C/F triads, CEGB/FACE seventh chords and MIDI
+   voicings. Do not copy the book's diagrams; retain existing D-form coordinates.
+
+2. Mark Levine — Теория джаза, Russian translation.
+   PDF/printed 18–21: text verified from these actual PDF pages. Modes of the major
+   collection, chord tones formed by alternating scale tones, maj7/m7/7 and II–V–I.
+   PDF/printed 31–34: text verified. Chord/scale relationships; a non-chord tone is
+   not automatically a mistake; tension and passing function depend on context.
+   PDF/printed 35–36: text verified. F Lydian compared with F major; raised fourth.
+   PDF/printed 45–46: text verified. Aeolian as the sixth mode and natural minor.
+   PDF/printed 88–89: text verified. Moving from scales to music; melodic/rhythmic
+   sequences and using small motifs.
+   PDF/printed 151–153: text verified. Six-note blues collection; twelve-bar blues
+   as an initial I7/IV7/V7 model and later variations. Blues is more than a scale
+   and not all blues has twelve bars.
+   Cautions: this is a jazz method, not a universal theory of every style. The
+   translation has editing errors and stylistic shorthand: do not copy C6=Cmaj7
+   as literal pitch equivalence or the erroneous Dorian heading. Use exact sets.
+
+3. William Leavitt — A Modern Method for Guitar.
+   Vol.1 PDF 3, unnumbered introduction: text verified. Music reading, gradual
+   development of both hands, slow even practice, continual return to studied
+   material, original short music. A single pass cannot guarantee physical skill.
+   Vol.2 PDF 2, unnumbered introduction: text verified. Sequence new knowledge from
+   prior knowledge, connect known fingerings rather than show unexplained shapes.
+   Vol.2 PDF 6: text verified. Major fingering types and their derivatives. Do not
+   identify these automatically with FretLab E/D/C/A/G labels.
+   Vol.3 PDF 2–3, unnumbered introduction: text verified. Builds on volumes 1–2;
+   chord spelling and voicing construction; sequential study and later review.
+   Adaptation: predictable prerequisites, disappearing help, own short phrases,
+   clear fingering, delayed review and separate guitar self-assessment.
+   Scope: FretLab prototype does not reproduce the books' full music-reading course.
+
+4. Bob Stoloff — Blues Scatitudes.
+   PDF 5 / printed 5: visually verified. Improvised/personal syllables, straight and
+   swing subdivision, instrument-related articulation. Approximate triplet notation
+   is not a universal fixed swing ratio.
+   PDF 16 / printed 16: visually verified. Eighth/triplet figures with accents.
+   PDF 34 / printed 34: visually verified. Blues-scale exercises.
+   Adaptation: own one-note rhythms, own call/response motives, accents and rests,
+   sing then play. Do not reproduce printed rhythmic rows or original recordings.
+   Accompanying recordings are not present in the checked library.
+
+5. Randy Vincent — Jazz Guitar Voicings Vol.1, The Drop 2 Book.
+   PDF 5 / printed ii: text verified this turn. Drop 2 lowers the second-highest
+   note of a four-way close voicing by exactly one octave.
+   PDF 6 / printed 1: text verified. Assumes basic chord construction and II–V–I.
+   PDF 44–46 / printed 39–41: text verified. Practice on three consecutive four-
+   string sets, across keys, with register/physical constraints. Especially altered
+   low-register voicings can be impractical; shape validity is not comfort proof.
+   Own example: [60,64,67,71] -> [55,60,64,71] = G3 C4 E4 B4.
+   Own playable realization on strings 4–1: 4/5, 3/5, 2/5, 1/7.
+   Alternative same-register middle set: 5/10, 4/10, 3/9, 2/12.
+   Lower-octave set: [43,48,52,59] on 6/3, 5/3, 4/2, 3/4.
+   These are independently calculated examples, not a transcription of book music.
+
+6. Guitar Alliance Collective — Blues Turnarounds.
+   PDF 3 / printed iii: text verified. Turnaround returns the end of a chorus to
+   its next beginning; intros/endings are related uses.
+   PDF 4 / opening chapter, no printed page numeral observed: text verified.
+   Introduce twelve-bar form before the turnaround.
+   PDF 5–7 / opening chapter, no printed page numerals observed: text verified.
+   Other blues lengths exist; I/IV/V roots and movable fretboard landmarks.
+   Adaptation: own twelve-cell timeline and own last-two-bar return; no copied licks.
+
+7. Other owner-provided sources.
+   Reading Studies, Advanced Reading Studies, both Kalinin scans and Children's
+   Guitar Album are inventoried. Their earlier opening-page review remains prior
+   evidence, not renewed visual verification in this turn. They belong in optional
+   reading/technique/repertoire work after the instructor chooses concrete pages.
+   Do not pretend their full contents were used to author blocks 3–8.
+
+RECOMMENDED B3–B8 ROUTE
+
+B3: Harmony within C major. Derive triads, distinguish key degrees from chord
+intervals, begin with C/F and a shared C, then add the seventh to Cmaj7/Fmaj7.
+Prerequisite B2. Check construction, missing/extra tones, target note at chord change,
+and a short C/F phrase. Do not treat every 1–3–5 as automatically major.
+
+B4: C major and A natural minor. Same pitch collection, different tonal center;
+natural-minor formula and Am=A–C–E. Contrast relative C/A with same-tonic C/Cm.
+Prerequisite B2 or B3. Check scale construction, matching ordinal degrees, ending
+over Am, and listening in an A-centered context. A first note alone does not prove mode.
+
+B5: Seven diatonic modes. First establish a stable modal center/drone; compare
+Dorian vs natural minor (6 vs b6), Lydian vs major (#4 vs 4), Mixolydian vs major
+(b7 vs 7), then inspect all seven. Prerequisite B4. Check characteristic-note
+construction and contextual phrases rather than only memorizing names.
+
+B6: Motif, time and blues. Own rhythmic call/response, pauses and accents; A minor
+pentatonic -> six-note A blues; then one simple twelve-bar I7/IV7/V7 model. Prerequisite
+B4, and a short explanation of dominant-seventh spelling if B3 did not introduce it.
+Check pitch collection, form order, rhythm choice, own phrase. Blues collection is
+not claimed to be an ordinary diatonic mode.
+
+B7: Optional advanced voicings. Prepare maj7/m7/7 and II–V–I; inversions depend on
+the actual bass. Explain ordered voices, close position and Drop2 transformation.
+Check exact MIDI, not only pitch classes; then find an independently calculated
+four-string realization. Prerequisite B3. Optional, not required to finish the base route.
+
+B8: Final original mini-project. Choose C/F or Am context, create a 2–4 bar phrase,
+use a repeated/varied motive, pause and intentional landing, play under accompaniment,
+and perform without on-screen answers. Prerequisite core blocks, not B7. Formal
+phrase validation is separate from musical judgment and physical performance.
+
+Across all blocks: 1–2 lines fact -> hear -> act on fretboard -> play on guitar;
+disappearing hints, correction tasks, own short music and delayed return. No promise
+that this is a scientifically proven optimal method; the prototype needs pilot review.

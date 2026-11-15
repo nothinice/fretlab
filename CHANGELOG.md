@@ -1,3 +1,18 @@
+## First complete course prototype — 2026-11-15
+
+- Add an eight-block route covering the existing foundations and new harmony,
+  relative minor, all seven diatonic modes, blues/motifs, optional Drop 2 and a
+  final original musical project. Persist answers, phrases and delayed reviews.
+- Add ordered diatonic sequence construction and interactive C/F voice-leading
+  tasks with shared-note highlighting, ghost positions and per-voice movement.
+- Support progressive chord backing and a visible twelve-bar form on one audio
+  clock; export the learner's own phrases as JSON.
+- Record a plan before implementation and a selective source audit using the
+  owner's Popov, Leavitt, Levine, Stoloff, Vincent and turnaround materials.
+  Compare official competitor curricula without copying their material.
+- Test the complete new route, mistakes, sound gates, reload, export, cancellation,
+  delayed review and desktop/mobile layouts. Guitar performance remains self-report.
+
 ## Block 2A / 2B and lesson chord constructor
 
 - Add 13 steps for scale degrees, same-pitch string transfers, the exact C3–C4 E-position and its fingering, recall, repair and an independent final check.

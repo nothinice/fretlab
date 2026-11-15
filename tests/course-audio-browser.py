@@ -9,7 +9,7 @@ with sync_playwright() as p:
     page = browser.new_page()
     errors = []
     page.on('pageerror', lambda error: errors.append(str(error)))
-    page.goto(APP.as_uri())
+    page.goto(APP.as_uri(),wait_until='domcontentloaded')
     result = page.evaluate('''async () => {
       const originalCtx=audioCtx, originalPlay=playMidi, originalGet=getAudioCtx;
       getAudioCtx=()=>audioCtx;

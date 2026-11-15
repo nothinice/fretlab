@@ -13,7 +13,7 @@ contrast_js="""e=>{
 with sync_playwright() as p:
  browser=p.chromium.launch(args=['--no-sandbox'])
  for width,height in [(390,844),(1280,800)]:
-  page=browser.new_page(viewport={'width':width,'height':height});errors=[];page.on('pageerror',lambda e:errors.append(str(e)));page.goto(APP.as_uri())
+  page=browser.new_page(viewport={'width':width,'height':height});errors=[];page.on('pageerror',lambda e:errors.append(str(e)));page.goto(APP.as_uri(),wait_until='domcontentloaded')
   for theme in ['light','dark']:
    page.emulate_media(color_scheme=theme)
    for selector in ['#blockResume','#tab-sandbox','.board-legend']:
@@ -38,7 +38,7 @@ with sync_playwright() as p:
   page.locator('#lessonNext').click();page.locator('#lessonNext').click();expect(page.locator('#lessonFeedback')).to_be_hidden()
   # Completed course takes priority over a replayed, unfinished lesson.
   page.evaluate("localStorage.setItem('fretlab-block1-v1',JSON.stringify({version:1,records:Object.fromEntries(CourseBlockOne.ACTIVITIES.map(a=>[a.id,{done:true}]))}))")
-  page.reload();expect(page.locator('.sound-welcome')).to_be_hidden();expect(page.locator('#blockResume')).to_contain_text('Дальше: Блок 2')
+  page.reload(wait_until='domcontentloaded');expect(page.locator('.sound-welcome')).to_be_hidden();expect(page.locator('#blockResume')).to_contain_text('Дальше: Блок 2')
   page.locator('#blockResume').click();expect(page.locator('#b2Crumb')).to_contain_text('Блок 2A')
   expect(page.locator('#b2Title')).to_have_text('Восстановите C major')
   page.locator('#tab-block').click();expect(page.locator('#blockResume')).to_contain_text('Дальше: Блок 2')

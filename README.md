@@ -22,6 +22,13 @@ app is available at
   Published review: https://nothinice.github.io/fretlab-course-preview/.
 - `course/block-02-method.txt` — learning outcomes, exact fingerings, persistence,
   delayed review, the lesson chord constructor and assessment limitations.
+- `course-complete.js` and its content modules — the full first course prototype:
+  harmony, relative minor, all seven diatonic modes, sequences, chord transitions,
+  blues form, optional Drop 2 and an exportable original musical project.
+  Open the complete route with `?course=all`. The prototype retains separate
+  screen checks and self-reported guitar practice, with local progress and review.
+- `course/COURSE_PROTOTYPE_PLAN.txt` — pre-implementation plan, literature basis,
+  competitor comparison and agreed scope of the first complete prototype.
 - `TASKS.md` — agreed priorities and review criteria for the next iteration.
 - `CHANGELOG.md` — concise history of delivered versions.
 

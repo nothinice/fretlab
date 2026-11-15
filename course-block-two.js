@@ -280,6 +280,7 @@ const CourseBlockTwo=(()=>{
       }
     }
     function overview(){
+      const continuation=el('b2NextCourse');if(continuation){continuation.disabled=!state.completedAt.b;continuation.onclick=()=>window.courseComplete?.open('3');}
       for(const part of ['a','b']){
         const list=C.parts[part],done=list.filter(d=>state.done[d.id]).length;el('b2Status'+part).textContent=`Выполнено ${done} из ${list.length} шагов${state.completedAt[part]?' · Блок пройден':''}`;
         const resume=el('b2Resume'+part);resume.textContent=state.completedAt[part]?'Повторить блок':done||state.index[part]?'Продолжить со своего шага':'Начать блок 2'+part.toUpperCase();resume.onclick=()=>open(part);

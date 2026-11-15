@@ -42,7 +42,7 @@ with sync_playwright() as p:
     expect(page.locator('#b2Statusa')).to_contain_text('0 из 13')
     expect(page.locator('#b2Statusb')).to_contain_text('0 из 16')
     page.locator('#b2Resumea').click()
-    page.get_by_text('Темп и повторение',exact=True).click()
+    page.locator('#b2Work').get_by_text('Темп и повторение',exact=True).click()
     page.locator('#b2Tempo').fill('120');page.locator('#b2Tempo').press('Tab')
     assert page.locator('#b2Next').is_disabled()
     for fret in [5,7,8,10,12,14]:hit(5,fret)

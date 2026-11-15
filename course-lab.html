@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Fretlab — рабочая песочница курса</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <style>
   :root{
     --bg:#F3EEE3; --panel:#FFFFFF; --ink:#241E19; --muted:#655C52;
@@ -290,6 +290,7 @@
 <div class="v2-topbar">
   <div class="v2-brand">FretLab</div>
   <nav class="v2-tabs" role="tablist" aria-label="Разделы">
+    <button class="v2-tab-btn" id="tab-course" role="tab" aria-selected="false" aria-controls="panel-course" tabindex="-1">Весь курс</button>
     <button class="v2-tab-btn" id="tab-block" role="tab" aria-selected="true" aria-controls="panel-block" tabindex="0">Блок 1</button>
     <button class="v2-tab-btn" id="tab-block2" role="tab" aria-selected="false" aria-controls="panel-block2" tabindex="-1">Блок 2</button>
     <button class="v2-tab-btn" id="tab-sandbox" role="tab" aria-selected="false" aria-controls="panel-sandbox" tabindex="-1">Гриф</button>
@@ -299,6 +300,38 @@
   <button type="button" id="tabsMore" class="play-btn tabs-more" aria-label="Прокрутить разделы вправо" hidden>→</button>
 </div>
 
+<section id="panel-course" role="tabpanel" aria-labelledby="tab-course">
+  <div class="v2-wrap course-complete-wrap">
+    <div id="courseHome">
+      <p class="course-eyebrow">FretLab · Гриф, гармония и импровизация</p>
+      <h1>От полутона до своей музыки</h1>
+      <p class="lesson-copy">Поймите, откуда берутся гаммы и аккорды, научитесь видеть их на грифе и применять в своих фразах. Сначала услышите, затем постройте, сыграйте и проверьте без подсказок.</p>
+      <p id="courseSummary" tabindex="-1" role="status"></p>
+      <p id="courseHomeNotice" class="sandbox-readout" role="status" hidden></p>
+      <p><button type="button" class="play-btn primary-btn" id="courseResume">Продолжить курс</button></p>
+      <details class="block-plan"><summary>Перед началом: что понадобится</summary><p>Гитара в стандартном строе и возможность извлекать отдельные звуки. На занятие закладывайте 30–60 минут; часть времени обязательно играйте на инструменте. Ориентиры по занятиям — рекомендация, а не срок освоения.</p><div class="sandbox-controls"><button type="button" class="play-btn" data-course-help="setup">Подготовить гитару</button><button type="button" class="play-btn" data-course-help="sound">Проверить звук</button><button type="button" class="play-btn" data-course-help="terms">Термины</button></div></details>
+      <div id="courseModuleCards" class="course-module-grid"></div>
+      <p class="hint">Сначала двигайтесь по основному маршруту. Блок расположений и Drop 2 — дополнительный. После прохождения возвращайтесь к самостоятельным заданиям через 3–7 дней.</p>
+    </div>
+    <section id="courseWork" hidden aria-labelledby="courseStepTitle">
+      <p class="course-breadcrumb"><button type="button" class="play-btn text-btn" id="courseRoute">← Весь курс</button><span id="courseBreadcrumb"></span><button type="button" class="play-btn text-btn" data-course-help="terms">Термины</button></p>
+      <progress id="courseStepProgress" max="1" value="1" aria-label="Шаг урока"></progress>
+      <div class="lesson-layout course-complete-layout">
+        <div><h1 id="courseStepTitle" tabindex="-1"></h1><p id="courseStepText" class="lesson-copy"></p><details id="courseWhy" class="lesson-purpose"><summary>Почему так</summary><p id="courseWhyText"></p></details></div>
+        <div class="course-complete-workspace">
+          <p id="courseStepInstruction" class="task-card" data-label="Послушайте · постройте · сыграйте"></p>
+          <div id="courseStepBody"></div>
+          <p id="courseStepFeedback" class="sandbox-readout" hidden role="status" aria-live="polite"></p>
+          <div class="sandbox-controls"><button type="button" class="play-btn" id="courseStop" hidden>■ Стоп</button><span id="courseAudioStatus" role="status" aria-live="off"></span></div>
+          <details class="audio-options"><summary>Темп и повторение</summary><label>Темп (уд/мин) <input type="number" id="courseTempo" min="40" max="120" value="80"></label><button type="button" class="play-btn text-btn" id="courseRetry">Новая попытка текущего задания</button></details>
+          <nav class="sandbox-controls course-navigation" aria-label="Шаги курса"><button type="button" class="play-btn text-btn" id="courseBack">← Назад</button><div class="lesson-next-action"><button type="button" class="play-btn primary-btn" id="courseNext" aria-describedby="courseNextHelp">Дальше →</button><p id="courseNextHelp" role="status"></p></div></nav>
+        </div>
+      </div>
+    </section>
+    <p id="courseStorage" class="hint"></p>
+    <p class="hint">Экранные ответы проверяет приложение. Игру, пение, чистоту звука и музыкальный результат вы оцениваете сами или с преподавателем.</p>
+  </div>
+</section>
 <section id="panel-block" role="tabpanel" aria-labelledby="tab-block" class="v2-active">
   <div class="course-helpbar v2-wrap"><button type="button" class="play-btn text-btn" data-course-help="sound">Звук</button><button type="button" class="play-btn text-btn" data-course-help="terms">Термины и гриф</button><button type="button" class="play-btn text-btn" data-course-help="setup">Подготовить гитару</button></div>
   <div class="v2-wrap block-wrap" id="blockRoute">
@@ -390,6 +423,7 @@
           <details><summary>Шаги и практика</summary><div id="b2Stepsb" class="b2-step-list"></div></details>
         </article>
       </div>
+      <p><button type="button" class="play-btn primary-btn" id="b2NextCourse" disabled>Дальше: блок 3 · Аккорды внутри гаммы →</button></p>
       <details class="block-plan"><summary>Как заниматься и возвращаться к материалу</summary>
         <p>Сначала пройдите 2A, затем 2B. На занятии оставляйте время на медленную игру, слух и повторение. Три-четыре занятия на часть — ориентир; календарной блокировки нет.</p>
         <p>Через три дня после завершения части здесь появится «Проверьте, что осталось». Рекомендуется повторить без подсказок через 3–7 дней. Если вернётесь позже, проверка останется доступной.</p>
@@ -2706,7 +2740,7 @@ function renderLearn(){
 function v2InitTabs(){
   const learnTab = document.getElementById('tab-learn');
   const exploreTab = document.getElementById('tab-explore');
-  const tabs = [document.getElementById('tab-block'), document.getElementById('tab-block2'), document.getElementById('tab-sandbox'), learnTab, exploreTab];
+  const tabs = [document.getElementById('tab-course'), document.getElementById('tab-block'), document.getElementById('tab-block2'), document.getElementById('tab-sandbox'), learnTab, exploreTab];
   function activate(tab){
     stopSequence();
     tabs.forEach(t=>{
@@ -2778,6 +2812,7 @@ v2Init();
 
 </script>
 <link rel="stylesheet" href="course-sandbox.css">
+<link rel="stylesheet" href="course-complete-design.css">
 <script src="course-sandbox.js"></script>
 <script src="course-lessons-content.js"></script>
 <script src="course-lesson.js"></script>
@@ -2785,6 +2820,10 @@ v2Init();
 <script src="course-block-one.js"></script>
 <script src="course-block-two-content.js"></script>
 <script src="course-block-two.js"></script>
+<script src="course-complete-content-foundation.js"></script>
+<script src="course-complete-content-advanced.js"></script>
+<script src="course-complete-content.js"></script>
+<script src="course-complete.js"></script>
 <script src="course-help.js"></script>
 </body>
 </html>

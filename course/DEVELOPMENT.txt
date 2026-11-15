@@ -1,5 +1,16 @@
 Основа разработки интерактивного курса
 
+Полный первый прототип: вкладка «Весь курс», URL ?course=all.
+Блоки3–8: course-complete.js, course-complete-content-foundation.js,
+course-complete-content-advanced.js и общий course-complete-content.js.
+Дополнительные задачи sequence/transition визуализируют повтор рисунка и
+голосоведение C/F с общими нотами, контурными исходными точками и стрелками.
+Ключсохранения fretlab-complete-v1; JSONэкспорт только собственных фраз.
+План: COURSE_PROTOTYPE_PLAN.txt; выборочный аудитлитературы и конкурентов:
+prototype-literature-review.txt и prototype-competitor-review.txt.
+Проверки: tests/course-complete.test.js, tests/course-complete-browser.py,
+tests/course-transitions-browser.py. Запускбраузерныхтестов требуетPlaywright.
+
 Рабочая страница: ../course-lab.html
 Исходная страница: ../redesign-v2.html
 Источник: коммит 02826c7a5727b5bc49f38e3f4e947df49ac8b5da
