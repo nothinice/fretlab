@@ -33,6 +33,12 @@ app is available at
   screen checks and self-reported guitar practice, with local progress and review.
 - `course/COURSE_PROTOTYPE_PLAN.txt` — pre-implementation plan, literature basis,
   competitor comparison and agreed scope of the first complete prototype.
+- `course-practice.js`, `course-practice-content.js`, `course-practice-player.js`
+  and `course-practice.css` — four original instrument studies, rhythmic TAB,
+  selected-bar loops, accompaniment-only practice, ear tasks and constrained
+  variations. Open `?practice=cf` (or `melody`, `cadence`, `am`). Plans, tempo,
+  fingering and self-reported results stay in this browser; work exports to JSON
+  and TAB prints to PDF. See `course/PRACTICE_REVIEW_FOR_CLAUDE.txt`.
 - `TASKS.md` — agreed priorities and review criteria for the next iteration.
 - `CHANGELOG.md` — concise history of delivered versions.
 
@@ -69,6 +75,12 @@ transposition, source subsets, and the no-internal-string-gap publication rule.
 Run `node tests/chord-identifier.test.js` for chord analysis and
 `tests/chord-identifier-browser.py` with Python Playwright for real fretboard
 entry, interpretations, sound cancellation and desktop/mobile interactions.
+Run `node tests/course-practice-content.test.js`,
+`node tests/course-practice-player.test.js`, and
+`node tests/course-practice-integration.test.js` for musical coordinates,
+variation contracts, loop scheduling/cancellation and old-save compatibility.
+`tests/course-practice-browser.py` exercises the integrated practice workflow
+with Python Playwright; `FRETLAB_PREVIEW_PATH` can select a portable build.
 
 ## Roadmap
 

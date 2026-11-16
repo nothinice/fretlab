@@ -143,7 +143,7 @@ const CourseCompleteFoundation=(()=>{
   const module5={
     id:'5',title:'Диатонические лады на слух и на грифе',subtitle:'Общие ноты → разные центры и характерные интервалы',
     outcome:'Понимать семь ладов как разные отношения к опоре, построить D Dorian и услышать характерные ступени F Lydian и G Mixolydian.',
-    prerequisites:['4'],sessions:'4–6 занятий',optional:false,
+    prerequisites:['4','6'],sessions:'4–6 занятий после основной практики',optional:true,
     sources:[levine('PDF 18–21 — диатонические лады и гармонизация; PDF 33–36 — гармонический контекст и лидийский лад'),popov('PDF 7 — формулы и тоника; собственное модальное расширение FretLab')],
     steps:[
       {id:'5-map',type:'learn',title:'Семь центров в диатонике',rootPc:0,range:[7,10],points:C_POSITION,

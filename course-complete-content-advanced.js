@@ -176,7 +176,7 @@ const CourseCompleteAdvanced=(()=>{
   const module8={
     id:'8',title:'Собственная музыкальная миниатюра',subtitle:'Итоговый проект основного маршрута',
     outcome:'Самостоятельно собрать четырёхтактовую фразу под C → F, использовать мотив и осознанные окончания; сыграть её по памяти и сохранить результат.',
-    prerequisites:['3','4','5','6'],sessions:'2–4 занятия и повторная проверка',optional:false,
+    prerequisites:['3','4','6'],sessions:'2–4 занятия и повторная проверка',optional:false,
     sources:[
       {title:'William Leavitt — A Modern Method for Guitar Vol. 1',location:'PDF 3, введение без номера страницы',evidence:'text_verified'},
       {title:'Mark Levine — Теория джаза',location:'PDF / printed 33–34, 88–89',evidence:'text_verified'},

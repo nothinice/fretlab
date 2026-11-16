@@ -309,9 +309,15 @@
       <p id="courseSummary" tabindex="-1" role="status"></p>
       <p id="courseHomeNotice" class="sandbox-readout" role="status" hidden></p>
       <p><button type="button" class="play-btn primary-btn" id="courseResume">Продолжить курс</button></p>
+      <section class="course-practice-entry" aria-labelledby="practiceEntryTitle">
+        <p class="course-eyebrow">Практика с гитарой · после знакомства со ступенями и трезвучием</p>
+        <h2 id="practiceEntryTitle">От рисунка на грифе — к звучащей фразе</h2>
+        <p>Четыре учебные миниатюры: табы с ритмом, повтор тактов, подбор на слух и свои окончания. Начните с C → F; рабочий темп и результаты сохранятся.</p>
+        <div class="sandbox-controls"><button type="button" class="play-btn primary-btn" id="coursePracticeLaunch" data-practice-open="cf">Играть C → F</button><button type="button" class="play-btn" data-practice-open="melody">Мелодия в C</button><button type="button" class="play-btn" data-practice-open="cadence">G7 → C</button><button type="button" class="play-btn" data-practice-open="am">A minor</button></div>
+      </section>
       <details class="block-plan"><summary>Перед началом: что понадобится</summary><p>Гитара в стандартном строе и возможность извлекать отдельные звуки. На занятие закладывайте 30–60 минут; часть времени обязательно играйте на инструменте. Ориентиры по занятиям — рекомендация, а не срок освоения.</p><div class="sandbox-controls"><button type="button" class="play-btn" data-course-help="setup">Подготовить гитару</button><button type="button" class="play-btn" data-course-help="sound">Проверить звук</button><button type="button" class="play-btn" data-course-help="terms">Термины</button></div></details>
       <div id="courseModuleCards" class="course-module-grid"></div>
-      <p class="hint">Сначала двигайтесь по основному маршруту. Блок расположений и Drop 2 — дополнительный. После прохождения возвращайтесь к самостоятельным заданиям через 3–7 дней.</p>
+      <p class="hint">Основной маршрут: основы → аккорды → минор → мотив и ритм → своя музыка. Обзор семи ладов и Drop 2 — следующий уровень. После прохождения возвращайтесь к самостоятельным заданиям через 3–7 дней.</p>
     </div>
     <section id="courseWork" hidden aria-labelledby="courseStepTitle">
       <p class="course-breadcrumb"><button type="button" class="play-btn text-btn" id="courseRoute">← Весь курс</button><span id="courseBreadcrumb"></span><button type="button" class="play-btn text-btn" data-course-help="terms">Термины</button></p>
@@ -328,6 +334,7 @@
         </div>
       </div>
     </section>
+    <section id="coursePracticeWork" hidden aria-label="Практика с гитарой"></section>
     <p id="courseStorage" class="hint"></p>
     <p class="hint">Экранные ответы проверяет приложение. Игру, пение, чистоту звука и музыкальный результат вы оцениваете сами или с преподавателем.</p>
   </div>
@@ -2833,11 +2840,14 @@ v2Init();
 <link rel="stylesheet" href="course-sandbox.css">
 <link rel="stylesheet" href="course-complete-design.css">
 <link rel="stylesheet" href="chord-identifier.css">
+<link rel="stylesheet" href="course-practice.css">
 <script src="chord-identifier.js"></script>
 <script src="course-sandbox.js"></script>
 <script src="course-lessons-content.js"></script>
 <script src="course-lesson.js"></script>
 <script src="course-rhythm-player.js"></script>
+<script src="course-practice-player.js"></script>
+<script src="course-practice-content.js"></script>
 <script src="course-block-one.js"></script>
 <script src="course-block-two-content.js"></script>
 <script src="course-block-two.js"></script>
@@ -2846,5 +2856,6 @@ v2Init();
 <script src="course-complete-content.js"></script>
 <script src="course-complete.js"></script>
 <script src="course-help.js"></script>
+<script src="course-practice.js"></script>
 </body>
 </html>

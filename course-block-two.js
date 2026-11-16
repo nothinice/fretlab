@@ -5,6 +5,11 @@ const CourseBlockTwo=(()=>{
   const pc=n=>((n%12)+12)%12;
   const pitch=n=>['C','D♭','D','E♭','E','F','G♭','G','A♭','A','B♭','B'][pc(n)];
   const equals=(a,b)=>a.length===b.length&&new Set(a).size===a.length&&a.every(x=>b.includes(x));
+  function phrasePosition(e){
+    if(e.midi===null)return {midi:null,beats:e.beats};
+    const p=C.POSITION.find(p=>p.midi===e.midi&&p.str===e.str&&p.fret===e.fret)||C.POSITION.find(p=>p.midi===e.midi);
+    return {midi:e.midi,beats:e.beats,...(p?{str:p.str,fret:p.fret,finger:p.fret-6}:{})};
+  }
   function chordResult(points,root,quality='maj',namer=null){
     const expected=[0,quality==='min'?3:4,7].map(x=>pc(x+root));
     const notes=[...new Set(points.map(p=>pc(p.midi)))].sort((a,b)=>a-b);
@@ -40,7 +45,7 @@ const CourseBlockTwo=(()=>{
         for(const name of ['ok','heard','located','assisted','earTried','earCorrect'])safe[name]=s[name]===true;
         if(Array.isArray(s.selected))safe.selected=[...new Set(s.selected.filter(k=>typeof k==='string'&&/^[1-6]\/(?:[0-9]|1[0-6])$/.test(k)))].slice(0,40);
         if(Array.isArray(s.checks))safe.checks=s.checks.slice(0,4).map(x=>x===true);
-        if(Array.isArray(s.events)&&!s.events.some(e=>!e||![.5,1,2].includes(e.beats)||!(e.midi===null||C.POSITION.some(p=>p.midi===e.midi)))&&s.events.length<=32&&s.events.reduce((n,e)=>n+e.beats,0)<=8)safe.events=s.events.map(e=>({midi:e.midi,beats:e.beats}));
+        if(Array.isArray(s.events)&&!s.events.some(e=>!e||![.5,1,2].includes(e.beats)||!(e.midi===null||C.POSITION.some(p=>p.midi===e.midi)))&&s.events.length<=32&&s.events.reduce((n,e)=>n+e.beats,0)<=8)safe.events=s.events.map(phrasePosition);
         if([.5,1,2].includes(s.duration))safe.duration=s.duration;
         state.sessions[step.id]=safe;
       }
@@ -54,7 +59,7 @@ const CourseBlockTwo=(()=>{
     const el=id=>document.getElementById(id),node=(tag,text)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;return n;};
     let state=clean(null),storageOK=true,review=null,labels='notes',tempo=80,backing='repeat',focusKey=null;
     try{state=clean(JSON.parse(localStorage.getItem(KEY)||'null'));}catch{storageOK=false;}
-    const transport=CourseRhythmPlayer.createTransport();let clicks=[];
+    const transport=CourseRhythmPlayer.createTransport();let clicks=[],tabView=null;
     const step=()=>C.parts[state.part][state.index[state.part]];
     function session(){const d=step();return state.sessions[d.id]||(state.sessions[d.id]={selected:(d.base||[]).map(p=>p.key),checks:[],events:[],round:0,phase:0,attempts:0,firstCorrect:0});}
     const selected=s=>(s.selected||[]).map(k=>{const [str,fret]=k.split('/').map(Number);return C.point(str,fret);});
@@ -67,13 +72,14 @@ const CourseBlockTwo=(()=>{
     function at(p){return {boardId:'b2Board',index:(p.str-1)*(FRET_COUNT+1)+p.fret};}
     function note(p){stop();clicks.push(playMidi(p.midi,undefined,.85,.18,at(p)));}
     function play(events,{chord=null,countIn=false,positions=[],onend=null}={}){
-      stop();window.courseBlockOne?.stop();stopSequence();el('b2Stop').hidden=false;
+      stop();window.courseBlockOne?.stop();window.coursePractice?.stop();stopSequence();el('b2Stop').hidden=false;
       transport.play(events,{tempo,countIn,metronome:countIn,positions,
         accompaniment:chord?{notes:chord,mode:backing}:null,
         onframe:f=>{
           el('b2AudioStatus').textContent=f.countIn!==undefined?`Отсчёт: ${f.countIn+1}`:f.position!==undefined?`Такт ${Math.floor(f.position/4)+1} · доля ${f.beat+1}`:'';
           body().querySelectorAll('[data-phrase-event]').forEach(e=>e.classList.toggle('is-playing',Number(e.dataset.phraseEvent)===f.index));
-        },onend:finished=>{el('b2Stop').hidden=true;el('b2AudioStatus').textContent='';body().querySelectorAll('.is-playing').forEach(e=>e.classList.remove('is-playing'));if(finished)onend?.();}
+          tabView?.highlight(f.index??-1);
+        },onend:finished=>{tabView?.highlight(-1);el('b2Stop').hidden=true;el('b2AudioStatus').textContent='';body().querySelectorAll('.is-playing').forEach(e=>e.classList.remove('is-playing'));if(finished)onend?.();}
       });
     }
     function listen(points,{together=false,onend=null,countIn=false}={}){
@@ -179,19 +185,24 @@ const CourseBlockTwo=(()=>{
       const next=button(controls(),s.round===total-1?'Завершить слуховую практику':'Следующий пример',()=>{if(!s.earCorrect)return;s.round++;s.heard=false;s.earTried=false;s.earCorrect=false;save();redraw();},{primary:true});next.hidden=!s.earCorrect;
     }
     function composer(d,s){
-      s.events||=[];s.duration||=1;s.checks||=[];const total=s.events.reduce((n,e)=>n+e.beats,0);
+      s.events=(s.events||[]).map(phrasePosition);s.duration||=1;s.checks||=[];const total=s.events.reduce((n,e)=>n+e.beats,0);
       body().appendChild(node('p',`Заполнено ${total} из 8 долей · 2 такта 4/4`));
       const row=controls();for(const [value,text] of [[.5,'Восьмая · ½ доли'],[1,'Четверть · 1 доля'],[2,'Половинная · 2 доли']]){const b=button(row,text,()=>{s.duration=value;redraw();});b.setAttribute('aria-pressed',String(value===s.duration));}
-      function append(midi){if(total+s.duration>8){feedback('Два такта заполнены. Уберите последнее событие или выберите меньшую длительность.');return;}s.events.push({midi,beats:s.duration});s.ok=false;s.checks=[];redraw();}
+      function append(midi,p={}){if(total+s.duration>8){feedback('Два такта заполнены. Уберите последнее событие или выберите меньшую длительность.');return;}s.events.push(phrasePosition({midi,beats:s.duration,...p}));s.ok=false;s.checks=[];redraw();}
       button(row,'Добавить паузу',()=>append(null));
-      board(C.POSITION,{range:[7,10],strings:[6,5,4],onClick:p=>{if(!C.POSITION.some(n=>n.key===p.key)){feedback('Выберите одну из нот позиции C major.');return;}append(p.midi);note(p);}});
+      board(C.POSITION,{range:[7,10],strings:[6,5,4],onClick:p=>{if(!C.POSITION.some(n=>n.key===p.key)){feedback('Выберите одну из нот позиции C major.');return;}append(p.midi,p);note(p);}});
+      if(typeof CoursePracticePlayer!=='undefined'){
+        const tab=node('div');tab.className='course-compose-tabs';body().appendChild(tab);
+        tabView=CoursePracticePlayer.renderTab(tab,s.events,{progression:[{atBeat:0,beats:8,notes:[48,52,55],label:'C'}]});
+      }
       const timeline=node('ol');timeline.className='b2-phrase';timeline.setAttribute('aria-label','События фразы');
       s.events.forEach((e,i)=>{const item=node('li',`${e.midi===null?'Пауза':pitch(e.midi)} · ${e.beats===.5?'½':e.beats} доли`);item.style.gridColumn=`span ${e.beats*2}`;item.dataset.phraseEvent=String(i);timeline.appendChild(item);});body().appendChild(timeline);
       const actions=controls();button(actions,'Убрать последнее',()=>{s.events.pop();s.checks=[];redraw();},{disabled:!s.events.length});button(actions,'Очистить фразу',()=>{s.events=[];s.checks=[];redraw();},{disabled:!s.events.length});
       const accompaniment=node('label','Сопровождение '),select=node('select');[['repeat','Повторять C каждый такт'],['sustain','Тянуть C под всей фразой']].forEach(([v,t])=>{const o=node('option',t);o.value=v;select.appendChild(o);});select.value=backing;select.onchange=()=>{backing=select.value;stop();};accompaniment.appendChild(select);actions.appendChild(accompaniment);
       button(actions,'▶ Фраза + C major',()=>play(s.events,{chord:[48,52,55],countIn:true,positions:s.events.map(e=>{const p=C.POSITION.find(p=>p.midi===e.midi);return p?at(p):null;})}),{disabled:!s.events.length});
       checks(s,['Я пропел и сыграл фразу поверх C major.','Я сохранил пульс и осознанно завершил фразу на C, E или G.']);
-      button(controls(),'Проверить фразу',()=>{const issue=phraseCheck(s.events);s.ok=!issue&&s.checks.every(Boolean)&&s.checks.length===2;feedback(issue||(!s.ok?'Сыграйте фразу на гитаре и отметьте самопроверку.':'Фраза готова: два такта и окончание на звуке аккорда.'),s.ok);save();updateNext();},{primary:true});
+      button(controls(),'Проверить фразу',()=>{const issue=phraseCheck(s.events);s.ok=!issue&&s.checks.every(Boolean)&&s.checks.length===2;feedback(issue||(!s.ok?'Сыграйте фразу на гитаре и отметьте самопроверку.':'Проверены два такта и окончание на звуке аккорда. Исполнение на гитаре — ваша самопроверка.'),s.ok);save();updateNext();},{primary:true});
+      button(controls(),'Играть миниатюру с табами',()=>window.coursePractice?.open('melody'));
     }
     function exam(d,s){
       const a=d.kind==='examA',phase=s.phase||0;
@@ -226,7 +237,7 @@ const CourseBlockTwo=(()=>{
     }
     function updateNext(){el('b2Next').disabled=!ready();el('b2NextHelp').textContent=ready()?'':step().kind==='learn'?'Послушайте пример перед продолжением.':'Выполните задание, затем переходите дальше.';}
     function render(){
-      stop();const d=step(),s=session();save();const index=state.index[state.part],list=C.parts[state.part];
+      stop();tabView?.destroy();tabView=null;const d=step(),s=session();save();const index=state.index[state.part],list=C.parts[state.part];
       el('b2Crumb').textContent=`Блок 2${state.part.toUpperCase()} · ${review?'Повторная проверка':`Шаг ${index+1} из ${list.length}`}`;
       el('b2Title').textContent=d.title;el('b2Text').textContent=d.text;el('b2Instruction').textContent=d.instruction;el('b2Why').hidden=!d.why;el('b2WhyText').textContent=d.why||'';el('b2Why').open=false;
       el('b2StepProgress').max=list.length;el('b2StepProgress').value=index+1;el('b2Back').disabled=index===0||!!review;el('b2Next').textContent=index===list.length-1?review?'Завершить повторение':`Завершить блок 2${state.part.toUpperCase()}`:'Дальше →';

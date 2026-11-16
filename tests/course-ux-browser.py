@@ -50,7 +50,7 @@ with sync_playwright() as p:
         expect(page.locator('.course-edit-status')).to_contain_text('Редактируется событие 1')
         button('D3').click()
         edited=state()['sessions']['8-project']['events']
-        assert edited[0]=={'midi':50,'beats':1}
+        assert edited[0]=={'midi':50,'beats':1,'str':6,'fret':10}
         assert edited[1:]==original[1:]
         # Duration overrun leaves the phrase intact; a legal change remains editable.
         timeline.locator('button').first.click()

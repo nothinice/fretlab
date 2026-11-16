@@ -36,7 +36,9 @@ assert.match(b.phraseCheck(phrase.map(e=>({...e,midi:e.midi===55?50:e.midi}))),/
 assert.match(b.phraseCheck(phrase.slice(1)),/8 долей/);
 let state=b.clean({version:1,part:'b',index:{a:999,b:-1},sessions:{'b-compose':{events:phrase,selected:['5/3','5/3','6/99','token'],heard:true,earTried:true},'a-pack':{round:-3}},done:{'a-pack':true,bogus:true},completedAt:{a:1000},reviewedAt:{}});
 assert.equal(state.index.a,c.A.length-1);assert.equal(state.index.b,0);
-assert.deepEqual(state.sessions['b-compose'].events,phrase);
+assert.deepEqual(state.sessions['b-compose'].events.map(({midi,beats})=>({midi,beats})),phrase);
+assert.deepEqual(state.sessions['b-compose'].events[0],{midi:48,beats:2,str:6,fret:8,finger:2});
+assert.deepEqual(state.sessions['b-compose'].events.at(-1),{midi:null,beats:2});
 assert.deepEqual(state.sessions['b-compose'].selected,['5/3']);
 assert.equal(state.sessions['b-compose'].earTried,true);
 assert.equal(state.sessions['a-pack'].round,undefined);

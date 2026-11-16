@@ -6,6 +6,12 @@ const CourseComplete=(()=>{
   const point=(str,fret)=>({str,fret,midi:OPEN[str]+fret,key:`${str}/${fret}`});
   const pitch=n=>['C','C♯','D','E♭','E','F','F♯','G','A♭','A','B♭','B'][pc(n)];
   const coord=p=>`${p.str}/${p.fret}`;
+  function validFingering(e){return e.midi!==null&&Number.isInteger(e.str)&&!!OPEN[e.str]&&Number.isInteger(e.fret)&&e.fret>=0&&e.fret<=16&&OPEN[e.str]+e.fret===e.midi;}
+  function withFingering(d,e){
+    if(e.midi===null)return {midi:null,beats:e.beats};
+    const p=validFingering(e)?e:(d.points||[]).find(p=>p.midi===e.midi&&validFingering(p));
+    return {midi:e.midi,beats:e.beats,...(p?{str:p.str,fret:p.fret,...(Number.isInteger(p.finger)?{finger:p.finger}:{})}:{})};
+  }
   function validateSelection(d,points){
     if(!Array.isArray(points)||points.some(p=>!Number.isInteger(p.str)||!OPEN[p.str]||!Number.isInteger(p.fret)||p.fret<0||p.fret>16||p.midi!==OPEN[p.str]+p.fret))return 'Проверьте положение звуков на грифе.';
     if(d.onePerString&&new Set(points.map(p=>p.str)).size!==points.length)return 'На каждой струне оставьте один звук.';
@@ -47,7 +53,9 @@ const CourseComplete=(()=>{
         for(const name of ['heard','checked','assisted','earTried'])safe[name]=s[name]===true;
         for(const name of ['round','answer','attempts','firstCorrect'])if(Number.isInteger(s[name])&&s[name]>=0&&s[name]<=1000)safe[name]=s[name];
         if(Array.isArray(s.selected))safe.selected=[...new Set(s.selected.filter(k=>typeof k==='string'&&/^[1-6]\/(?:[0-9]|1[0-6])$/.test(k)))].slice(0,64);
-        if(Array.isArray(s.events)&&d.type==='compose'&&s.events.length<=128&&s.events.every(e=>e&&[.5,1,2,4].includes(e.beats)&&(e.midi===null||d.allowedMidi.includes(e.midi)))&&s.events.reduce((n,e)=>n+e.beats,0)<=d.bars*4)safe.events=s.events.map(e=>({midi:e.midi,beats:e.beats}));
+        if(Array.isArray(s.events)&&d.type==='compose'&&s.events.length<=128&&s.events.every(e=>e&&[.5,1,2,4].includes(e.beats)&&(e.midi===null||d.allowedMidi.includes(e.midi)))&&s.events.reduce((n,e)=>n+e.beats,0)<=d.bars*4)safe.events=s.events.map(e=>validFingering(e)?withFingering(d,e):({midi:e.midi,beats:e.beats}));
+        if(s.recommendedFingering===true)safe.recommendedFingering=true;
+        if(Number.isFinite(s.tempo)&&s.tempo>=40&&s.tempo<=120)safe.tempo=s.tempo;
         if(d.type==='sequence'&&Array.isArray(s.sequence)&&s.sequence.length<=d.targetMidi.length&&s.sequence.every(n=>d.allowedMidi.includes(n)))safe.sequence=[...s.sequence];
         if(Array.isArray(s.voices)&&s.voices.length===4&&s.voices.every(n=>Number.isInteger(n)&&n>=0&&n<=127))safe.voices=[...s.voices];
         if(Array.isArray(s.checks))safe.checks=s.checks.slice(0,8).map(v=>v===true);
@@ -62,7 +70,7 @@ const CourseComplete=(()=>{
     const el=id=>document.getElementById(id),node=(tag,text)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;return n;};
     let state=cleanState(null),canStore=true,tempo=80,review=null,reviewIndex=0,focusKey=null;
     try{state=cleanState(JSON.parse(localStorage.getItem(KEY)||'null'));}catch{canStore=false;}
-    const transport=CourseRhythmPlayer.createTransport();let clicks=[],homeMessage='';
+    const transport=CourseRhythmPlayer.createTransport();let clicks=[],homeMessage='',tabView=null;
     const module=()=>Content.modules.find(m=>m.id===state.module)||Content.modules[0];
     const step=()=>review?module().steps[review[reviewIndex]]:module().steps[state.index[module().id]||0];
     function session(){const d=step();return state.sessions[d.id]||(state.sessions[d.id]={selected:[...(d.base||d.fromPoints?.map(coord)||[])],events:[],voices:d.voices?[...d.voices]:undefined,checks:[],round:0,attempts:0,firstCorrect:0});}
@@ -75,14 +83,15 @@ const CourseComplete=(()=>{
     function stop(){transport.stop();clicks.forEach(v=>{try{v?.stop();}catch{}});clicks=[];el('courseStop').hidden=true;el('courseAudioStatus').textContent='';body().querySelectorAll('.is-playing').forEach(n=>n.classList.remove('is-playing'));}
     const at=p=>({boardId:'courseBoard',index:(p.str-1)*(FRET_COUNT+1)+p.fret});
     function play(audio,onend=null){
-      stop();window.courseBlockOne?.stop();window.courseBlockTwo?.stop();stopSequence();el('courseStop').hidden=false;
+      stop();window.courseBlockOne?.stop();window.courseBlockTwo?.stop();window.coursePractice?.stop();stopSequence();el('courseStop').hidden=false;
       const points=step().points||[];
-      transport.play(audio.events,{tempo,countIn:audio.countIn===true,metronome:audio.countIn===true,progression:audio.progression||[],positions:audio.events.map(e=>{const p=points.find(p=>p.midi===e.midi);return p?at(p):null;}),onframe:f=>{
+      transport.play(audio.events,{tempo,countIn:audio.countIn===true,metronome:audio.countIn===true,progression:audio.progression||[],positions:audio.events.map(e=>{const p=validFingering(e)?e:points.find(p=>p.midi===e.midi);return p?at(p):null;}),onframe:f=>{
+        tabView?.highlight(f.index??-1);
         const active=(audio.progression||[]).find(c=>f.position>=c.atBeat&&f.position<c.atBeat+c.beats);
         el('courseAudioStatus').textContent=f.countIn!==undefined?`Отсчёт ${f.countIn+1}`:f.position!==undefined?`Такт ${Math.floor(f.position/4)+1} · доля ${f.beat+1}${active?.label?' · '+active.label:''}`:'';
         body().querySelectorAll('[data-event]').forEach(n=>n.classList.toggle('is-playing',Number(n.dataset.event)===f.index));
         body().querySelectorAll('[data-chord]').forEach(n=>n.classList.toggle('is-playing',Number(n.dataset.chord)===(audio.progression||[]).indexOf(active)));
-      },onend:finished=>{el('courseStop').hidden=true;el('courseAudioStatus').textContent='';body().querySelectorAll('.is-playing').forEach(n=>n.classList.remove('is-playing'));if(finished)onend?.();}});
+      },onend:finished=>{el('courseStop').hidden=true;el('courseAudioStatus').textContent='';tabView?.highlight(-1);body().querySelectorAll('.is-playing').forEach(n=>n.classList.remove('is-playing'));if(finished)onend?.();}});
     }
     function note(p){stop();clicks.push(playMidi(p.midi,undefined,.7,.16,at(p)));}
     function board(points,{range=step().range||[0,12],onClick=null,ghosts=[]}={}){
@@ -128,7 +137,8 @@ const CourseComplete=(()=>{
     }
     function progressionView(segments){const diagram=node('div');diagram.className='course-progression';segments.forEach((c,i)=>{const chip=node('span',`${c.label||'Аккорд'} · ${c.beats/4} такт`);chip.dataset.chord=String(i);diagram.appendChild(chip);});body().appendChild(diagram);}
     function render(){
-      stop();const m=module(),d=step(),s=session(),index=review?reviewIndex:state.index[m.id]||0,total=review?review.length:m.steps.length;
+      stop();tabView?.destroy();tabView=null;const m=module(),d=step(),s=session(),index=review?reviewIndex:state.index[m.id]||0,total=review?review.length:m.steps.length;
+      tempo=s.tempo||80;el('courseTempo').value=tempo;
       el('courseStepTitle').textContent=d.title;el('courseBreadcrumb').textContent=`Блок ${m.id} · ${review?'Повторение · ':''}${index+1} / ${total}`;el('courseStepText').textContent=d.text;el('courseStepInstruction').textContent=d.instruction;
       const missing=m.steps.filter(x=>x.id!==d.id&&!state.done[x.id]).length;
       el('courseWhy').hidden=!d.why;el('courseWhy').open=false;el('courseWhyText').textContent=d.why||'';el('courseStepProgress').max=total;el('courseStepProgress').value=index+1;el('courseBack').disabled=!!review||index===0;el('courseNext').textContent=index===total-1?(!review&&missing?'Сохранить практику':'Завершить блок'):'Дальше →';body().replaceChildren();feedback('');
@@ -185,21 +195,27 @@ const CourseComplete=(()=>{
         const actions=row();button(actions,'▶ До',()=>play({events:[{midi:null,beats:2}],progression:[{atBeat:0,beats:2,notes:d.voices,label:'Тесное расположение'}]}));button(actions,'▶ После',()=>play({events:[{midi:null,beats:2}],progression:[{atBeat:0,beats:2,notes:s.voices,label:'Ваше расположение'}]}));
         button(actions,'Сброс',()=>{s.voices=[...d.voices];s.checked=false;redraw();});button(actions,'Проверить преобразование',()=>{s.checked=true;s.attempts=(s.attempts||0)+1;const ok=JSON.stringify(s.voices)===JSON.stringify(d.targetVoices);feedback(ok?'Верно: второй сверху голос опущен на октаву.':'Проверьте второй сверху голос и величину переноса. При необходимости сбросьте пример.',ok);update();});
       }else if(d.type==='compose'){
-        s.events||=[];s.duration||=1;const total=s.events.reduce((n,e)=>n+e.beats,0);body().appendChild(node('p',`Заполнено ${total} из ${d.bars*4} долей. Размер 4/4.`));
+        s.events||=[];s.duration||=1;
+        if(s.events.some(e=>e.midi!==null&&!validFingering(e)))s.recommendedFingering=true;
+        s.events=s.events.map(e=>withFingering(d,e));
+        const total=s.events.reduce((n,e)=>n+e.beats,0);body().appendChild(node('p',`Заполнено ${total} из ${d.bars*4} долей. Размер 4/4.`));
+        if(s.recommendedFingering)body().appendChild(node('p','Для ранее сохранённых нот предложена аппликатура изученной позиции. Высоты и ритм сохранены.'));
         const editing=Number.isInteger(s.editIndex)&&!!s.events[s.editIndex];
         const duration=row();for(const value of [.5,1,2]){const b=button(duration,value===.5?'½ доли':`${value} ${value===1?'доля':'доли'}`,()=>{if(editing){if(total-s.events[s.editIndex].beats+value>d.bars*4){feedback('Эта длительность выходит за границу фразы. Сначала освободите место или выберите меньшую.');return;}s.events[s.editIndex].beats=value;s.checked=false;s.checks=[];}s.duration=value;redraw();});b.setAttribute('aria-pressed',String(s.duration===value));}
         const editStatus=node('p',editing?`Редактируется событие ${s.editIndex+1}: нажмите новую ноту или паузу. Остальная фраза сохранится.`:'Нажмите на событие в записи, чтобы заменить его без удаления остальных нот.');editStatus.className='course-edit-status';body().appendChild(editStatus);
-        function append(midi){if(editing){s.events[s.editIndex]={...s.events[s.editIndex],midi};s.editIndex=undefined;}else{if(total+s.duration>d.bars*4){feedback('Такты заполнены. Выберите событие в записи для замены или уберите последнее.');return;}s.events.push({midi,beats:s.duration});}s.checked=false;s.checks=[];redraw();}
+        function append(midi,position=null){if(editing){s.events[s.editIndex]=withFingering(d,{midi,beats:s.events[s.editIndex].beats,...(position||{})});s.editIndex=undefined;}else{if(total+s.duration>d.bars*4){feedback('Такты заполнены. Выберите событие в записи для замены или уберите последнее.');return;}s.events.push(withFingering(d,{midi,beats:s.duration,...(position||{})}));}s.checked=false;s.checks=[];redraw();}
         const notes=row();d.allowedMidi.forEach(n=>button(notes,`${pitch(n)}${Math.floor(n/12)-1}`,()=>append(n)));button(notes,'Пауза',()=>append(null));
-        if(d.points?.length)board(d.points,{onClick:p=>{if(d.allowedMidi.includes(p.midi)){append(p.midi);note(p);}else feedback('Выберите ноту из предложенного материала.');}});
+        if(d.points?.length)board(d.points,{onClick:p=>{if(d.allowedMidi.includes(p.midi)){append(p.midi,p);note(p);}else feedback('Выберите ноту из предложенного материала.');}});
         progressionView(d.progression||[]);
+        if(typeof CoursePracticePlayer!=='undefined'&&s.events.length){const tabs=node('div');tabs.className='course-compose-tabs';body().appendChild(tabs);tabView=CoursePracticePlayer.renderTab(tabs,s.events,{progression:d.progression||[],rootPc:d.rootPc||0,onSelect:i=>{s.editIndex=i;s.duration=s.events[i].beats;redraw();}});}
         const timeline=node('ol');timeline.className='course-phrase';let offset=0;s.events.forEach((e,i)=>{const segment=(d.progression||[]).find(c=>offset>=c.atBeat&&offset<c.atBeat+c.beats),item=node('li'),beat=offset%4+1;const edit=button(item,'',()=>{s.editIndex=i;s.duration=e.beats;redraw();});edit.className='course-edit-note';edit.setAttribute('aria-label',`Изменить событие ${i+1}, такт ${Math.floor(offset/4)+1}, доля ${beat}`);edit.append(node('small',`Такт ${Math.floor(offset/4)+1} · доля ${beat}${segment?' · '+segment.label:''}`),node('strong',`${e.midi===null?'Пауза':pitch(e.midi)}`),node('span',`${e.beats===.5?'½':e.beats} ${e.beats===1?'доля':'доли'}`));item.classList.toggle('is-editing',s.editIndex===i);if(offset%4===0)item.classList.add('bar-start');item.dataset.event=String(i);timeline.appendChild(item);offset+=e.beats;});body().appendChild(timeline);
         if(editing)button(row(),'Продолжить добавление',()=>{s.editIndex=undefined;redraw();});
         const actions=row();button(actions,'Убрать последнее',()=>{s.events.pop();s.editIndex=undefined;s.checked=false;s.checks=[];redraw();},!s.events.length);button(actions,'Очистить фразу',()=>{s.events=[];s.editIndex=undefined;s.checked=false;s.checks=[];redraw();},!s.events.length);
         button(actions,'▶ Фраза с сопровождением',()=>play({events:s.events,progression:(d.progression||[]).filter(c=>c.atBeat<total).map(c=>({...c,beats:Math.min(c.beats,total-c.atBeat)})),countIn:true}),!s.events.length);
         button(actions,'Скачать свою фразу (JSON)',exportProject,!s.events.length);
         checks(['Я пропел и сыграл свою фразу под сопровождение.','Я проверил пульс, паузы и окончание; при затруднении замедлил темп.']);
-        button(row(),'Проверить фразу',()=>{s.checked=true;const issue=validatePhrase(d,s.events);feedback(issue||'Фраза собрана. Подтвердите игру на гитаре после самопроверки.',!issue);update();});
+        button(row(),'Проверить фразу',()=>{s.checked=true;const issue=validatePhrase(d,s.events);feedback(issue||'Фраза собрана. Проверены ритмическая длина, состав и окончания. Развитие мотива и исполнение оцените при прослушивании.',!issue);update();});
+        const practiceId=m.id==='4'?'am':m.id==='3'||m.id==='8'?'cf':'melody';button(row(),'К практике с табами и сопровождением',()=>window.coursePractice?.open(practiceId));
       }
       if(!review&&!['practice','ear','learn'].includes(d.type)){const hint=node('details');hint.className='lesson-purpose';hint.appendChild(node('summary','Подсказка'));hint.appendChild(node('p',d.why||d.instruction));hint.ontoggle=()=>{if(hint.open){s.assisted=true;save();}};body().appendChild(hint);}
       update();
@@ -213,7 +229,7 @@ const CourseComplete=(()=>{
       const next=entries.find(m=>!m.optional&&!m.complete)||entries.at(-1),last=Content.modules.find(m=>m.id===state.module),inProgress=last&&!state.records[last.id]?.completedAt&&last.steps.some(d=>state.sessions[d.id]);
       el('courseResume').textContent=inProgress?`Вернуться к работе: блок ${last.id} · ${last.steps[state.index[last.id]||0].title}`:`Следующий основной блок: ${next.id} · ${next.title}`;el('courseResume').onclick=inProgress?()=>open(last.id):next.open;
       el('courseHomeNotice').hidden=!homeMessage;el('courseHomeNotice').textContent=homeMessage;
-      el('courseSummary').textContent=`Пройдено ${entries.filter(m=>!m.optional&&m.complete).length} из ${entries.filter(m=>!m.optional).length} основных блоков. Расположения и Drop 2 — дополнительная ветка.`;
+      el('courseSummary').textContent=`Пройдено ${entries.filter(m=>!m.optional&&m.complete).length} из ${entries.filter(m=>!m.optional).length} основных блоков. Семь ладов и Drop 2 — следующий уровень.`;
       for(const m of entries){const card=node('article');card.className='course-module-card'+(m===next?' route-current':'');const eyebrow=node('p',`Блок ${m.id}${m.optional?' · Дополнительно':''}${m.complete?' · Пройден':''}`);eyebrow.className='course-eyebrow';card.append(eyebrow,node('h2',m.title),node('p',m.outcome));if(m.sessions)card.appendChild(node('p',m.sessions));button(card,m.complete?'Повторить':'Открыть блок',m.open);
         if(m.steps){const details=node('details');details.appendChild(node('summary','Уроки и практика'));const links=node('div');links.className='course-step-list';m.steps.forEach((d,i)=>button(links,`${state.done[d.id]?'✓ ':''}${i+1}. ${d.title}`,()=>open(m.id,i)));details.appendChild(links);card.appendChild(details);}
         if(reviewDue(state.records[m.id])){const r=node('p','Проверьте, что осталось: пора повторить без подсказок.');card.appendChild(r);button(card,'Повторная проверка',()=>startReview(m));}cards.appendChild(card);
@@ -224,7 +240,7 @@ const CourseComplete=(()=>{
       if(practice>=0)tasks.push(practice);review=tasks.length?tasks:[m.steps.length-1];reviewIndex=0;for(const i of review)delete state.sessions[m.steps[i].id];open(m.id,null,true);
     }
     function open(id,index=null,keepReview=false){
-      const m=Content.modules.find(m=>m.id===String(id));if(!m)return;stop();if(!keepReview)review=null;state.module=m.id;if(Number.isInteger(index))state.index[m.id]=Math.max(0,Math.min(m.steps.length-1,index));
+      const m=Content.modules.find(m=>m.id===String(id));if(!m)return;stop();window.coursePractice?.stop();if(el('coursePracticeWork'))el('coursePracticeWork').hidden=true;if(!keepReview)review=null;state.module=m.id;if(Number.isInteger(index))state.index[m.id]=Math.max(0,Math.min(m.steps.length-1,index));
       el('tab-course').click();el('courseHome').hidden=true;el('courseWork').hidden=false;focusKey=null;render();el('courseStepTitle').focus({preventScroll:true});el('courseWork').scrollIntoView({block:'start'});
     }
     el('courseNext').onclick=()=>{
@@ -235,13 +251,13 @@ const CourseComplete=(()=>{
     };
     el('courseBack').onclick=()=>{if(review||!(state.index[module().id]>0))return;state.index[module().id]--;render();};
     el('courseRoute').onclick=()=>{stop();review=null;el('courseHome').hidden=false;el('courseWork').hidden=true;home();};
-    el('courseRetry').onclick=()=>{delete state.sessions[step().id];render();};el('courseStop').onclick=stop;el('courseTempo').onchange=e=>{tempo=Math.max(40,Math.min(120,Number(e.target.value)||80));e.target.value=tempo;stop();};
-    document.querySelectorAll('[role="tab"]').forEach(tab=>tab.addEventListener('click',()=>{stop();if(tab.id==='tab-course'){el('courseHome').hidden=false;el('courseWork').hidden=true;home();}}));
+    el('courseRetry').onclick=()=>{delete state.sessions[step().id];render();};el('courseStop').onclick=stop;el('courseTempo').onchange=e=>{tempo=Math.max(40,Math.min(120,Number(e.target.value)||80));e.target.value=tempo;session().tempo=tempo;stop();save();};
+    document.querySelectorAll('[role="tab"]').forEach(tab=>tab.addEventListener('click',()=>{stop();window.coursePractice?.stop();if(el('coursePracticeWork'))el('coursePracticeWork').hidden=true;if(tab.id==='tab-course'){el('courseHome').hidden=false;el('courseWork').hidden=true;home();}}));
     document.addEventListener('visibilitychange',()=>{if(document.hidden)stop();else home();});window.addEventListener('pagehide',stop);window.addEventListener('focus',()=>{if(!el('courseHome').hidden)home();});
     save();home();if(new URLSearchParams(location.search).get('course')==='all')el('tab-course').click();
     return {open,stop,getState:()=>structuredClone(state)};
   }
-  return {KEY,DAY,point,validateSelection,validatePhrase,validateSequence,drop2,cleanState,reviewDue,boot};
+  return {KEY,DAY,point,validFingering,withFingering,validateSelection,validatePhrase,validateSequence,drop2,cleanState,reviewDue,boot};
 })();
 if(typeof module!=='undefined'&&module.exports)module.exports=CourseComplete;
 else window.courseComplete=CourseComplete.boot();

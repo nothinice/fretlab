@@ -1,3 +1,22 @@
+## Instrument practice and rhythmic TAB — 2026-11-16
+
+- Four original studies: a C major melody, an eight-bar C → F study,
+  G7 → C resolution and an A minor phrase. Each has three 30-minute plans,
+  ear tasks, a constrained variation and independent instrument practice.
+- Twelve short drills connect chord tones through common notes, semitone
+  approaches, motif transposition, diatonic sequences and B → C / F → E.
+- Responsive six-string rhythmic TAB retains string/fret coordinates, rests,
+  durations, barlines and accompaniment labels. Existing phrase editors in
+  Block 2B and the complete course now also show TAB; old saves remain readable.
+- The practice player repeats selected bars on the audio clock, with count-in,
+  separate melody/backing/metronome controls and immediate cancellation.
+- Local practice records keep tempo, chosen bars, answers, variations and
+  self-reported instrument results; export JSON or print the current TAB.
+- Main course order now reaches the original project before the optional
+  seven-mode overview and Drop 2. Existing lesson IDs and progress are retained.
+- Screen validation is described separately from musical performance.
+  Public stable app and curated D-form coordinates are unchanged.
+
 ## Chord identifier review follow-up — 2026-11-15
 
 - Show the current name above the fretboard, with a sticky mobile result strip.
