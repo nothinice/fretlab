@@ -72,7 +72,7 @@ const CourseBlockTwo=(()=>{
     function at(p){return {boardId:'b2Board',index:(p.str-1)*(FRET_COUNT+1)+p.fret};}
     function note(p){stop();clicks.push(playMidi(p.midi,undefined,.85,.18,at(p)));}
     function play(events,{chord=null,countIn=false,positions=[],onend=null}={}){
-      stop();window.courseBlockOne?.stop();window.coursePractice?.stop();stopSequence();el('b2Stop').hidden=false;
+      stop();window.courseBlockOne?.stop();window.coursePractice?.stop();window.sandboxIdeas?.stop?.();window.courseReview?.stop();stopSequence();el('b2Stop').hidden=false;
       transport.play(events,{tempo,countIn,metronome:countIn,positions,
         accompaniment:chord?{notes:chord,mode:backing}:null,
         onframe:f=>{
@@ -317,7 +317,7 @@ const CourseBlockTwo=(()=>{
     el('b2Hint').onclick=()=>{const d=step(),s=session();s.assisted=true;save();const p=d.kind==='pack'?C.POSITION[s.round||0]:d.target;feedback(p?`Проверьте перенос: нужна струна ${p.str}, лад ${p.fret}.`:(d.kind==='chord'?`Нужны ${[0,d.quality==='min'?3:4,7].map(n=>pitch((d.root||0)+n)).join('–')}.`:d.kind==='select'?`Нужны ${d.points.length} точек: ${d.points.map(p=>p.key).join(', ')}.`:d.why||'Сравните последовательность со знакомой гаммой.'));};
     el('b2Stop').onclick=stop;
     el('b2Tempo').onchange=e=>{tempo=Math.max(40,Math.min(120,Number(e.target.value)||80));e.target.value=tempo;stop();};
-    document.querySelectorAll('[role="tab"]').forEach(tab=>tab.addEventListener('click',()=>{stop();if(tab.id==='tab-block2'){el('b2Overview').hidden=false;el('b2Work').hidden=true;overview();}}));
+    document.querySelectorAll('[role="tab"]').forEach(tab=>tab.addEventListener('click',()=>{stop();if(tab.id==='tab-block2'){el('b2Overview').hidden=false;el('b2Work').hidden=true;overview();}else if(tab.id==='tab-course')reminders();}));
     document.addEventListener('visibilitychange',()=>{if(document.hidden)stop();else reminders();});window.addEventListener('pagehide',stop);window.addEventListener('focus',reminders);
     save();overview();
     if(new URLSearchParams(location.search).get('block')==='2')el('tab-block2').click();

@@ -38,7 +38,7 @@ with sync_playwright() as p:
     def exam_next():
         button('К следующей части проверки').last.click()
 
-    page.locator('#tab-block2').click()
+    page.locator('#tab-course').click();page.locator('#courseModuleCards .course-module-card').nth(1).locator('button').first.click()
     expect(page.locator('#b2Statusa')).to_contain_text('0 из 13')
     expect(page.locator('#b2Statusb')).to_contain_text('0 из 16')
     page.locator('#b2Resumea').click()
@@ -68,7 +68,7 @@ with sync_playwright() as p:
     for string,fret in POSITION[:-1]:hit(string,fret)
     hit(6,9);button('Проверить').click();expect(page.locator('#b2Next')).to_be_disabled()
     # Invalid and incomplete work survives reload without becoming a passed task.
-    page.reload(wait_until='domcontentloaded');page.locator('#tab-block2').click();page.locator('#b2Resumea').click()
+    page.reload(wait_until='domcontentloaded');page.locator('#tab-course').click();page.locator('#courseModuleCards .course-module-card').nth(1).locator('button').first.click();page.locator('#b2Resumea').click()
     expect(page.locator('#b2Title')).to_have_text('Позиция без готового рисунка')
     expect(page.locator('#b2Next')).to_be_disabled()
     hit(6,9);hit(4,10);button('Проверить').click();next_step('Найдите и исправьте ошибку')
@@ -135,11 +135,11 @@ with sync_playwright() as p:
     assert page.evaluate('_b2Voices.filter(v=>v.peak===.045).length')==3
     page.wait_for_function("document.querySelectorAll('.b2-phrase .is-playing').length>0",timeout=12000)
     page.locator('#tab-sandbox').click();assert page.evaluate('_b2Voices.every(v=>v.stopped)')
-    page.locator('#tab-block2').click();page.locator('#b2Resumeb').click()
+    page.locator('#tab-course').click();page.locator('#courseModuleCards .course-module-card').nth(1).locator('button').first.click();page.locator('#b2Resumeb').click()
     checks();button('Проверить фразу').click();expect(page.locator('#b2Next')).to_be_enabled()
     page.locator('#b2TaskBody input[type=checkbox]').first.uncheck();expect(page.locator('#b2Next')).to_be_disabled()
     checks();button('Проверить фразу').click()
-    page.reload(wait_until='domcontentloaded');page.locator('#tab-block2').click();page.locator('#b2Resumeb').click()
+    page.reload(wait_until='domcontentloaded');page.locator('#tab-course').click();page.locator('#courseModuleCards .course-module-card').nth(1).locator('button').first.click();page.locator('#b2Resumeb').click()
     expect(page.locator('.b2-phrase li')).to_have_count(8)
     expect(page.locator('#b2Next')).to_be_enabled()
     next_step('Постройте G major по правилу')
@@ -164,8 +164,8 @@ with sync_playwright() as p:
     completed=saved['completedAt']['a']
     page.add_init_script(f'Date.now=()=>{completed+10*86400000};')
     page.reload(wait_until='domcontentloaded')
-    expect(page.locator('#blockOverview [data-b2-reviews]')).to_be_visible()
-    page.locator('#blockOverview').get_by_role('button',name='Проверить 2A',exact=True).click()
+    expect(page.locator('#courseHome [data-b2-reviews]')).to_be_visible()
+    page.locator('#courseHome').get_by_role('button',name='Проверить 2A',exact=True).click()
     expect(page.locator('#b2Crumb')).to_contain_text('Повторная проверка')
     for string,fret in POSITION:hit(string,fret)
     button('Проверить').click();exam_next()
@@ -183,7 +183,7 @@ with sync_playwright() as p:
         mobile=browser.new_page(viewport={'width':width,'height':844})
         mobile.on('pageerror',lambda e:errors.append(str(e)))
         mobile.goto(APP.as_uri(),wait_until='domcontentloaded')
-        mobile.locator('#tab-block2').click()
+        mobile.locator('#tab-course').click();mobile.locator('#courseModuleCards .course-module-card').nth(1).locator('button').first.click()
         mobile.screenshot(path=f'/tmp/fretlab-block2-overview-{width}.png',full_page=True)
         for part,index,name in [('a',8,'position'),('b',10,'chord'),('b',13,'composer')]:
             mobile.evaluate('([part,index])=>courseBlockTwo.open(part,index)',[part,index])
@@ -197,7 +197,7 @@ with sync_playwright() as p:
     # Storage denial must not prevent practising.
     denied=browser.new_page()
     denied.add_init_script("Storage.prototype.getItem=()=>{throw new Error('unavailable')};Storage.prototype.setItem=()=>{throw new Error('unavailable')}")
-    denied.goto(APP.as_uri(),wait_until='domcontentloaded');denied.locator('#tab-block2').click();denied.locator('#b2Resumea').click()
+    denied.goto(APP.as_uri(),wait_until='domcontentloaded');denied.locator('#tab-course').click();denied.locator('#courseModuleCards .course-module-card').nth(1).locator('button').first.click();denied.locator('#b2Resumea').click()
     expect(denied.locator('#b2Storage')).to_contain_text('недоступно')
     assert not errors,errors
     denied.close();browser.close()

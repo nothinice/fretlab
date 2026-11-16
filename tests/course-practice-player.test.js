@@ -115,3 +115,46 @@ test('failed and blocked AudioContext resume report a useful error and clear the
   const blocked=harness({state:'suspended',resume:()=>new Promise(()=>{})});const pending=blocked.player.play(phrase);await Promise.resolve();blocked.advance(3000);
   await assert.rejects(pending,/Браузер не запустил звук/);assert.equal(blocked.timers.size,0);assert.equal(blocked.player.isPlaying(),false);
 });
+
+test('tempo ladder changes by five only after two full cycles, caps at 120, and has no clock drift',async()=>{
+  const h=harness();await h.player.play(phrase,{tempo:60,countIn:false,loop:true,backing:false,tempoLadder:true});h.advance(24000);
+  const starts=h.notes.filter(n=>n.midi===48);
+  assert.ok(starts.length>=6);
+  let expected=.08;
+  starts.forEach((note,cycle)=>{near(note.when,expected);const bpm=Math.min(120,60+5*Math.floor(cycle/2));near(note.duration,60/bpm);expected+=4*60/bpm;});
+  assert.ok(h.frames.some(f=>f.cycle===2&&f.tempo===65));
+  for(const cycle of [0,1,2,5,25,26,10000]){const t=p.cycleTiming(4,60,cycle,true);assert.equal(t.tempo,Math.min(120,60+5*Math.floor(cycle/2)));const found=p.locateCycle(4,60,t.offset+.01,true);assert.equal(found.cycle,cycle);near(found.position,.01/t.beatSeconds);}
+  const before=h.notes.length;h.player.stop();h.advance(30000);assert.equal(h.notes.length,before);assert.equal(h.timers.size,0);
+});
+
+test('tempo ladder recovers after delayed clock without queuing stale cycles',async()=>{
+  const h=harness();await h.player.play(phrase,{tempo:40,countIn:false,loop:true,backing:false,tempoLadder:true});
+  h.jump(600000);h.tick();assert.ok(h.notes.length<=3);assert.equal(h.frames.at(-1).tempo,120);assert.ok(h.frames.at(-1).cycle>200);h.player.stop();
+});
+
+test('call and response leaves the learner half empty while backing continues',async()=>{
+  const events=[...phrase,...phrase,{midi:null,beats:4},{midi:null,beats:4}];
+  const progression=Array.from({length:4},(_,i)=>({atBeat:i*4,beats:4,notes:[48,52,55],label:'C'}));
+  const h=harness();const plan=await h.player.play(events,{tempo:120,countIn:false,loop:true,progression});h.advance(8000);
+  const melody=h.notes.filter(n=>n.peak===.17&&n.when<plan.musicStart+8);
+  assert.equal(melody.length,8);assert.ok(melody.every(n=>n.when<plan.musicStart+4));
+  assert.equal(h.notes.filter(n=>n.peak===.04&&n.when>=plan.musicStart+4&&n.when<plan.musicStart+8).length,6);
+  assert.ok(h.frames.some(f=>f.bar===3&&f.index===-1));assert.ok(h.frames.some(f=>f.bar===4&&f.index===-1));h.player.stop();
+});
+
+const practice=require('../course-practice.js');
+test('local recorder handles denial and a late permission grant after navigation',async()=>{
+  class Recorder{};const denied=practice.createLocalRecorder({Recorder,mediaDevices:{getUserMedia:async()=>{throw Error('denied');}}});
+  assert.equal(await denied.start(),false);assert.equal(denied.getState().status,'error');assert.match(denied.getState().error,/Доступ/);
+  let grant,stopped=0;const pending=practice.createLocalRecorder({Recorder,mediaDevices:{getUserMedia:()=>new Promise(resolve=>{grant=resolve;})}});
+  const result=pending.start();pending.stop();grant({getTracks:()=>[{stop:()=>stopped++}]});assert.equal(await result,false);assert.equal(stopped,1);assert.equal(pending.getState().status,'idle');
+});
+
+test('local recording remains unsaved until explicit download and always releases tracks',async()=>{
+  let stopped=0,revoked=[];
+  class Recorder{constructor(){this.state='inactive';this.mimeType='audio/webm';}start(){this.state='recording';}stop(){this.state='inactive';this.ondataavailable({data:new Blob(['take'],{type:this.mimeType})});this.onstop();}}
+  const recorder=practice.createLocalRecorder({Recorder,mediaDevices:{getUserMedia:async()=>({getTracks:()=>[{stop:()=>stopped++}]})},urlApi:{createObjectURL:()=> 'blob:take',revokeObjectURL:url=>revoked.push(url)}});
+  assert.equal(await recorder.start('C → F'),true);assert.equal(recorder.getState().status,'recording');recorder.stop();
+  assert.equal(stopped,1);assert.equal(recorder.getState().status,'ready');assert.equal(recorder.getState().downloaded,false);assert.equal(recorder.getState().blob.size,4);
+  assert.equal(await recorder.start(),false,'must not overwrite an unsaved take');recorder.markDownloaded();assert.equal(recorder.getState().downloaded,true);recorder.destroy();assert.deepEqual(revoked,['blob:take']);assert.equal(recorder.getState().blob,null);
+});

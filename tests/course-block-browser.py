@@ -11,13 +11,15 @@ with sync_playwright() as p:
     page = browser.new_page(viewport={'width': 1366, 'height': 768})
     errors = []
     page.on('pageerror', lambda e: errors.append(str(e)))
-    page.goto(APP.as_uri())
+    page.goto(APP.as_uri(), wait_until='domcontentloaded')
+    page.locator('#tab-course').click()
+    page.locator('#courseModuleCards .course-module-card').nth(0).locator('button').first.click()
     page.wait_for_selector('#blockActivities article')
     assert page.locator('#blockActivities article').count() == 10
     page.evaluate('window._notes=[]; const originalPlay=playMidi; playMidi=(...args)=>{window._notes.push(args);return originalPlay(...args)}')
 
     def activity(index):
-        page.locator('#tab-block').click()
+        page.locator('#tab-course').click();page.locator('#courseModuleCards .course-module-card').nth(0).locator('button').first.click()
         if page.locator('#blockClose').is_visible():
             page.locator('#blockClose').click()
         page.locator('#blockActivities article').nth(index).get_by_role('button').click()
@@ -186,7 +188,7 @@ with sync_playwright() as p:
     expect(page.locator('#blockNextLesson')).to_be_enabled()
     page.evaluate('scrollTo(0,0)')
     page.screenshot(path='/tmp/fretlab-block1-desktop.png', full_page=True)
-    page.reload()
+    page.reload(wait_until='domcontentloaded')
     assert 'Выполнено 10 из 10' in page.locator('#blockSummary').inner_text()
     activity(8)
     assert page.locator('.phrase-timeline li').count() == 7
@@ -195,7 +197,9 @@ with sync_playwright() as p:
     # A separate mobile context; no forced rotation and no page-level overflow.
     mobile = browser.new_page(viewport={'width':390,'height':844}, is_mobile=True, has_touch=True)
     mobile.on('pageerror', lambda e: errors.append(str(e)))
-    mobile.goto(APP.as_uri())
+    mobile.goto(APP.as_uri(), wait_until='domcontentloaded')
+    mobile.locator('#tab-course').click()
+    mobile.locator('#courseModuleCards .course-module-card').nth(0).locator('button').first.click()
     mobile.wait_for_selector('#blockActivities article')
     assert mobile.evaluate('document.documentElement.scrollWidth <= innerWidth+1')
     assert mobile.locator('.v2-topbar').bounding_box()['height'] <= 65
@@ -229,7 +233,9 @@ with sync_playwright() as p:
     mobile.screenshot(path='/tmp/fretlab-block1-mobile-exercise.png',full_page=True)
     fallback=browser.new_page()
     fallback.add_init_script("Object.defineProperty(window,'localStorage',{get(){throw new Error('blocked')}})")
-    fallback.goto(APP.as_uri())
+    fallback.goto(APP.as_uri(), wait_until='domcontentloaded')
+    fallback.locator('#tab-course').click()
+    fallback.locator('#courseModuleCards .course-module-card').nth(0).locator('button').first.click()
     assert 'недоступно' in fallback.locator('#blockStorage').inner_text()
     fallback.locator('#blockActivities article').nth(3).get_by_role('button').click()
     assert fallback.locator('#blockWorkspace').is_visible()

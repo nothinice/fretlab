@@ -123,7 +123,7 @@ with sync_playwright() as p:
                 page.locator('#courseStop').click();assert page.evaluate('_completeVoices.every(v=>v.stopped)')
                 tested['stop']=True
             if not tested['export']:
-                with page.expect_download() as download_info:button('Скачать свою фразу (JSON)').click()
+                with page.expect_download() as download_info:button('Сохранить фразу в файл').click()
                 project=json.loads(Path(download_info.value.path()).read_text())
                 assert project['format']=='fretlab-own-phrase-v1'
                 assert sum(e['beats'] for e in project['events'])==total

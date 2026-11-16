@@ -1,3 +1,21 @@
+## Playable course review and sandbox experiments — 2026-11-16
+
+- Add three original studies: C–D–E for the first block, a complete twelve-bar
+  A blues, and a D Dorian melody. Link practical material from course lessons.
+- Add two-bar call / two-bar response with continuous accompaniment, counted
+  right-hand patterns and chord diagrams; optional +5 BPM after two full loops.
+- Support explicit local microphone recording, playback, download and deletion.
+  Stop microphone tracks on leaving; do not infer performance quality.
+- Show all seven C major triads, explain G7, and play progressions connecting
+  C/F with G and Am before the optional ii–V–I material.
+- Give the project a complete eight-bar or twelve-bar guitar performance;
+  preserve the four-bar composer as a draft and keep existing progress IDs.
+- Unify course navigation, allow preview without marking a step complete,
+  keep lesson controls nearby, and show blues in three rows of four bars.
+- Add four reversible sandbox experiments with chord-change previews, sound
+  comparisons and TAB on the existing fretboard. Preserve saved notes and Undo.
+- Document competitor findings, verification limits and a teacher review route.
+
 ## Instrument practice and rhythmic TAB — 2026-11-16
 
 - Four original studies: a C major melody, an eight-bar C → F study,

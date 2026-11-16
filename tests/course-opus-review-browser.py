@@ -41,7 +41,7 @@ with sync_playwright() as p:
   page.reload(wait_until='domcontentloaded');expect(page.locator('.sound-welcome')).to_be_hidden();expect(page.locator('#blockResume')).to_contain_text('Дальше: Блок 2')
   page.locator('#blockResume').click();expect(page.locator('#b2Crumb')).to_contain_text('Блок 2A')
   expect(page.locator('#b2Title')).to_have_text('Восстановите C major')
-  page.locator('#tab-block').click();expect(page.locator('#blockResume')).to_contain_text('Дальше: Блок 2')
+  page.locator('#tab-course').click();page.locator('#courseModuleCards .course-module-card').nth(0).locator('button').first.click();expect(page.locator('#blockResume')).to_contain_text('Дальше: Блок 2')
   assert page.evaluate('document.documentElement.scrollWidth<=innerWidth+1');assert not errors,errors;page.close()
  browser.close()
 print('OK: review feedback, completion priority and Block 2 return, light/dark contrast >=4.5, touch targets, 390/1280')

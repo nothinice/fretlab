@@ -11,7 +11,7 @@ with sync_playwright() as p:
   page.on('pageerror',lambda e:errors.append(str(e)))
   page.goto(APP.as_uri());page.wait_for_selector('#blockActivities article')
   def activity(i):
-   page.locator('#tab-block').click();page.locator('#blockActivities article').nth(i).get_by_role('button').click()
+   page.locator('#tab-course').click();page.locator('#courseModuleCards .course-module-card').nth(0).locator('button').first.click();page.locator('#blockActivities article').nth(i).get_by_role('button').click()
   def shot(name):
    page.evaluate('scrollTo(0,0)');page.screenshot(path=f'/tmp/fretlab-{name}-{width}.png',full_page=True)
   expect(page.locator('#blockResume')).to_have_text('Начать курс')

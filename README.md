@@ -34,11 +34,21 @@ app is available at
 - `course/COURSE_PROTOTYPE_PLAN.txt` — pre-implementation plan, literature basis,
   competitor comparison and agreed scope of the first complete prototype.
 - `course-practice.js`, `course-practice-content.js`, `course-practice-player.js`
-  and `course-practice.css` — four original instrument studies, rhythmic TAB,
-  selected-bar loops, accompaniment-only practice, ear tasks and constrained
-  variations. Open `?practice=cf` (or `melody`, `cadence`, `am`). Plans, tempo,
-  fingering and self-reported results stay in this browser; work exports to JSON
-  and TAB prints to PDF. See `course/PRACTICE_REVIEW_FOR_CLAUDE.txt`.
+  and `course-practice.css` — seven original instrument studies, rhythmic TAB,
+  selected-bar loops, accompaniment, call and response, right-hand patterns,
+  ear tasks and constrained variations. Open `?practice=cf` (or `starter`,
+  `melody`, `cadence`, `am`, `blues`, `dorian`); add `&stage=call` or `&stage=rhythm`.
+  Optional tempo steps and local recording support practice; recordings must be
+  downloaded before closing. No microphone-based performance grading is claimed.
+  Plans and self-reported results stay in this browser; work exports to JSON
+  and TAB prints to PDF. See `course/REVIEW_TOMORROW_2026-11-16.txt`.
+- `course-review-support.js` and `.css` — seven diatonic triads, G7, sounding
+  progressions and return to the current lesson; a single visible course tab.
+- `sandbox-ideas.js` and `.css` — four musical experiments on the existing free
+  fretboard: chord quality, C → F, one phrase over two chords, and a sequence.
+  Closing an experiment restores the user's previous fretboard and Undo state.
+- `course/COMPETITOR_IDEAS_2026-11-16.txt` and `course/research/` — sourced research
+  on similar products, limits of verification, and selected independent ideas.
 - `TASKS.md` — agreed priorities and review criteria for the next iteration.
 - `CHANGELOG.md` — concise history of delivered versions.
 
@@ -81,6 +91,9 @@ Run `node tests/course-practice-content.test.js`,
 variation contracts, loop scheduling/cancellation and old-save compatibility.
 `tests/course-practice-browser.py` exercises the integrated practice workflow
 with Python Playwright; `FRETLAB_PREVIEW_PATH` can select a portable build.
+`tests/course-practice-enhanced-browser.py`, `tests/sandbox-ideas-browser.py`
+and `tests/course-review-readiness-browser.py` cover the new practice modes,
+recorder lifecycle, reversible experiments and complete-course integration.
 
 ## Roadmap
 

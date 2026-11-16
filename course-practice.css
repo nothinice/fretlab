@@ -54,6 +54,26 @@
 #coursePracticeWork .practice-verified { padding: 12px 14px; color: var(--teal); border: 1px solid var(--teal); border-radius: 7px; }
 #coursePracticeWork .practice-journal > label { margin: 12px 0; }
 #coursePracticeWork .practice-export { padding-top: 8px; border-top: 1px solid var(--border); }
+#coursePracticeWork .practice-call-phase { padding: 16px; border: 2px solid var(--teal); border-radius: 8px; background: var(--panel); font-size: 18px; font-weight: 600; }
+#coursePracticeWork .practice-call-phase[data-phase="learner"] { border-color: var(--brass); background: var(--warn-bg,#f4e8cf); }
+#coursePracticeWork .practice-form { margin: 20px 0; }
+#coursePracticeWork .practice-form h3 { margin: 8px 0; font-size: 17px; }
+#coursePracticeWork .practice-form-grid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 6px; }
+#coursePracticeWork .practice-form-bar { display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 8px 4px; min-width: 0; }
+#coursePracticeWork .practice-form-bar small { font-size: 11px; color: var(--muted); }
+#coursePracticeWork .practice-form-bar.is-current { background: var(--teal); color: var(--panel); }
+#coursePracticeWork .practice-form-bar.is-current small { color: inherit; }
+#coursePracticeWork .practice-chord-diagrams { display: flex; flex-wrap: wrap; gap: 12px; margin: 18px 0 0; }
+#coursePracticeWork .practice-chord-diagram { width: 145px; max-width: 46%; color: var(--ink); background: var(--panel); border: 1px solid var(--border); border-radius: 8px; }
+#coursePracticeWork .practice-strum-bar { border: 1px solid var(--border); border-radius: 8px; background: var(--panel); margin: 12px 0; padding: 8px 12px; }
+#coursePracticeWork .practice-strum-bar p { margin: 0 0 8px; font-weight: 600; }
+#coursePracticeWork .practice-strum-counts { display: grid; grid-template-columns: repeat(8,minmax(0,1fr)); gap: 2px; }
+#coursePracticeWork .practice-stroke { display: flex; flex-direction: column; align-items: center; padding: 6px 1px; border-radius: 5px; }
+#coursePracticeWork .practice-stroke strong { font-size: 27px; line-height: 1.2; }
+#coursePracticeWork .practice-stroke.is-current { background: var(--teal); color: var(--panel); }
+#coursePracticeWork .practice-recorder { margin: 18px 0; padding: 0 16px 12px; border: 1px solid var(--border); border-radius: 9px; background: var(--panel); }
+#coursePracticeWork .practice-recorder audio { width: 100%; max-width: 520px; }
+#coursePracticeWork .practice-record-status { padding: 12px; border-left: 3px solid var(--brass); font-size: 14px; }
 @media (max-width: 700px) {
   #coursePracticeWork .practice-purpose { font-size: 15px; }
   #coursePracticeWork .practice-stages { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 6px; }
@@ -76,5 +96,7 @@
   body.practice-print #panel-course,body.practice-print #coursePracticeWork { display: block !important; margin: 0; padding: 0; max-width: none; }
   body.practice-print #coursePracticeWork .practice-tab { break-inside: auto; }
   body.practice-print #coursePracticeWork .practice-tab-bar { break-inside: avoid; }
+  body.practice-print #coursePracticeWork .practice-workspace > :is(.practice-chord-diagrams,.practice-strum,.practice-rhythm-help,.practice-form,.practice-call-phase) { display: block !important; }
+  body.practice-print #coursePracticeWork .practice-chord-diagrams { display: flex !important; }
   body.practice-print #coursePracticeWork { color: #111; --ink:#111; --muted:#444; --panel:#fff; --teal:#111; }
 }

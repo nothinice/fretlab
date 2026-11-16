@@ -290,9 +290,9 @@
 <div class="v2-topbar">
   <div class="v2-brand">FretLab</div>
   <nav class="v2-tabs" role="tablist" aria-label="Разделы">
-    <button class="v2-tab-btn" id="tab-course" role="tab" aria-selected="false" aria-controls="panel-course" tabindex="-1">Весь курс</button>
-    <button class="v2-tab-btn" id="tab-block" role="tab" aria-selected="true" aria-controls="panel-block" tabindex="0">Блок 1</button>
-    <button class="v2-tab-btn" id="tab-block2" role="tab" aria-selected="false" aria-controls="panel-block2" tabindex="-1">Блок 2</button>
+    <button class="v2-tab-btn" id="tab-course" role="tab" aria-selected="true" aria-controls="panel-course" tabindex="0">Курс</button>
+    <button class="v2-tab-btn" id="tab-block" role="tab" aria-selected="false" aria-controls="panel-block" tabindex="-1" hidden>Блок 1</button>
+    <button class="v2-tab-btn" id="tab-block2" role="tab" aria-selected="false" aria-controls="panel-block2" tabindex="-1" hidden>Блок 2</button>
     <button class="v2-tab-btn" id="tab-sandbox" role="tab" aria-selected="false" aria-controls="panel-sandbox" tabindex="-1">Гриф</button>
     <button class="v2-tab-btn" id="tab-learn" role="tab" aria-selected="false" aria-controls="panel-learn" tabindex="-1">Формы</button>
     <button class="v2-tab-btn" id="tab-explore" role="tab" aria-selected="false" aria-controls="panel-explore" tabindex="-1">Теория</button>
@@ -300,7 +300,7 @@
   <button type="button" id="tabsMore" class="play-btn tabs-more" aria-label="Прокрутить разделы вправо" hidden>→</button>
 </div>
 
-<section id="panel-course" role="tabpanel" aria-labelledby="tab-course">
+<section id="panel-course" role="tabpanel" aria-labelledby="tab-course" class="v2-active">
   <div class="v2-wrap course-complete-wrap">
     <div id="courseHome">
       <p class="course-eyebrow">FretLab · Гриф, гармония и импровизация</p>
@@ -308,13 +308,15 @@
       <p class="lesson-copy">Поймите, откуда берутся гаммы и аккорды, научитесь видеть их на грифе и применять в своих фразах. Сначала услышите, затем постройте, сыграйте и проверьте без подсказок.</p>
       <p id="courseSummary" tabindex="-1" role="status"></p>
       <p id="courseHomeNotice" class="sandbox-readout" role="status" hidden></p>
+      <div class="b2-reminders" data-b2-reviews hidden role="region" aria-label="Повторение пройденного"></div>
       <p><button type="button" class="play-btn primary-btn" id="courseResume">Продолжить курс</button></p>
       <section class="course-practice-entry" aria-labelledby="practiceEntryTitle">
-        <p class="course-eyebrow">Практика с гитарой · после знакомства со ступенями и трезвучием</p>
+        <p class="course-eyebrow">Практика с гитарой · от первых трёх нот до своего соло</p>
         <h2 id="practiceEntryTitle">От рисунка на грифе — к звучащей фразе</h2>
-        <p>Четыре учебные миниатюры: табы с ритмом, повтор тактов, подбор на слух и свои окончания. Начните с C → F; рабочий темп и результаты сохранятся.</p>
-        <div class="sandbox-controls"><button type="button" class="play-btn primary-btn" id="coursePracticeLaunch" data-practice-open="cf">Играть C → F</button><button type="button" class="play-btn" data-practice-open="melody">Мелодия в C</button><button type="button" class="play-btn" data-practice-open="cadence">G7 → C</button><button type="button" class="play-btn" data-practice-open="am">A minor</button></div>
+        <p>Миниатюры с табами, вопрос–ответ, ритм аккордов и свой дубль. Выберите материал своего блока: от трёх нот до целого квадрата блюза.</p>
+        <div class="sandbox-controls"><button type="button" class="play-btn" data-practice-open="starter">Три ноты · блок 1</button><button type="button" class="play-btn" data-practice-open="melody">Позиция · блок 2</button><button type="button" class="play-btn primary-btn" id="coursePracticeLaunch" data-practice-open="cf">Играть C → F</button><button type="button" class="play-btn" data-practice-open="cadence">G7 → C</button><button type="button" class="play-btn" data-practice-open="am">A minor</button><button type="button" class="play-btn" data-practice-open="blues">12 тактов блюза</button></div>
       </section>
+      <details id="courseHarmonyDetails" class="block-plan"><summary>Аккорды всей гаммы: C, Dm, Em, F, G, Am, Bdim</summary><div id="courseHarmony"></div></details>
       <details class="block-plan"><summary>Перед началом: что понадобится</summary><p>Гитара в стандартном строе и возможность извлекать отдельные звуки. На занятие закладывайте 30–60 минут; часть времени обязательно играйте на инструменте. Ориентиры по занятиям — рекомендация, а не срок освоения.</p><div class="sandbox-controls"><button type="button" class="play-btn" data-course-help="setup">Подготовить гитару</button><button type="button" class="play-btn" data-course-help="sound">Проверить звук</button><button type="button" class="play-btn" data-course-help="terms">Термины</button></div></details>
       <div id="courseModuleCards" class="course-module-grid"></div>
       <p class="hint">Основной маршрут: основы → аккорды → минор → мотив и ритм → своя музыка. Обзор семи ладов и Drop 2 — следующий уровень. После прохождения возвращайтесь к самостоятельным заданиям через 3–7 дней.</p>
@@ -330,7 +332,7 @@
           <p id="courseStepFeedback" class="sandbox-readout" hidden role="status" aria-live="polite"></p>
           <div class="sandbox-controls"><button type="button" class="play-btn" id="courseStop" hidden>■ Стоп</button><span id="courseAudioStatus" role="status" aria-live="off"></span></div>
           <details class="audio-options"><summary>Темп и повторение</summary><label>Темп (уд/мин) <input type="number" id="courseTempo" min="40" max="120" value="80"></label><button type="button" class="play-btn text-btn" id="courseRetry">Новая попытка текущего задания</button></details>
-          <nav class="sandbox-controls course-navigation" aria-label="Шаги курса"><button type="button" class="play-btn text-btn" id="courseBack">← Назад</button><div class="lesson-next-action"><button type="button" class="play-btn primary-btn" id="courseNext" aria-describedby="courseNextHelp">Дальше →</button><p id="courseNextHelp" role="status"></p></div></nav>
+          <nav class="sandbox-controls course-navigation" aria-label="Шаги курса"><button type="button" class="play-btn text-btn" id="courseBack">← Назад</button><div class="lesson-next-action"><button type="button" class="play-btn primary-btn" id="courseNext" aria-describedby="courseNextHelp">Дальше →</button><p id="courseNextHelp" role="status"></p></div><button type="button" class="play-btn text-btn" id="coursePreview" title="Открыть следующий шаг, не отмечая этот выполненным">Посмотреть дальше</button></nav>
         </div>
       </div>
     </section>
@@ -339,7 +341,7 @@
     <p class="hint">Экранные ответы проверяет приложение. Игру, пение, чистоту звука и музыкальный результат вы оцениваете сами или с преподавателем.</p>
   </div>
 </section>
-<section id="panel-block" role="tabpanel" aria-labelledby="tab-block" class="v2-active">
+<section id="panel-block" role="tabpanel" aria-labelledby="tab-block">
   <div class="course-helpbar v2-wrap"><button type="button" class="play-btn text-btn" data-course-help="sound">Звук</button><button type="button" class="play-btn text-btn" data-course-help="terms">Термины и гриф</button><button type="button" class="play-btn text-btn" data-course-help="setup">Подготовить гитару</button></div>
   <div class="v2-wrap block-wrap" id="blockRoute">
     <div id="blockOverview">
@@ -359,6 +361,7 @@
       <p>Ориентир на занятие: 5 минут повторения, 5 минут объяснения, 10 минут игры, 5 минут слуха/ритма и 5 минут своей музыки. Двигайтесь в удобном темпе и возвращайтесь к трудным заданиям.</p>
     </details>
     <details class="block-plan"><summary>Как это работает</summary><p>Ответы на экране проверяет приложение. Игра и пение — ваша самопроверка или работа с преподавателем.</p><p id="blockStorage" class="hint"></p></details>
+    <p><button type="button" class="play-btn" data-practice-open="starter">Сыграть этюд из трёх нот</button></p>
     <p><button type="button" class="play-btn text-btn" id="blockNextLesson">Дальше: Блок 2 · Ступени и позиция →</button></p>
     </div>
     <section id="blockWorkspace" class="block-workspace" aria-labelledby="blockTaskTitle" hidden>
@@ -485,6 +488,7 @@
     <p class="hint" id="sandboxHelp">Отмечайте любые ноты на всех шести струнах. С клавиатуры: Tab — вход на гриф, стрелки — выбор лада и струны, Enter — нота.</p>
     <div id="chordStrings" aria-label="Открытые и заглушённые струны"></div>
     <div id="chordQuickResult" hidden><span>Аккорд</span><strong id="chordQuickName" aria-live="polite" aria-atomic="true">Выберите ноты</strong></div>
+    <div id="sandboxIdeas"></div>
     <div class="board-outer"><div class="board" id="sandboxBoard" aria-label="Интерактивный гриф, первая струна сверху"></div></div>
     <div class="sandbox-readout" id="sandboxReadout" role="status" aria-live="polite"></div>
     <section id="chordPanel" aria-labelledby="chordStatus">
@@ -2771,14 +2775,14 @@ function v2InitTabs(){
     stopSequence();
     tabs.forEach(t=>{
       const isActive = t===tab;
-      const selected = isActive;
+      const selected = isActive || (t.id==='tab-course' && ['tab-block','tab-block2'].includes(tab.id));
       t.setAttribute('aria-selected', selected?'true':'false');
-      t.tabIndex = selected ? 0 : -1;
+      t.tabIndex = selected && !t.hidden ? 0 : -1;
       document.getElementById('panel-'+t.id.slice(4)).classList.toggle('v2-active', isActive);
     });
-    tab.focus();
+    (tab.hidden?document.getElementById('tab-course'):tab).focus();
   }
-  const visibleTabs=tabs;
+  const visibleTabs=tabs.filter(t=>!t.hidden);
   tabs.forEach(tab=>{
     const i=visibleTabs.indexOf(tab);
     tab.addEventListener('click', ()=>activate(tab));
@@ -2841,6 +2845,8 @@ v2Init();
 <link rel="stylesheet" href="course-complete-design.css">
 <link rel="stylesheet" href="chord-identifier.css">
 <link rel="stylesheet" href="course-practice.css">
+<link rel="stylesheet" href="course-review-support.css">
+<link rel="stylesheet" href="sandbox-ideas.css">
 <script src="chord-identifier.js"></script>
 <script src="course-sandbox.js"></script>
 <script src="course-lessons-content.js"></script>
@@ -2857,5 +2863,7 @@ v2Init();
 <script src="course-complete.js"></script>
 <script src="course-help.js"></script>
 <script src="course-practice.js"></script>
+<script src="course-review-support.js"></script>
+<script src="sandbox-ideas.js"></script>
 </body>
 </html>

@@ -83,7 +83,7 @@ const CourseComplete=(()=>{
     function stop(){transport.stop();clicks.forEach(v=>{try{v?.stop();}catch{}});clicks=[];el('courseStop').hidden=true;el('courseAudioStatus').textContent='';body().querySelectorAll('.is-playing').forEach(n=>n.classList.remove('is-playing'));}
     const at=p=>({boardId:'courseBoard',index:(p.str-1)*(FRET_COUNT+1)+p.fret});
     function play(audio,onend=null){
-      stop();window.courseBlockOne?.stop();window.courseBlockTwo?.stop();window.coursePractice?.stop();stopSequence();el('courseStop').hidden=false;
+      stop();window.courseBlockOne?.stop();window.courseBlockTwo?.stop();window.coursePractice?.stop();window.sandboxIdeas?.stop?.();window.courseReview?.stop();stopSequence();el('courseStop').hidden=false;
       const points=step().points||[];
       transport.play(audio.events,{tempo,countIn:audio.countIn===true,metronome:audio.countIn===true,progression:audio.progression||[],positions:audio.events.map(e=>{const p=validFingering(e)?e:points.find(p=>p.midi===e.midi);return p?at(p):null;}),onframe:f=>{
         tabView?.highlight(f.index??-1);
@@ -129,13 +129,13 @@ const CourseComplete=(()=>{
       else if(d.type==='learn')reason='Послушайте пример перед продолжением.';
       else if(d.type==='ear')reason='Прослушайте примеры и ответьте на вопросы.';
       else reason='Выполните задание перед переходом дальше.';
-    }el('courseNextHelp').textContent=reason;save();}
+    }el('courseNextHelp').textContent=reason;if(el('coursePreview'))el('coursePreview').hidden=!!review||(state.index[module().id]||0)>=module().steps.length-1;save();}
     function checks(labels){const s=session();s.checks||=[];labels.forEach((text,i)=>{const label=node('label');label.className='lesson-practice';const check=node('input');check.type='checkbox';check.checked=!!s.checks[i];check.onchange=()=>{s.checks[i]=check.checked;update();};label.append(check,node('span',text));body().appendChild(label);});}
     function exportProject(){
       const d=step(),s=session(),data={format:'fretlab-own-phrase-v1',module:module().id,step:d.id,tempo,events:s.events,progression:d.progression||[],savedAt:new Date().toISOString()};
       const url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));const a=node('a');a.href=url;a.download=`fretlab-my-phrase-${module().id}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
     }
-    function progressionView(segments){const diagram=node('div');diagram.className='course-progression';segments.forEach((c,i)=>{const chip=node('span',`${c.label||'Аккорд'} · ${c.beats/4} такт`);chip.dataset.chord=String(i);diagram.appendChild(chip);});body().appendChild(diagram);}
+    function progressionView(segments){const diagram=node('div');diagram.className='course-progression'+(segments.length===12?' twelve-bar-form':'');segments.forEach((c,i)=>{const chip=node('span',`${i+1}. ${c.label||'Аккорд'} · ${c.beats/4} такт`);chip.dataset.chord=String(i);diagram.appendChild(chip);});body().appendChild(diagram);}
     function render(){
       stop();tabView?.destroy();tabView=null;const m=module(),d=step(),s=session(),index=review?reviewIndex:state.index[m.id]||0,total=review?review.length:m.steps.length;
       tempo=s.tempo||80;el('courseTempo').value=tempo;
@@ -212,11 +212,30 @@ const CourseComplete=(()=>{
         if(editing)button(row(),'Продолжить добавление',()=>{s.editIndex=undefined;redraw();});
         const actions=row();button(actions,'Убрать последнее',()=>{s.events.pop();s.editIndex=undefined;s.checked=false;s.checks=[];redraw();},!s.events.length);button(actions,'Очистить фразу',()=>{s.events=[];s.editIndex=undefined;s.checked=false;s.checks=[];redraw();},!s.events.length);
         button(actions,'▶ Фраза с сопровождением',()=>play({events:s.events,progression:(d.progression||[]).filter(c=>c.atBeat<total).map(c=>({...c,beats:Math.min(c.beats,total-c.atBeat)})),countIn:true}),!s.events.length);
-        button(actions,'Скачать свою фразу (JSON)',exportProject,!s.events.length);
+        button(actions,'Сохранить фразу в файл',exportProject,!s.events.length);
         checks(['Я пропел и сыграл свою фразу под сопровождение.','Я проверил пульс, паузы и окончание; при затруднении замедлил темп.']);
         button(row(),'Проверить фразу',()=>{s.checked=true;const issue=validatePhrase(d,s.events);feedback(issue||'Фраза собрана. Проверены ритмическая длина, состав и окончания. Развитие мотива и исполнение оцените при прослушивании.',!issue);update();});
-        const practiceId=m.id==='4'?'am':m.id==='3'||m.id==='8'?'cf':'melody';button(row(),'К практике с табами и сопровождением',()=>window.coursePractice?.open(practiceId));
+        const practiceId=m.id==='4'?'am':m.id==='6'?'blues':m.id==='3'||m.id==='8'?'cf':'melody';button(row(),'К практике с табами и сопровождением',()=>window.coursePractice?.open(practiceId));
       }
+      if(d.type==='practice'){
+        const practiceId=({'3':'cf','4':'am','5':'dorian','6':'blues','8':'cf'})[m.id];
+        if(practiceId){const material=node('section');material.className='course-play-material';material.appendChild(node('h2',m.id==='8'?'Финальное исполнение':'Материал для игры'));
+          material.appendChild(node('p',m.id==='8'?'Сыграйте восемь тактов C → F или целый квадрат блюза. Сначала образец, затем свой ответ; запишите один цельный дубль.':'Откройте этюд своего блока: табы, сопровождение и короткие задания для настоящей гитары.'));
+          button(material,m.id==='6'?'Играть 12 тактов блюза':m.id==='8'?'Играть 8 тактов C → F':'Открыть этюд',()=>window.coursePractice?.open(practiceId));
+          button(material,'Вопрос–ответ с приложением',()=>window.coursePractice?.open(practiceId,{stage:'call'}));
+          button(material,'Ритм аккордов и правая рука',()=>window.coursePractice?.open(practiceId,{stage:'rhythm'}));
+          if(m.id==='8')button(material,'Финал: квадрат блюза',()=>window.coursePractice?.open('blues',{stage:'free'}));
+          body().prepend(material);
+        }else if(m.id==='7'&&d.points?.length){
+          const sequence=[55,60,64,71,64,60,55,null,[55,.5],[60,.5],64,[71,2],64,60,[55,2]];
+          const events=sequence.map(n=>{const [midi,beats]=Array.isArray(n)?n:[n,1];return withFingering(d,{midi,beats});});
+          const progression=Array.from({length:4},(_,i)=>({atBeat:i*4,beats:4,notes:[48,52,55,59],label:'Cmaj7'}));
+          body().appendChild(node('p','Четыре такта по расположению Cmaj7/G: G–C–E–B. Указательный палец удерживает ноты на пятом ладу; B — на седьмом. Сыграйте линию под Cmaj7, затем соберите четыре звука вместе.'));
+          const tabs=node('div');body().appendChild(tabs);tabView=CoursePracticePlayer.renderTab(tabs,events,{progression});
+          button(row(),'▶ Четыре такта с сопровождением',()=>play({events,progression,countIn:true}));
+        }else if(d.audio){button(row(),'▶ Сыграть вместе с образцом',()=>play(d.audio));}
+      }
+      if(['3','4','7'].includes(m.id)&&index===0)button(row(),'Посмотреть все аккорды C major: I–vii°',()=>window.courseReview?.openHarmony({module:m.id,index}));
       if(!review&&!['practice','ear','learn'].includes(d.type)){const hint=node('details');hint.className='lesson-purpose';hint.appendChild(node('summary','Подсказка'));hint.appendChild(node('p',d.why||d.instruction));hint.ontoggle=()=>{if(hint.open){s.assisted=true;save();}};body().appendChild(hint);}
       update();
     }
@@ -250,6 +269,7 @@ const CourseComplete=(()=>{
       save();el('courseHome').hidden=false;el('courseWork').hidden=true;home();el('courseSummary').focus({preventScroll:true});
     };
     el('courseBack').onclick=()=>{if(review||!(state.index[module().id]>0))return;state.index[module().id]--;render();};
+    if(el('coursePreview'))el('coursePreview').onclick=()=>{if(review)return;const m=module(),i=state.index[m.id]||0;if(i>=m.steps.length-1)return;state.index[m.id]=i+1;render();el('courseStepTitle').focus({preventScroll:true});el('courseWork').scrollIntoView({block:'start'});};
     el('courseRoute').onclick=()=>{stop();review=null;el('courseHome').hidden=false;el('courseWork').hidden=true;home();};
     el('courseRetry').onclick=()=>{delete state.sessions[step().id];render();};el('courseStop').onclick=stop;el('courseTempo').onchange=e=>{tempo=Math.max(40,Math.min(120,Number(e.target.value)||80));e.target.value=tempo;session().tempo=tempo;stop();save();};
     document.querySelectorAll('[role="tab"]').forEach(tab=>tab.addEventListener('click',()=>{stop();window.coursePractice?.stop();if(el('coursePracticeWork'))el('coursePracticeWork').hidden=true;if(tab.id==='tab-course'){el('courseHome').hidden=false;el('courseWork').hidden=true;home();}}));

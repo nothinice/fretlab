@@ -5,6 +5,23 @@ const CoursePracticePlayer=(()=>{
   const NAMES=['C','C♯','D','E♭','E','F','F♯','G','A♭','A','B♭','B'];
   const DEGREES=['1','♭2','2','♭3','3','4','♭5','5','♭6','6','♭7','7'];
   const mod=n=>(n%12+12)%12;
+  // The tempo changes only between complete loops. At most sixteen ramp steps
+  // precede the capped constant-tempo tail, even after a long background delay.
+  function cycleTiming(length,tempo,cycle,ladder=false){
+    tempo=Math.max(40,Math.min(120,Number(tempo)||60));cycle=Math.max(0,Math.floor(cycle));
+    let offset=0,remaining=cycle,current=tempo;
+    if(ladder)while(remaining>0&&current<120){const count=Math.min(2,remaining);offset+=count*length*60/current;remaining-=count;if(count===2)current=Math.min(120,current+5);}
+    offset+=remaining*length*60/current;
+    return {cycle,tempo:current,beatSeconds:60/current,offset,duration:length*60/current};
+  }
+  function locateCycle(length,tempo,seconds,ladder=false){
+    tempo=Math.max(40,Math.min(120,Number(tempo)||60));seconds=Math.max(0,seconds);
+    let remaining=seconds,cycle=0,current=tempo,offset=0;
+    if(ladder)while(current<120){const pair=2*length*60/current;if(remaining<pair)break;remaining-=pair;offset+=pair;cycle+=2;current=Math.min(120,current+5);}
+    const duration=length*60/current,extra=Math.floor(remaining/duration);
+    cycle+=extra;offset+=extra*duration;
+    return {cycle,tempo:current,beatSeconds:60/current,offset,duration,position:(seconds-offset)/(60/current)};
+  }
   function validateEvents(events){
     if(!Array.isArray(events)||!events.length||events.length>256)return 'Нужна фраза от 1 до 256 событий.';
     if(events.some(e=>!e||![.5,1,2,4].includes(e.beats)||!(e.midi===null||Number.isInteger(e.midi)&&e.midi>=0&&e.midi<=127)))return 'Проверьте ноты и длительности фразы.';
@@ -113,7 +130,7 @@ const CoursePracticePlayer=(()=>{
     async function play(events,options={}){
       stop();
       const plan=sliceRange(events,options),tempo=Math.max(40,Math.min(120,Number(options.tempo)||60)),beatSeconds=60/tempo;
-      const lead=options.countIn===false?0:4,loop=options.loop===true,items=[];
+      const lead=options.countIn===false?0:4,loop=options.loop===true,ladder=loop&&options.tempoLadder===true,items=[];
       if(options.melody!==false)for(const e of plan.events)if(e.midi!==null)items.push({kind:'melody',at:e.atBeat,duration:e.beats,midi:e.midi,index:e.index});
       if(options.backing!==false)for(const c of plan.progression)for(const midi of c.notes)items.push({kind:'backing',at:c.atBeat,duration:c.beats,midi});
       if(options.metronome)for(let at=0;at<plan.length;at++)items.push({kind:'click',at,duration:.1,accent:(plan.startBeat+at)%4===0});
@@ -131,7 +148,7 @@ const CoursePracticePlayer=(()=>{
           if(ctx.state!=='running')throw Error('Звук недоступен. Проверьте настройки браузера.');
         }
         if(ticket!==generation)return null;
-        const start=ctx.currentTime+.08,musicStart=start+lead*beatSeconds,cycleSeconds=plan.length*beatSeconds;
+        const start=ctx.currentTime+.08,musicStart=start+lead*beatSeconds;
         let countIndex=0,cycle=0,itemIndex=0;
         function emit(item,at,duration){
           if(item.kind==='click'){if(at>=ctx.currentTime-.015)remember(tap(Math.max(at,ctx.currentTime),item.accent,.085),Math.max(at,ctx.currentTime)+.1);return;}
@@ -144,14 +161,16 @@ const CoursePracticePlayer=(()=>{
             const now=ctx.currentTime,horizon=now+.2;
             for(const v of voices)if(v.end<now-.05||v.voice.stopped)voices.delete(v);
             while(countIndex<lead&&start+countIndex*beatSeconds<horizon){emit({kind:'click',accent:countIndex===0},start+countIndex*beatSeconds,.1);countIndex++;}
-            const elapsed=(now-musicStart)/beatSeconds;
-            if(!loop&&elapsed>=plan.length){finish(true);return;}
+            const elapsed=now-musicStart,currentTiming=locateCycle(plan.length,tempo,elapsed,ladder);
+            if(!loop&&elapsed>=plan.length*beatSeconds){finish(true);return;}
             // A delayed timer skips stale cycles instead of allocating an unbounded backlog.
-            if(loop&&elapsed>=0&&cycle<Math.floor(elapsed/plan.length)){cycle=Math.floor(elapsed/plan.length);itemIndex=0;}
+            if(loop&&elapsed>=0&&cycle<currentTiming.cycle){cycle=currentTiming.cycle;itemIndex=0;}
             if(items.length){
               let scheduled=0;
-              while((loop||cycle===0)&&musicStart+cycle*cycleSeconds+items[itemIndex].at*beatSeconds<horizon){
-                const item=items[itemIndex];emit(item,musicStart+cycle*cycleSeconds+item.at*beatSeconds,item.duration*beatSeconds);
+              while(loop||cycle===0){
+                const timing=cycleTiming(plan.length,tempo,cycle,ladder),item=items[itemIndex],at=musicStart+timing.offset+item.at*timing.beatSeconds;
+                if(at>=horizon)break;
+                emit(item,at,item.duration*timing.beatSeconds);
                 itemIndex++;if(itemIndex===items.length){itemIndex=0;cycle++;}
                 if(++scheduled>1024)throw Error('Не удалось запланировать воспроизведение.');
               }
@@ -160,12 +179,12 @@ const CoursePracticePlayer=(()=>{
             if(now<start)frame={index:-1,waiting:true,cycle:0};
             else if(elapsed<0)frame={index:-1,countIn:Math.min(4,Math.floor((now-start)/beatSeconds)+1),cycle:0};
             else{
-              const currentCycle=Math.floor(elapsed/plan.length),position=elapsed-currentCycle*plan.length;
+              const currentCycle=currentTiming.cycle,position=currentTiming.position;
               const current=plan.events.find(e=>position>=e.atBeat&&position<e.atBeat+e.beats),chord=plan.progression.find(c=>position>=c.atBeat&&position<c.atBeat+c.beats);
               const full=plan.startBeat+position;
-              frame={index:current?.midi!==null?current?.index??-1:-1,bar:Math.floor(full/4)+1,beat:Math.floor(full%4)+1,position:full,cycle:currentCycle,chord:chord?.label||''};
+              frame={index:current?.midi!==null?current?.index??-1:-1,bar:Math.floor(full/4)+1,beat:Math.floor(full%4)+1,subdivision:Math.floor(full*2)%8,position:full,cycle:currentCycle,tempo:currentTiming.tempo,chord:chord?.label||''};
             }
-            const key=JSON.stringify([frame.index,frame.bar,frame.beat,frame.countIn,frame.cycle,frame.chord,frame.waiting]);
+            const key=JSON.stringify([frame.index,frame.bar,frame.beat,frame.subdivision,frame.countIn,frame.cycle,frame.chord,frame.waiting]);
             if(key!==lastFrame){lastFrame=key;onFrame(frame);}
             if(ticket===generation)timer=setTimer(tick,25);
           }catch(error){finish(false,error);}
@@ -179,6 +198,6 @@ const CoursePracticePlayer=(()=>{
     function destroy(){stop();if(typeof document!=='undefined')document.removeEventListener('visibilitychange',visibility);if(typeof window!=='undefined')window.removeEventListener('pagehide',stop);}
     return {play,stop,isPlaying:()=>playing,destroy};
   }
-  return {validateEvents,sliceRange,renderTab,createPlayer};
+  return {validateEvents,sliceRange,cycleTiming,locateCycle,renderTab,createPlayer};
 })();
 if(typeof module!=='undefined'&&module.exports)module.exports=CoursePracticePlayer;

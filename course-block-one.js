@@ -132,7 +132,7 @@ const CourseBlockOne = (() => {
     function save(){try{localStorage.setItem(KEY,JSON.stringify({version:1,records}));}catch{canStore=false;}storage();}
     function stop(){audioVersion++;cancelAnimationFrame(audioFrame);audioFrame=0;visual?.clear();visual=null;if(stopButton)stopButton.hidden=true;voices.forEach(v=>{try{v?.stop();}catch{}});voices=[];timers.forEach(clearTimeout);timers=[];}
     function audio(events,{countIn=false,click=false,player=null,onend=null}={}){
-      stop();const version=audioVersion;const ctx=getAudioCtx(),beat=60/tempo,start=ctx.currentTime+.08,lead=countIn?4:0;
+      stop();window.coursePractice?.stop();window.sandboxIdeas?.stop?.();window.courseReview?.stop();const version=audioVersion;const ctx=getAudioCtx(),beat=60/tempo,start=ctx.currentTime+.08,lead=countIn?4:0;
       visual=player;visual?.playing(true);
       const held=['rhythm','compose'].includes(activity?.kind);
       const add=(midi,time,dur,peak)=>{voices.push(playMidi(midi,time,dur,peak,activity?.kind==='compose'&&[48,50,52].includes(midi)?{boardId:'blockPracticeBoard',index:4*(FRET_COUNT+1)+midi-45}:null,held?'held':null));};
@@ -457,6 +457,7 @@ const CourseBlockOne = (() => {
       const timeline=node('ol');timeline.className='phrase-timeline';
       s.events.forEach((e,i)=>timeline.appendChild(node('li',`${i+1}. ${e.midi===null?'Пауза':pitchNames.pitch(e.midi).name} · ${e.beats===.5?'½ доли':e.beats===1?'1 доля':e.beats+' доли'}`)));body.appendChild(timeline);
       const playback=controls();button(playback,'Убрать последнее',()=>{s.events.pop();draw();},!s.events.length);button(playback,'Очистить фразу',()=>{s.events=[];s.checks=[false,false];draw();},!s.events.length);button(playback,'▶ Сыграть с отсчётом',()=>audio(s.events,{countIn:true,click:true}),!s.events.length);tempoControl();
+      button(controls(),'Сыграть этюд из C, D, E по табам',()=>window.coursePractice?.open('starter'));
       checklist(body,['Я пропел свою фразу, затем сыграл её на гитаре.','Я сохранил пульс и паузу; если сбивался, замедлил темп и повторил.'],s.checks);
       button(controls(),'Проверить фразу и завершить',()=>{
         const issue=phraseCheck(s.events);if(issue){feedback(issue);return;}

@@ -59,7 +59,7 @@ with sync_playwright() as p:
     expect(page.locator('#tabsMore')).to_be_hidden()
     assert page.locator('.v2-topbar').bounding_box()['height']<=65
     assert page.locator('.v2-tabs').evaluate('e=>e.scrollWidth<=e.clientWidth+1')
-    page.locator('#tab-block').click();page.locator('#blockResume').click()
+    page.locator('#tab-course').click();page.locator('#courseModuleCards .course-module-card').nth(0).locator('button').first.click();page.locator('#blockResume').click()
     page.locator('#lessonNext').click();page.locator('#lessonNext').click()
     assert page.locator('#lessonNextHelp').evaluate('e=>parseFloat(getComputedStyle(e).fontSize)')>=15
     page.screenshot(path='/tmp/fretlab-review2-mobile.png',full_page=True)
@@ -99,7 +99,7 @@ with sync_playwright() as p:
     page.reload()
     assert 'Продолжить урок:' not in page.locator('#blockResume').inner_text()
     for index in [6,7,8]:
-      page.locator('#tab-block').click()
+      page.locator('#tab-course').click();page.locator('#courseModuleCards .course-module-card').nth(0).locator('button').first.click()
       page.locator('#blockActivities article').nth(index).get_by_role('button').click()
       assert page.get_by_role('button',name='← К уроку',exact=True).count()==0
     assert not errors,errors

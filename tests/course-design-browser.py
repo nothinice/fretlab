@@ -40,7 +40,7 @@ with sync_playwright() as p:
   closed=page.locator('.design-route-part').last
   closed.locator('summary').click();expect(closed.locator('.block-card').first).to_be_visible()
   for i in range(4):
-   page.locator('#tab-block').click();group=page.locator('.design-route-part').nth(i)
+   page.locator('#tab-course').click();page.locator('#courseModuleCards .course-module-card').nth(0).locator('button').first.click();group=page.locator('.design-route-part').nth(i)
    if group.get_attribute('open') is None:group.locator('summary').click()
    group.locator('.block-card').first.get_by_role('button').click()
    expect(page.locator('#panel-lesson' if i<2 else '#blockWorkspace')).to_be_visible()
